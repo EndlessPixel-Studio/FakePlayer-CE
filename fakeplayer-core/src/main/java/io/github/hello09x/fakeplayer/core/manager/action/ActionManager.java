@@ -51,7 +51,10 @@ public class ActionManager {
 
         return manager.entrySet()
                       .stream()
-                      .filter(actions -> actions.getValue().getSetting().remains > 0)
+                      .filter(action -> {
+                          int remains = action.getValue().getSetting().remains;
+                          return remains > 0 || remains == -1;
+                      })
                       .map(Map.Entry::getKey)
                       .collect(Collectors.toSet());
     }
