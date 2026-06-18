@@ -1,6 +1,7 @@
 plugins {
     java
     id("com.github.johnrengelman.shadow") version "8.1.1" apply false
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.19" apply false
 }
 
 allprojects {
@@ -8,7 +9,6 @@ allprojects {
     version = "0.3.19"
 
     repositories {
-        mavenLocal()  // 本地 Maven 仓库，包含 BuildTools 构建的 spigot
         mavenCentral()
         maven("https://libraries.minecraft.net/")
         maven("https://repo.papermc.io/repository/maven-public/")
@@ -31,7 +31,6 @@ subprojects {
     }
 
     dependencies {
-        compileOnly("io.papermc.paper:paper-api:1.21.7-R0.1-SNAPSHOT")
         compileOnly("org.projectlombok:lombok:1.18.36")
         annotationProcessor("org.projectlombok:lombok:1.18.36")
         compileOnly("com.mojang:authlib:4.0.43")

@@ -1,5 +1,6 @@
 plugins {
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.github.johnrengelman.shadow")
+    id("io.papermc.paperweight.userdev")
 }
 
 java {
@@ -27,8 +28,13 @@ dependencies {
     implementation(project(":fakeplayer-v1_21_9"))
     implementation(project(":fakeplayer-v1_21_10"))
     implementation(project(":fakeplayer-v1_21_11"))
+    paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
 }
 
 tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
     archiveFileName.set("fakeplayer-${project.version}.jar")
+}
+
+tasks.assemble {
+    dependsOn(tasks.reobfJar)
 }
