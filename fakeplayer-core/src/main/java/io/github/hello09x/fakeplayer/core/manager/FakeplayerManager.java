@@ -18,6 +18,7 @@ import io.github.hello09x.fakeplayer.core.manager.naming.NameManager;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import io.github.hello09x.fakeplayer.core.util.AddressUtils;
 import io.github.hello09x.fakeplayer.core.util.Commands;
+import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -28,6 +29,7 @@ import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -39,9 +41,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static net.kyori.adventure.text.Component.*;
-import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
-import static net.kyori.adventure.text.format.TextDecoration.ITALIC;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 @Singleton
 public class FakeplayerManager {
@@ -56,6 +59,7 @@ public class FakeplayerManager {
     private final NMSBridge nms;
     private final FakeplayerConfig config;
     private final ScheduledExecutorService lagMonitor;
+    private int laglevel=0;
 
     @Inject
     public FakeplayerManager(NameManager nameManager, FakeplayerList playerList, FakeplayerFeatureManager featureManager, NMSBridge nms, FakeplayerConfig config) {
@@ -67,12 +71,33 @@ public class FakeplayerManager {
 
         this.lagMonitor = Executors.newSingleThreadScheduledExecutor();
         this.lagMonitor.scheduleWithFixedDelay(() -> {
-                                                   if (Bukkit.getServer().getTPS()[1] < config.getKaleTps()) {
+                                                //Detects TPS performance from the past 1 minute only
+                                                //将服务器卡顿检测范围缩小到过去一分钟，以配合新功能获得更及时的反应
+                                                   if (Bukkit.getServer().getTPS()[0] < config.getKaleTps()) {
                                                        Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
-                                                           if (this.removeAll("low tps") > 0) {
-                                                               Bukkit.broadcast(translatable("fakeplayer.manager.remove-all-on-low-tps", GRAY, ITALIC));
+                                                           laglevel=min(laglevel+1,this.config.getPlayerLimit());
+                                                           Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
+                                                           for (Player player : onlinePlayers) {
+                                                               if(isFake(player))continue;
+                                                               List<Player> fakeplayerlist= getAll(player);
+                                                               if(fakeplayerlist.size()>this.config.getPlayerLimit()-laglevel){
+                                                                   for (int i = fakeplayerlist.size() - 1; i >= this.config.getPlayerLimit()-laglevel; i--) {
+                                                                       //Remove fakeplayers in reverse order of summoning
+                                                                       //如果玩家召唤的假人数量超出降低后的上限，则按照反序移除假人
+                                                                       remove(fakeplayerlist.get(i).getName(),"Server lag");
+                                                                   }
+                                                               }
                                                            }
+                                                           //Lacking translation key for now
+                                                           //暂时没有写翻译条目，先用英文播报
+                                                           Bukkit.broadcast(Component.text("Server lag! Current fakeplayer limits: ").color(GOLD).append(Component.text(this.config.getPlayerLimit()-laglevel).color(RED)));
                                                        });
+                                                   }
+                                                   else {
+                                                       //Restore fakeplayer limits, one at a time
+                                                       //如果卡顿恢复，则每周期恢复1个假人上限
+                                                       if(laglevel>0)Bukkit.broadcast(Component.text("Fakeplayer restrictions removed! Current limits: ").color(GREEN).append(Component.text(this.config.getPlayerLimit()-laglevel+1).color(AQUA)));
+                                                       laglevel=max(laglevel-1,0);
                                                    }
                                                }, 0, 60, TimeUnit.SECONDS
         );
@@ -439,10 +464,10 @@ public class FakeplayerManager {
     /**
      * 以控制台身份对玩家执行命令
      *
-     * @param player   假人
+     * @param args   参数
      * @param commands 命令
      */
-    public void dispatchCommands(@NotNull Player player, @NotNull List<String> commands) {
+    public void dispatchCommands(@NotNull DispatchCommandArgs args, @NotNull List<String> commands) {
         if (commands.isEmpty()) {
             return;
         }
@@ -450,9 +475,9 @@ public class FakeplayerManager {
         var server = Bukkit.getServer();
         var sender = Bukkit.getConsoleSender();
 
-        var p = player.getName();
-        var u = player.getUniqueId().toString();
-        var c = Objects.requireNonNull(this.getCreatorName(player));
+        var p = args.fakeplayerName;
+        var u = args.fakeplayerUUID;
+        var c = args.creatorName;
         for (var cmd : Commands.formatCommands(commands, "%p", p, "%u", u, "%c", c)) {
             if (!server.dispatchCommand(sender, cmd)) {
                 log.warning("Failed to execute command for %s: ".formatted(p) + cmd);
@@ -460,6 +485,21 @@ public class FakeplayerManager {
                 log.info("Dispatched command: " + cmd);
             }
         }
+    }
+
+    /**
+     * 以控制台身份对玩家执行命令
+     *
+     * @param player   假人
+     * @param commands 命令
+     */
+    public void dispatchCommands(@NotNull Player player, @NotNull List<String> commands) {
+        this.dispatchCommands(new DispatchCommandArgs(player.getName(),player.getUniqueId().toString(),Objects.requireNonNull(this.getCreatorName(player))),commands);
+    }
+
+    @AllArgsConstructor
+    public static class DispatchCommandArgs {
+        public String fakeplayerName , fakeplayerUUID, creatorName;
     }
 
     /**
@@ -476,11 +516,13 @@ public class FakeplayerManager {
             throw new CommandException(translatable("fakeplayer.command.spawn.error.server-limit"));
         }
 
-        if (this.playerList.getByCreator(creator.getName()).size() >= this.config.getPlayerLimit()) {
+        //Apply dynamic limits to fakeplayers
+        //对玩家创建假人上限判断应用新的计算规则
+        if (this.playerList.getByCreator(creator.getName()).size() >= this.config.getPlayerLimit()-laglevel) {
             throw new CommandException(translatable("fakeplayer.command.spawn.error.player-limit"));
         }
 
-        if (this.config.isDetectIp() && this.countByAddress(AddressUtils.getAddress(creator)) >= this.config.getPlayerLimit()) {
+        if (this.config.isDetectIp() && this.countByAddress(AddressUtils.getAddress(creator)) >= this.config.getPlayerLimit()-laglevel) {
             throw new CommandException(translatable("fakeplayer.command.spawn.error.ip-limit"));
         }
     }

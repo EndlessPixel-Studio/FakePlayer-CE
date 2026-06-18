@@ -13,6 +13,10 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * @author tanyaofei
  * @since 2024/8/7
@@ -56,6 +60,8 @@ public class FakeplayerLifecycleListener implements Listener {
         }, 20);
     }
 
+    //K:假人UUID V:创建者名称
+    private final Map<UUID, String> pendingFakeQuits = new ConcurrentHashMap<>();
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPostQuit(@NotNull PlayerQuitEvent event) {
@@ -64,22 +70,21 @@ public class FakeplayerLifecycleListener implements Listener {
             // Not a fake player
             return;
         }
-
+        pendingFakeQuits.put(player.getUniqueId(), this.manager.getCreatorName(player));
         manager.dispatchCommands(player, config.getPostQuitCommands());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onAfterQuit(@NotNull PlayerQuitEvent event) {
         var player = event.getPlayer();
-        if (this.manager.isNotFake(player)) {
-            // Not a fake player
-            return;
-        }
-
+        var uuid = player.getUniqueId();
+        if (!pendingFakeQuits.containsKey(uuid)) return;
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
-            manager.dispatchCommands(player, config.getAfterQuitCommands());
-        }, 20);
+            try {
+                manager.dispatchCommands(new FakeplayerManager.DispatchCommandArgs(player.getName(),uuid.toString(),pendingFakeQuits.get(uuid)), config.getAfterQuitCommands());
+            } finally {
+                pendingFakeQuits.remove(uuid);
+            }
+        }, 1);
     }
-
-
 }
