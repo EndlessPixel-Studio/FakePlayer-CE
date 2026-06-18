@@ -1,28 +1,37 @@
-# FakePlayer
+# FakePlayer CE (Community Edition)
 
 ![BANNER_IMAGE](.github/README/BANNER.png)
 
 English | [简体中文](README_zh.md)
 
-This is a server side plugin inspired by [Carpet-Mod](https://github.com/gnembon/fabric-carpet) for Minecraft `1.20.x` and `1.21.x` and above.
+⚠️ **IMPORTANT VERSION STATEMENT**
+This repository is **FakePlayer CE (Community Edition)**, a community-maintained derivative fork.
+- This is **NOT the official original FakePlayer project**, not maintained, endorsed or released by the original author.
+- This fork is refactored & extended to support cross-version compatibility from Minecraft `1.20.1 ~ 1.21.11`.
+- All issues, bugs and feature requests for this CE build shall only be submitted to this repo, not upstream original repository.
+
+This is a server side plugin inspired by [Carpet-Mod](https://github.com/gnembon/fabric-carpet) for Minecraft `1.20.x` and `1.21.x` series.
 
 [Click me](https://youtu.be/NePaDz-P5nI) to visit a demo video.
 
 ## Features
-
 + Lets you spawn fake players who look like real to the server, they can keep chunk loading
 + Fake players can be recolonized by vanilla commands and plugin commands, such as `/ban`, `/tp`
 + You can open and edit their inventory via `/fp invsee` or Right-Clicking on them
 + You can fully control their moving, jumping, attacking... What's better ? Make it periodical
 + Each player can configure his personal configuration
 
-## Requirements
+### Exclusive Features of FakePlayer CE
+✅ Multi-version unified package support: Single jar works for MC `1.20.1 ~ 1.21.11`
+✅ Build system migrated from Maven to Gradle Kotlin DSL multi-module architecture
+✅ Version-specific NMS encapsulation to reduce future update adaptation cost
+✅ Continuous compatibility fixes for newer Paper/Purpur builds
 
+## Requirements
 + [Paper](https://papermc.io) or [Purpur](http://purpurmc.org) software
 + [CommandAPI](https://commandapi.jorel.dev) Plugin (Any version **except** `10.0.0`)
 
 ## Config file
-
 **Fakeplayer only generates a template config file named `config.tmpl.yml`.**
 You need to rename this file to `config.yml` as your configuration file.
 This approach can let you preview new content when you are upgrading it.
@@ -43,7 +52,7 @@ This approach can let you preview new content when you are upgrading it.
 | /fp drop      | Drop held item                            | fakeplayer.command.drop      |                                                                 |
 | /fp dropstack | Drop entire stack of the held item        | fakeplayer.command.dropstack |                                                                 |
 | /fp dropinv   | Drop all items in the inventory           | fakeplayer.command.dropinv   |                                                                 |
-| /fp skin      | Copy skin from another player             | fakeplayer.command.skin      | 60 seconds cooldown if copy from a offline player               | 
+| /fp skin      | Copy skin from another player             | fakeplayer.command.skin      | 60 seconds cooldown if copy from a offline player               |
 | /fp invsee    | Open an inventory of a fake player        | fakeplayer.command.invsee    | Right-clicking on fake players has the same effect              |
 | /fp sleep     | Sleep                                     | fakeplayer.command.sleep     |                                                                 |
 | /fp wakeup    | Wake up                                   | fakeplayer.command.wakeup    |                                                                 |
@@ -62,7 +71,7 @@ This approach can let you preview new content when you are upgrading it.
 | /fp stop      | Stop all actions                          | fakeplayer.command.stop      |                                                                 |
 | /fp turn      | Turn around                               | fakeplayer.command.turn      |                                                                 |
 | /fp look      | Look at specified location                | fakeplayer.command.look      |                                                                 |
-| /fp move      | Move                                      | fakeplayer.command.mvoe      |                                                                 |
+| /fp move      | Move                                      | fakeplayer.command.move      | Typo fix: original typo `mvoe` corrected                        |
 | /fp ride      | Ride                                      | fakeplayer.command.ride      |                                                                 |
 | /fp sneak     | Sneak                                     | fakeplayer.command.sneak     |                                                                 |
 | /fp sprint    | Sprinting                                 | fakeplayer.command.sprint    |                                                                 |
@@ -72,11 +81,9 @@ This approach can let you preview new content when you are upgrading it.
 | /fp reload    | Reload config file                        | OP                           |                                                                 |
 
 ## Personal Configuration
-
 **Each player** can configure his **own** configuration, it will take effect on the next spawning
 
 Command examples:
-
 + `/fp config list` - View all personalized configurations
 + `/fp config set collidable false` - Set personalized configuration
 
@@ -92,16 +99,13 @@ Command examples:
 | autofish           | Whether to autofish                                                                                                                 |
 
 ## Permissions
-
 <details>
 <summary>Click to visit</summary>
 
 Each command has its own permission node, but we provided some permissions packs
 
 ### Permission `fakeplayer.spawn`
-
 `fakeplayer.spawn` includes the following permissions:
-
 - fakeplayer.command.spawn - Create fake player
 - fakeplayer.command.kill - Kill fake player
 - fakeplayer.command.list - List fake players
@@ -119,17 +123,13 @@ Each command has its own permission node, but we provided some permissions packs
 - fakeplayer.command.set - Set fake player settings
 
 ### Permission `fakeplayer.tp`
-
 `fakeplayer.tp` includes the following permissions:
-
 - fakeplayer.command.tp
 - fakeplayer.command.tphere
 - fakeplayer.command.tps
 
 ### Permission `fakeplayer.action`
-
 `fakeplayer.action` includes the following permissions:
-
 - fakeplayer.command.attack - Attack
 - fakeplayer.command.mine - Mine
 - fakeplayer.command.use - Use
@@ -154,42 +154,47 @@ If your server does not restrict various player commands, you can use this direc
 </details>
 
 ## Placeholder Variables
-
 + `%fakeplayer_total%`: Total count of fake players
 + `%fakeplayer_creator%`: The creator name of a fake player
-+ `%fakeplayer_actions`: Active actions of a fake player such as : `USE|ATTACK`
++ `%fakeplayer_actions%`: Active actions of a fake player such as : `USE|ATTACK`
 
 # Custom Translation
-
 1. Create a `message` folder in `plugins/fakeplayer`
 2. Copy [this file](fakeplayer-core/src/main/resources/message/message.properties) to `message` folder
 3. Rename the file to `message_language_region.properties` such as `message_en_us.properties`
 4. Edit your `config.yml`, set `i18n.locale` to the name suffix which you just created such as `en_us`
-5. Type `/fp reload-translation` to reload translation file. If you change `i18n.local`, you should `/fp reload` first
+5. Type `/fp reload-translation` to reload translation file. If you change `i18n.locale`, you should `/fp reload` first
 
 **Make sure the translation file is encoded with UTF-8**
 
+# Upstream & Version Difference
+### Original Official FakePlayer
+The original project is the base source of this fork, limited to fixed single Minecraft version per release, using Maven build structure.
+
+### FakePlayer CE Modifications Summary
+1. Build migration: Maven → Gradle Kotlin DSL multi-module project
+2. Cross-version adaptation: Encapsulate NMS code into separate modules for 1.20.1 ~ 1.21.11
+3. Release mode: Single universal jar instead of separate versioned jars
+4. Long-term compatibility maintenance for latest Paper/Purpur snapshots
+5. Bug fixes targeted at multi-version runtime conflicts
+
+> If you need official original FakePlayer updates, please check the upstream repository of original author.
+
 # FAQs
-
 ## xxx lost connection: PacketEvents 2.0 failed to inject
-
 Some plugin changes the `Connection` of the fake player, You can set `prevent-kicking` to `ALWAYS` to solve it.
-
 ```yaml
 # config.yml
 prevent-kicking: ALWAYS
 ```
 
 ## Fake players do not attract aggression
-
 By default, fake players are in invincible mode. Players need to manually turn off invincible mode with `/fp config set invulnerable false` to attract aggression. After turning it off, they will
-receive hunger and health effects. You may need to use `res` or beacon to ensure the fake player's `hunger` and `health`.
+receive hunger and health effects. You may need to use `res` or beacon to ensure the fake player's `hunger` and health.
 
 ## Fake players automatically log out after a while
-
-This may be because plugins like `AutheMe` detect that fake players have not logged in for a long time. You can include the login command in the configuration file's `self-commands` to prevent the
+This may be because plugins like `AuthMe` detect that fake players have not logged in for a long time. You can include the login command in the configuration file's `self-commands` to prevent the
 plugin from kicking out players for being idle:
-
 ```yaml
 # Note: You should use a complex password, or AuthMe may reject it
 self-commands:
@@ -198,7 +203,5 @@ self-commands:
 ```
 
 # Build Project
-
 See the [introduction](./BUILD.md).
-
-
+> This build document is written for **FakePlayer CE Gradle multi-module compilation workflow**, incompatible with original Maven-based official project compilation steps.
