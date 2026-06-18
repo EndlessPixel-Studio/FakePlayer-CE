@@ -3,6 +3,7 @@ package io.github.hello09x.fakeplayer.core.placeholder;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import io.github.hello09x.devtools.core.translation.PluginTranslator;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
@@ -25,11 +26,13 @@ public class FakeplayerPlaceholderExpansionImpl extends PlaceholderExpansion imp
 
     private final FakeplayerManager manager;
     private final ActionManager actionManager;
+    private final PluginTranslator translator;
 
     @Inject
-    public FakeplayerPlaceholderExpansionImpl(FakeplayerManager manager, ActionManager actionManager) {
+    public FakeplayerPlaceholderExpansionImpl(FakeplayerManager manager, ActionManager actionManager, PluginTranslator translator) {
         this.manager = manager;
         this.actionManager = actionManager;
+        this.translator = translator;
     }
 
     @Override
@@ -62,6 +65,14 @@ public class FakeplayerPlaceholderExpansionImpl extends PlaceholderExpansion imp
         // papi parse CONSOLE_1 fakeplayer_actions
         if (params.equalsIgnoreCase("actions") && player != null && manager.isFake(player)) {
             return actionManager.getActiveActions(player).stream().map(Enum::name).collect(Collectors.joining("|"));
+        }
+
+        // papi parse CONSOLE_1 fakeplayer_actions_translated
+        if (params.equalsIgnoreCase("actions_translated") && player != null && manager.isFake(player)) {
+            return actionManager.getActiveActions(player).stream().map(actionType -> {
+                var format = translator.translate(actionType.translationKey(), null);
+                return format == null ? "" : format.format(new Object[0]);
+            }).collect(Collectors.joining("|"));
         }
 
         return params;

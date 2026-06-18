@@ -3,6 +3,7 @@ package io.github.hello09x.fakeplayer.core;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import io.github.hello09x.devtools.core.translation.PluginTranslator;
 import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerList;
@@ -66,11 +67,11 @@ public class FakeplayerModule extends AbstractModule {
 
     @Singleton
     @Provides
-    private @Nullable FakeplayerPlaceholderExpansion fakeplayerPlaceholderExpansion(FakeplayerManager fakeplayerManager, ActionManager actionManager) {
+    private @Nullable FakeplayerPlaceholderExpansion fakeplayerPlaceholderExpansion(FakeplayerManager fakeplayerManager, ActionManager actionManager, PluginTranslator translator) {
         if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !ClassUtils.isClassExists("me.clip.placeholderapi.expansion.PlaceholderExpansion")) {
             return null;
         }
-        return new FakeplayerPlaceholderExpansionImpl(fakeplayerManager, actionManager);
+        return new FakeplayerPlaceholderExpansionImpl(fakeplayerManager, actionManager, translator);
     }
 
 }
