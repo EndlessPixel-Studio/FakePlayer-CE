@@ -3,7 +3,6 @@ package io.github.hello09x.fakeplayer.v1_21_11.network;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
-import lombok.Lombok;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
@@ -14,11 +13,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.bukkit.plugin.messaging.StandardMessenger;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerImpl implements NMSServerGamePacketListener {
@@ -33,21 +30,7 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
             @NotNull CommonListenerCookie cookie
     ) {
         super(server, connection, player, cookie);
-        Optional.ofNullable(Bukkit.getPlayer(player.getUUID()))
-                .ifPresent(p -> this.addChannel(p, BUNGEE_CORD_CORRECTED_CHANNEL));
-    }
-
-    private boolean addChannel(@NotNull Player player, @NotNull String channel) {
-        try {
-            var method = player.getClass().getMethod("addChannel", String.class);
-            var ret = method.invoke(player, channel);
-            if (ret instanceof Boolean success) {
-                return success;
-            }
-            return true;
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            return false;
-        }
+        Bukkit.getMessenger().registerOutgoingPluginChannel(Main.getInstance(), StandardMessenger.validateAndCorrectChannel(BUNGEE_CORD_CHANNEL));
     }
 
     @Override
@@ -59,15 +42,24 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
         }
     }
 
-    /**
-     * 玩家被击退的动作由客户端完成, 假人没有客户端因此手动完成这个动作
-     */
     public void handleClientboundSetEntityMotionPacket(@NotNull ClientboundSetEntityMotionPacket packet) {
         if (packet.getId() == this.player.getId() && this.player.hurtMarked) {
             Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
                 this.player.hurtMarked = true;
-                var movement = packet.getMovement();
-                this.player.lerpMotion(movement);
+                try {
+                    var xa = (double) packet.getClass().getMethod("getXa").invoke(packet);
+                    var ya = (double) packet.getClass().getMethod("getYa").invoke(packet);
+                    var za = (double) packet.getClass().getMethod("getZa").invoke(packet);
+                    this.player.lerpMotion(new net.minecraft.world.phys.Vec3(xa, ya, za));
+                } catch (Exception e) {
+                    try {
+                        var x = (double) packet.getClass().getMethod("getX").invoke(packet);
+                        var y = (double) packet.getClass().getMethod("getY").invoke(packet);
+                        var z = (double) packet.getClass().getMethod("getZ").invoke(packet);
+                        this.player.lerpMotion(new net.minecraft.world.phys.Vec3(x, y, z));
+                    } catch (Exception ignored) {
+                    }
+                }
             });
         }
     }
@@ -81,7 +73,7 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
             return;
         }
 
-        if (!(payload instanceof DiscardedPayload discardedPayload)) {
+        if (!(payload instanceof DiscardedPayload p)) {
             return;
         }
 
@@ -97,20 +89,8 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
             return;
         }
 
-        var message = getDiscardedPayloadData(discardedPayload);
-        recipient.sendPluginMessage(Main.getInstance(), BUNGEE_CORD_CHANNEL, message);
-    }
-
-    private byte[] getDiscardedPayloadData(@NotNull DiscardedPayload payload) {
-        try {
-            return payload.data().array();
-        } catch (NoSuchMethodError e) {
-            try {
-                return (byte[]) payload.getClass().getMethod("data").invoke(payload);   // 1.21.5 actual is  `public final byte[] data() {}`
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
-                throw Lombok.sneakyThrow(e);
-            }
-        }
+        var data = p.data();
+        recipient.sendPluginMessage(Main.getInstance(), BUNGEE_CORD_CHANNEL, data);
     }
 
 }
