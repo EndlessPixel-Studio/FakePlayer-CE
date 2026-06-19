@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 public class Reflections {
@@ -59,6 +60,16 @@ public class Reflections {
             }
         }
         return null;
+    }
+
+    public static Object getHandle(Object obj) {
+        try {
+            Method method = obj.getClass().getMethod("getHandle");
+            method.setAccessible(true);
+            return method.invoke(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
