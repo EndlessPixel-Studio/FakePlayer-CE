@@ -1,5 +1,7 @@
 package io.github.hello09x.fakeplayer.v1_21.spi;
 
+import io.github.hello09x.fakeplayer.core.util.Reflections;
+
 import com.mojang.authlib.GameProfile;
 import io.github.hello09x.devtools.core.utils.WorldUtils;
 import io.github.hello09x.fakeplayer.api.spi.NMSServer;
@@ -10,7 +12,7 @@ import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
-import org.bukkit.craftbukkit.v1_21_R1.CraftServer;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -22,7 +24,7 @@ public class NMSServerImpl implements NMSServer {
     private final MinecraftServer handle;
 
     public NMSServerImpl(@NotNull Server server) {
-        this.handle = ((CraftServer) server).getServer();
+        this.handle = (MinecraftServer) Reflections.getHandle(server);
     }
 
     @Override
