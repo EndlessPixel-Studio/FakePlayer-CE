@@ -1,12 +1,14 @@
 package io.github.hello09x.fakeplayer.v1_20_1.spi;
 
+import io.github.hello09x.fakeplayer.core.util.Reflections;
+
 import io.github.hello09x.fakeplayer.api.spi.NMSNetwork;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
 import io.github.hello09x.fakeplayer.v1_20_1.network.FakeConnection;
 import io.github.hello09x.fakeplayer.v1_20_1.network.FakeServerGamePacketListenerImpl;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.Server;
-import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,13 +28,16 @@ public class NMSNetworkImpl implements NMSNetwork {
 
     @Override
     public @NotNull NMSServerGamePacketListener placeNewPlayer(@NotNull Server server, @NotNull Player player) {
-        var handle = ((CraftPlayer) player).getHandle();
-        ((CraftServer) server).getHandle().placeNewPlayer(
-                this.connection,
-                handle
-        );
+        var handle = (ServerPlayer) Reflections.getHandle(player);
+        var mcServer = (MinecraftServer) Reflections.getHandle(server);
+        try {
+            var method = MinecraftServer.class.getMethod("placeNewPlayer", net.minecraft.network.Connection.class, ServerPlayer.class);
+            method.invoke(mcServer, this.connection, handle);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         var listener = new FakeServerGamePacketListenerImpl(
-                ((CraftServer) server).getServer(),
+                mcServer,
                 this.connection,
                 handle
         );

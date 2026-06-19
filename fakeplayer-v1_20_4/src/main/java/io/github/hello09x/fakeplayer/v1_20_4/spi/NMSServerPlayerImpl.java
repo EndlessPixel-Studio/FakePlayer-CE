@@ -17,8 +17,8 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.ChatVisiblity;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_20_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
+
+
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -35,15 +35,22 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
             false
     );
 
-    @Getter
     private final ServerPlayer handle;
 
-    @Getter
-    private final CraftPlayer player;
+    private final Player player;
 
     public NMSServerPlayerImpl(@NotNull Player player) {
-        this.player = ((CraftPlayer) player);
-        this.handle = ((CraftPlayer) player).getHandle();
+        this.player = player;
+        this.handle = (ServerPlayer) Reflections.getHandle(player);
+    }
+
+    public ServerPlayer getHandle() {
+        return handle;
+    }
+
+    @Override
+    public @NotNull Player getPlayer() {
+        return player;
     }
 
     @Override
@@ -188,7 +195,7 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
             return;
         }
 
-        var server = ((CraftServer) Bukkit.getServer()).getServer();
+        var server = (net.minecraft.server.MinecraftServer) Reflections.getHandle(Bukkit.getServer());
         try {
             ServerPlayer$advancements.set(
                     handle,
@@ -212,7 +219,11 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
 
     @Override
     public void setPlayBefore() {
-        player.readExtraData(new CompoundTag());
+        try {
+            var method = player.getClass().getMethod("readExtraData", CompoundTag.class);
+            method.invoke(player, new CompoundTag());
+        } catch (Exception ignored) {
+        }
     }
 
     @Override

@@ -1,14 +1,15 @@
 package io.github.hello09x.fakeplayer.v1_20_4.spi;
 
+import io.github.hello09x.fakeplayer.core.util.Reflections;
 import io.github.hello09x.fakeplayer.api.spi.NMSNetwork;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
 import io.github.hello09x.fakeplayer.v1_20_4.network.FakeConnection;
 import io.github.hello09x.fakeplayer.v1_20_4.network.FakeServerGamePacketListenerImpl;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.Server;
-import org.bukkit.craftbukkit.v1_20_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,17 +35,20 @@ public class NMSNetworkImpl implements NMSNetwork {
             @NotNull Player player
     ) {
         this.connection.setProtocolAttr(ConnectionProtocol.PLAY);
-        var handle = ((CraftPlayer) player).getHandle();
-        var cookie = CommonListenerCookie.createInitial(((CraftPlayer) player).getProfile());
-
-        ((CraftServer) server).getHandle().placeNewPlayer(
-                this.connection,
-                handle,
-                cookie
-        );
+        var handle = (ServerPlayer) Reflections.getHandle(player);
+        var profile = player.getPlayerProfile();
+        var gameProfile = new com.mojang.authlib.GameProfile(profile.getUniqueId(), profile.getName());
+        var cookie = CommonListenerCookie.createInitial(gameProfile);
+        var mcServer = (MinecraftServer) Reflections.getHandle(server);
+        try {
+            var method = MinecraftServer.class.getMethod("placeNewPlayer", net.minecraft.network.Connection.class, ServerPlayer.class, CommonListenerCookie.class);
+            method.invoke(mcServer, this.connection, handle, cookie);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         var listener = new FakeServerGamePacketListenerImpl(
-                ((CraftServer) server).getServer(),
+                mcServer,
                 this.connection,
                 handle,
                 cookie

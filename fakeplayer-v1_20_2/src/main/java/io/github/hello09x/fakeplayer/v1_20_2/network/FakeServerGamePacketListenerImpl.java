@@ -3,21 +3,16 @@ package io.github.hello09x.fakeplayer.v1_20_2.network;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
-import io.netty.buffer.Unpooled;
 import net.minecraft.network.Connection;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
+import org.bukkit.plugin.messaging.StandardMessenger;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Optional;
 
 public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerImpl implements NMSServerGamePacketListener {
 
@@ -30,27 +25,33 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
             @NotNull CommonListenerCookie cookie
     ) {
         super(server, connection, player, cookie);
-        Optional.ofNullable(Bukkit.getPlayer(player.getUUID()))
-                .map(CraftPlayer.class::cast)
-                .ifPresent(p -> p.addChannel(BUNGEE_CORD_CORRECTED_CHANNEL));
+        Bukkit.getMessenger().registerOutgoingPluginChannel(Main.getInstance(), StandardMessenger.validateAndCorrectChannel(BUNGEE_CORD_CHANNEL));
     }
 
     @Override
     public void send(Packet<?> packet) {
         if (packet instanceof ClientboundCustomPayloadPacket p) {
-            this.handleCustomPayloadPacket(p.payload());
+            this.handleCustomPayloadPacket(p);
         }
     }
 
-    private void handleCustomPayloadPacket(@NotNull CustomPacketPayload payload) {
-        var channel = payload.id().getNamespace() + ":" + payload.id().getPath();
-        if (!channel.equals(BUNGEE_CORD_CORRECTED_CHANNEL)) {
-            return;
+    private void handleCustomPayloadPacket(@NotNull ClientboundCustomPayloadPacket packet) {
+        String channel = null;
+        try {
+            var identifier = (net.minecraft.resources.ResourceLocation) packet.getClass().getMethod("getIdentifier").invoke(packet);
+            channel = StandardMessenger.validateAndCorrectChannel(identifier.getNamespace() + ":" + identifier.getPath());
+        } catch (Exception e) {
+            try {
+                var id = (net.minecraft.resources.ResourceLocation) packet.getClass().getMethod("getId").invoke(packet);
+                channel = StandardMessenger.validateAndCorrectChannel(id.getNamespace() + ":" + id.getPath());
+            } catch (Exception ignored) {
+                return;
+            }
         }
 
-        var buf = new FriendlyByteBuf(Unpooled.buffer(0, 1048576));
-        payload.write(buf);
-        var message = buf.array();
+        if (!channel.equals(BUNGEE_CORD_CHANNEL)) {
+            return;
+        }
 
         var recipient = Bukkit
                 .getOnlinePlayers()
@@ -58,12 +59,25 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
                 .filter(manager::isNotFake)
                 .findAny()
                 .orElse(null);
-
         if (recipient == null) {
             return;
         }
 
-        recipient.sendPluginMessage(Main.getInstance(), BUNGEE_CORD_CHANNEL, message);
+        byte[] message = null;
+        try {
+            var data = (net.minecraft.network.FriendlyByteBuf) packet.getClass().getMethod("getData").invoke(packet);
+            message = data.array();
+        } catch (Exception e) {
+            try {
+                var data = (net.minecraft.network.FriendlyByteBuf) packet.getClass().getMethod("getData").invoke(packet);
+                message = new byte[data.readableBytes()];
+                data.getBytes(data.readerIndex(), message);
+            } catch (Exception ignored) {
+                return;
+            }
+        }
+
+        recipient.sendPluginMessage(Main.getInstance(), channel, message);
     }
 
 }

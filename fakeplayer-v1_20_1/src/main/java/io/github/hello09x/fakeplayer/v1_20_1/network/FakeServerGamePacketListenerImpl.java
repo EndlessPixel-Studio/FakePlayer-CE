@@ -10,11 +10,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.plugin.messaging.StandardMessenger;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Optional;
 
 public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerImpl implements NMSServerGamePacketListener {
 
@@ -26,16 +23,12 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
             @NotNull ServerPlayer player
     ) {
         super(server, connection, player);
-        Optional.ofNullable(Bukkit.getPlayer(player.getUUID()))
-                .map(CraftPlayer.class::cast)
-                .ifPresent(p -> p.addChannel(StandardMessenger.validateAndCorrectChannel(BUNGEE_CORD_CHANNEL)));
+        Bukkit.getMessenger().registerOutgoingPluginChannel(Main.getInstance(), StandardMessenger.validateAndCorrectChannel(BUNGEE_CORD_CHANNEL));
     }
 
     @Override
     public void send(Packet<?> packet) {
         if (packet instanceof ClientboundCustomPayloadPacket p) {
-            // 接收到自定义的数据包，由于假人没有连接导致 BungeeCord 的插件消息无法正确通过 Proxy 发送
-            // 因此将该数据包通过真实的玩家重新发送一份
             this.handleCustomPayloadPacket(p);
         }
     }

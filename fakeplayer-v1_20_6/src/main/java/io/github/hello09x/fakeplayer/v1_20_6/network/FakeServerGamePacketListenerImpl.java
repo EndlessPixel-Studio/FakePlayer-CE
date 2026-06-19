@@ -12,10 +12,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_20_R4.entity.CraftPlayer;
+import org.bukkit.plugin.messaging.StandardMessenger;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 import java.util.logging.Logger;
 
 public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerImpl implements NMSServerGamePacketListener {
@@ -30,9 +29,7 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
             @NotNull CommonListenerCookie cookie
     ) {
         super(server, connection, player, cookie);
-        Optional.ofNullable(Bukkit.getPlayer(player.getUUID()))
-                .map(CraftPlayer.class::cast)
-                .ifPresent(p -> p.addChannel(BUNGEE_CORD_CORRECTED_CHANNEL));
+        Bukkit.getMessenger().registerOutgoingPluginChannel(Main.getInstance(), StandardMessenger.validateAndCorrectChannel(BUNGEE_CORD_CHANNEL));
     }
 
     @Override
