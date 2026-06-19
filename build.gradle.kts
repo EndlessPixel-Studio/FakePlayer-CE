@@ -1,12 +1,11 @@
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version "8.1.1" apply false
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.19" apply false
 }
 
 allprojects {
     group = "io.github.hello09x.fakeplayer"
-    version = "0.3.19"
+    version = "fp.build1"
 
     repositories {
         mavenCentral()
