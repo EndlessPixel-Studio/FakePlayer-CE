@@ -1,4 +1,4 @@
-name: fakeplayer
+name: FakePlayer-CE
 version: '${revision}'
 main: io.github.hello09x.fakeplayer.core.Main
 api-version: '1.20'
