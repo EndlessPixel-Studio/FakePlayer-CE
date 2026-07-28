@@ -55,10 +55,5 @@ public class FakePlayerAdvancements extends PlayerAdvancements {
     public void setSelectedTab(AdvancementHolder advancement) {
     }
 
-    @Override
-    public void stopListening() {
-
-    }
-
 
 }

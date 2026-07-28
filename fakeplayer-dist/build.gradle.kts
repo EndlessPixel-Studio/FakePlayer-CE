@@ -79,6 +79,9 @@ tasks.register<Jar>("shadowJar") {
     from(project(":fakeplayer-v26_1_2").sourceSets.main.get().output)
     from(project(":fakeplayer-v26_2").sourceSets.main.get().output)
 
+    // Include fakeplayer-dist's own resources (SPI services, etc.)
+    from(sourceSets.main.get().output)
+
     // Include runtime dependencies (devtools + Guice) from fakeplayer-core
     val runtimeClasspath = project(":fakeplayer-core").configurations.runtimeClasspath.get()
     from(runtimeClasspath.map { if (it.isDirectory) it else zipTree(it) })

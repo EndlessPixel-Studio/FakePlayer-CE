@@ -43,23 +43,10 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
     }
 
     public void handleClientboundSetEntityMotionPacket(@NotNull ClientboundSetEntityMotionPacket packet) {
-        if (packet.getId() == this.player.getId() && this.player.hurtMarked) {
+        if (packet.id() == this.player.getId() && this.player.hurtMarked) {
             Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
                 this.player.hurtMarked = true;
-                try {
-                    var xa = (double) packet.getClass().getMethod("getXa").invoke(packet);
-                    var ya = (double) packet.getClass().getMethod("getYa").invoke(packet);
-                    var za = (double) packet.getClass().getMethod("getZa").invoke(packet);
-                    this.player.lerpMotion(new net.minecraft.world.phys.Vec3(xa, ya, za));
-                } catch (Exception e) {
-                    try {
-                        var x = (double) packet.getClass().getMethod("getX").invoke(packet);
-                        var y = (double) packet.getClass().getMethod("getY").invoke(packet);
-                        var z = (double) packet.getClass().getMethod("getZ").invoke(packet);
-                        this.player.lerpMotion(new net.minecraft.world.phys.Vec3(x, y, z));
-                    } catch (Exception ignored) {
-                    }
-                }
+                this.player.lerpMotion(packet.movement());
             });
         }
     }

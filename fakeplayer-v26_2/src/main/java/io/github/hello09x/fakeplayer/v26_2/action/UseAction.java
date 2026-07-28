@@ -57,11 +57,11 @@ public class UseAction extends TraceAction {
                     boolean handWasEmpty = player.getItemInHand(hand).isEmpty();
                     boolean itemFrameEmpty = (entity instanceof ItemFrame) && ((ItemFrame) entity).getItem().isEmpty();
                     var pos = entityHit.getLocation().subtract(entity.getX(), entity.getY(), entity.getZ());
-                    if (entity.interactAt(player, pos, hand).consumesAction()) {
+                    if (entity.interact(player, hand, pos).consumesAction()) {
                         current.freeze = 3;
                         return true;
                     }
-                    if (player.interactOn(entity, hand).consumesAction() && !(handWasEmpty && itemFrameEmpty)) {
+                    if (player.interactOn(entity, hand, entityHit.getLocation()).consumesAction() && !(handWasEmpty && itemFrameEmpty)) {
                         current.freeze = 3;
                         return true;
                     }
