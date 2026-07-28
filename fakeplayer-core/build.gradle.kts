@@ -20,3 +20,9 @@ dependencies {
     compileOnly("com.github.lishid:openinv:4.1.8")
     compileOnly("me.clip:placeholderapi:2.11.6")
 }
+
+tasks.processResources {
+    filesMatching("plugin.yml") {
+        expand("revision" to project.version)
+    }
+}

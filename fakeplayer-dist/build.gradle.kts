@@ -66,4 +66,11 @@ tasks.register<Jar>("shadowJar") {
     from(project(":fakeplayer-v1_21_9").sourceSets.main.get().output)
     from(project(":fakeplayer-v1_21_10").sourceSets.main.get().output)
     from(project(":fakeplayer-v1_21_11").sourceSets.main.get().output)
+
+    // Include runtime dependencies (devtools + Guice) from fakeplayer-core
+    val runtimeClasspath = project(":fakeplayer-core").configurations.runtimeClasspath.get()
+    from(runtimeClasspath.map { if (it.isDirectory) it else zipTree(it) })
+
+    // Handle duplicate service files from dependency JARs
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
