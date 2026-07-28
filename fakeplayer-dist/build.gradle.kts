@@ -23,10 +23,14 @@ dependencies {
     compileOnly(project(":fakeplayer-v1_21_9"))
     compileOnly(project(":fakeplayer-v1_21_10"))
     compileOnly(project(":fakeplayer-v1_21_11"))
+    compileOnly(project(":fakeplayer-v26_1"))
+    compileOnly(project(":fakeplayer-v26_1_1"))
+    compileOnly(project(":fakeplayer-v26_1_2"))
+    compileOnly(project(":fakeplayer-v26_2"))
 }
 
 tasks.register<Jar>("shadowJar") {
-    archiveFileName.set("fakeplayer-fp.build1.jar")
+    archiveFileName.set("fakeplayer-fp.build2.jar")
     dependsOn(":fakeplayer-core:build")
     dependsOn(":fakeplayer-api:build")
     dependsOn(":fakeplayer-v1_20_1:build")
@@ -46,6 +50,10 @@ tasks.register<Jar>("shadowJar") {
     dependsOn(":fakeplayer-v1_21_9:build")
     dependsOn(":fakeplayer-v1_21_10:build")
     dependsOn(":fakeplayer-v1_21_11:build")
+    dependsOn(":fakeplayer-v26_1:build")
+    dependsOn(":fakeplayer-v26_1_1:build")
+    dependsOn(":fakeplayer-v26_1_2:build")
+    dependsOn(":fakeplayer-v26_2:build")
 
     from(project(":fakeplayer-core").sourceSets.main.get().output)
     from(project(":fakeplayer-api").sourceSets.main.get().output)
@@ -66,6 +74,10 @@ tasks.register<Jar>("shadowJar") {
     from(project(":fakeplayer-v1_21_9").sourceSets.main.get().output)
     from(project(":fakeplayer-v1_21_10").sourceSets.main.get().output)
     from(project(":fakeplayer-v1_21_11").sourceSets.main.get().output)
+    from(project(":fakeplayer-v26_1").sourceSets.main.get().output)
+    from(project(":fakeplayer-v26_1_1").sourceSets.main.get().output)
+    from(project(":fakeplayer-v26_1_2").sourceSets.main.get().output)
+    from(project(":fakeplayer-v26_2").sourceSets.main.get().output)
 
     // Include runtime dependencies (devtools + Guice) from fakeplayer-core
     val runtimeClasspath = project(":fakeplayer-core").configurations.runtimeClasspath.get()
