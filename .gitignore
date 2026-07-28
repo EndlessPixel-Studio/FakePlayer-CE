@@ -113,3 +113,15 @@ buildtool/
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# Gradle
+# 全局缓存目录，彻底忽略
+.gradle/
+
+# 所有模块编译产出全部忽略
+build/
+
+# 例外：唯独保留 gradle 包装必备文件（必须提交）
+!gradle/wrapper/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
