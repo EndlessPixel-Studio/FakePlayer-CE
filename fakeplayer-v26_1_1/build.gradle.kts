@@ -6,6 +6,8 @@ dependencies {
     compileOnly(project(":fakeplayer-core"))
     compileOnly(project(":fakeplayer-api"))
     compileOnly(project(":fakeplayer-v26_1"))
-    paperweight.paperDevBundle("26.1.1-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("26.1.1.build.+")
     compileOnly("com.github.tanyaofei.devtools:devtools-core:0.1.7-SNAPSHOT")
 }
+
+paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
