@@ -197,7 +197,7 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
             return;
         }
 
-        var server = (net.minecraft.server.MinecraftServer) Reflections.getHandle(Bukkit.getServer());
+        var server = (net.minecraft.server.MinecraftServer) Reflections.getServer(Bukkit.getServer());
         try {
             ServerPlayer$advancements.set(
                     handle,

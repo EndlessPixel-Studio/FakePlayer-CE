@@ -29,7 +29,7 @@ public class NMSNetworkImpl implements NMSNetwork {
     @Override
     public @NotNull NMSServerGamePacketListener placeNewPlayer(@NotNull Server server, @NotNull Player player) {
         var handle = (ServerPlayer) Reflections.getHandle(player);
-        var mcServer = (MinecraftServer) Reflections.getHandle(server);
+        var mcServer = (MinecraftServer) Reflections.getServer(server);
         try {
             var method = MinecraftServer.class.getMethod("placeNewPlayer", net.minecraft.network.Connection.class, ServerPlayer.class);
             method.invoke(mcServer, this.connection, handle);

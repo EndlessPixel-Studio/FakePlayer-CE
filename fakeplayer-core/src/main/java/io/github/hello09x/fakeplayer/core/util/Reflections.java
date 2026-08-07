@@ -72,4 +72,14 @@ public class Reflections {
         }
     }
 
+    public static Object getServer(Object obj) {
+        try {
+            Method method = obj.getClass().getMethod("getServer");
+            method.setAccessible(true);
+            return method.invoke(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
