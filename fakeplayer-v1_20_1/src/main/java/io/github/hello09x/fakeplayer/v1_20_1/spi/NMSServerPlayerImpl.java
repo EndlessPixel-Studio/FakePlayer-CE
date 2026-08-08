@@ -17,6 +17,7 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.ChatVisiblity;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -216,11 +217,7 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
 
     @Override
     public void setPlayBefore() {
-        try {
-            var method = player.getClass().getMethod("readExtraData", CompoundTag.class);
-            method.invoke(player, new CompoundTag());
-        } catch (Exception ignored) {
-        }
+        ((CraftPlayer) player).readExtraData(new CompoundTag());
     }
 
     @Override

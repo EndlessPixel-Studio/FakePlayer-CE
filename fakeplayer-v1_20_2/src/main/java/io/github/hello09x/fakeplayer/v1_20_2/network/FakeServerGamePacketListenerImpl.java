@@ -3,7 +3,9 @@ package io.github.hello09x.fakeplayer.v1_20_2.network;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
+import io.netty.buffer.Unpooled;
 import net.minecraft.network.Connection;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.server.MinecraftServer;
@@ -36,20 +38,11 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
     }
 
     private void handleCustomPayloadPacket(@NotNull ClientboundCustomPayloadPacket packet) {
-        String channel = null;
-        try {
-            var identifier = (net.minecraft.resources.ResourceLocation) packet.getClass().getMethod("getIdentifier").invoke(packet);
-            channel = StandardMessenger.validateAndCorrectChannel(identifier.getNamespace() + ":" + identifier.getPath());
-        } catch (Exception e) {
-            try {
-                var id = (net.minecraft.resources.ResourceLocation) packet.getClass().getMethod("getId").invoke(packet);
-                channel = StandardMessenger.validateAndCorrectChannel(id.getNamespace() + ":" + id.getPath());
-            } catch (Exception ignored) {
-                return;
-            }
-        }
+        var payload = packet.payload();
+        var identifier = payload.id();
+        var channel = StandardMessenger.validateAndCorrectChannel(identifier.getNamespace() + ":" + identifier.getPath());
 
-        if (!channel.equals(BUNGEE_CORD_CHANNEL)) {
+        if (!channel.equals(BUNGEE_CORD_CORRECTED_CHANNEL)) {
             return;
         }
 
@@ -63,21 +56,15 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
             return;
         }
 
-        byte[] message = null;
+        var data = new FriendlyByteBuf(Unpooled.buffer());
         try {
-            var data = (net.minecraft.network.FriendlyByteBuf) packet.getClass().getMethod("getData").invoke(packet);
-            message = data.array();
-        } catch (Exception e) {
-            try {
-                var data = (net.minecraft.network.FriendlyByteBuf) packet.getClass().getMethod("getData").invoke(packet);
-                message = new byte[data.readableBytes()];
-                data.getBytes(data.readerIndex(), message);
-            } catch (Exception ignored) {
-                return;
-            }
+            payload.write(data);
+            var message = new byte[data.readableBytes()];
+            data.getBytes(data.readerIndex(), message);
+            recipient.sendPluginMessage(Main.getInstance(), BUNGEE_CORD_CHANNEL, message);
+        } finally {
+            data.release();
         }
-
-        recipient.sendPluginMessage(Main.getInstance(), channel, message);
     }
 
 }

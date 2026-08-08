@@ -41,12 +41,12 @@ import static net.kyori.adventure.text.format.NamedTextColor.*;
 public class Fakeplayer {
 
     private final static InternalAddressGenerator ipGen = new InternalAddressGenerator();
-    private final static FakeplayerConfig config = Main.getInjector().getInstance(FakeplayerConfig.class);
-    private final static NMSBridge bridge = Main.getInjector().getInstance(NMSBridge.class);
-    private final static FakeplayerSkinManager skinManager = Main.getInjector().getInstance(FakeplayerSkinManager.class);
-    private final static FakeplayerReplenishManager replenishManager = Main.getInjector().getInstance(FakeplayerReplenishManager.class);
-    private final static FakeplayerAutofishManager autofishManager = Main.getInjector().getInstance(FakeplayerAutofishManager.class);
-    private final static ActionManager actionManager = Main.getInjector().getInstance(ActionManager.class);
+    private final FakeplayerConfig config;
+    private final NMSBridge bridge;
+    private final FakeplayerSkinManager skinManager;
+    private final FakeplayerReplenishManager replenishManager;
+    private final FakeplayerAutofishManager autofishManager;
+    private final ActionManager actionManager;
 
 
     @NotNull
@@ -95,6 +95,14 @@ public class Fakeplayer {
             @NotNull SequenceName sequenceName,
             long lifespan
     ) {
+        var injector = Main.getInjector();
+        this.config = injector.getInstance(FakeplayerConfig.class);
+        this.bridge = injector.getInstance(NMSBridge.class);
+        this.skinManager = injector.getInstance(FakeplayerSkinManager.class);
+        this.replenishManager = injector.getInstance(FakeplayerReplenishManager.class);
+        this.autofishManager = injector.getInstance(FakeplayerAutofishManager.class);
+        this.actionManager = injector.getInstance(ActionManager.class);
+
         this.name = sequenceName.name();
         this.uuid = sequenceName.uuid();
 
@@ -116,7 +124,6 @@ public class Fakeplayer {
      */
     public CompletableFuture<Void> spawnAsync(@NotNull SpawnOption option) {
         var address = ipGen.next();
-        this.player.setMetadata(MetadataKeys.SPAWNED_AT, new FixedMetadataValue(Main.getInstance(), Bukkit.getCurrentTick()));
         return SchedulerUtils
                 .runTaskAsynchronously(Main.getInstance(), () -> {
                     var event = this.callPreLoginEvent(address);
@@ -129,6 +136,7 @@ public class Fakeplayer {
                     }
                 })
                 .thenComposeAsync(nul -> SchedulerUtils.runTask(Main.getInstance(), () -> {
+                    this.player.setMetadata(MetadataKeys.SPAWNED_AT, new FixedMetadataValue(Main.getInstance(), Bukkit.getCurrentTick()));
                     {
                         var event = this.callLoginEvent(address);
                         if (event.getResult() != PlayerLoginEvent.Result.ALLOWED && config.getPreventKicking().ordinal() < PreventKicking.ON_SPAWNING.ordinal()) {

@@ -9,11 +9,13 @@ import io.github.hello09x.fakeplayer.core.repository.model.UserConfig;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -46,13 +48,21 @@ public class FakeplayerFeatureManager {
     }
 
     public @NotNull Map<Feature, FeatureInstance> getFeatures(@NotNull CommandSender sender) {
-        Map<Feature, UserConfig> userConfigs;
-        if (sender instanceof Player player) {
-            userConfigs = repository.selectByPlayerId(player.getUniqueId()).stream().collect(Collectors.toMap(UserConfig::key, Function.identity()));
-        } else {
-            userConfigs = Collections.emptyMap();
-        }
+        var playerId = sender instanceof Player player ? player.getUniqueId() : null;
+        return this.getFeatures(sender, this.getUserConfigs(playerId));
+    }
 
+    public @NotNull Map<Feature, UserConfig> getUserConfigs(@Nullable UUID playerId) {
+        if (playerId == null) {
+            return Collections.emptyMap();
+        }
+        return repository.selectByPlayerId(playerId).stream().collect(Collectors.toMap(UserConfig::key, Function.identity()));
+    }
+
+    public @NotNull Map<Feature, FeatureInstance> getFeatures(
+            @NotNull CommandSender sender,
+            @NotNull Map<Feature, UserConfig> userConfigs
+    ) {
         var configs = new LinkedHashMap<Feature, FeatureInstance>(Feature.values().length, 1.0F);
         for (var key : Feature.values()) {
             String value;

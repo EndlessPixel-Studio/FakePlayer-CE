@@ -9,7 +9,7 @@ dependencies {
     implementation("com.github.tanyaofei.devtools:devtools-database:0.1.7-SNAPSHOT")
     
     // CommandAPI for command handling
-    compileOnly("dev.jorel:commandapi-paper-core:11.0.0")
+    compileOnly("dev.jorel:commandapi-paper-core:11.1.0")
     
     // Adventure API for text components
     compileOnly("net.kyori:adventure-api:4.17.0")

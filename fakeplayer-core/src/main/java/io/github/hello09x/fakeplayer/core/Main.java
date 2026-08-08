@@ -2,6 +2,7 @@ package io.github.hello09x.fakeplayer.core;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import dev.jorel.commandapi.CommandAPI;
 import io.github.hello09x.devtools.command.CommandModule;
 import io.github.hello09x.devtools.core.TranslationModule;
 import io.github.hello09x.devtools.core.translation.TranslationConfig;
@@ -14,10 +15,12 @@ import io.github.hello09x.fakeplayer.core.listener.FakeplayerLifecycleListener;
 import io.github.hello09x.fakeplayer.core.listener.FakeplayerListener;
 import io.github.hello09x.fakeplayer.core.listener.PlayerListener;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerAutofishManager;
+import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerReplenishManager;
 import io.github.hello09x.fakeplayer.core.manager.WildFakeplayerManager;
 import io.github.hello09x.fakeplayer.core.manager.invsee.InvseeManager;
 import io.github.hello09x.fakeplayer.core.placeholder.FakeplayerPlaceholderExpansion;
+import io.github.hello09x.fakeplayer.core.repository.UsedIdRepository;
 import io.github.hello09x.fakeplayer.core.util.update.UpdateChecker;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -31,6 +34,9 @@ public final class Main extends JavaPlugin {
     private static Main instance;
 
     private Injector injector;
+    private FakeplayerManager fakeplayerManager;
+    private UsedIdRepository usedIdRepository;
+    private boolean stopped;
 
     private long loadAt;
 
@@ -42,6 +48,7 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        stopped = false;
         injector = Guice.createInjector(
                 new FakeplayerModule(),
                 new CommandModule(),
@@ -50,6 +57,9 @@ public final class Main extends JavaPlugin {
                         "message/message",
                         TranslatorUtils.getDefaultLocale(Main.getInstance())))
         );
+        fakeplayerManager = injector.getInstance(FakeplayerManager.class);
+        usedIdRepository = injector.getInstance(UsedIdRepository.class);
+        getServer().getPluginManager().registerEvents(injector.getInstance(FakeplayerListener.class), this);
 
         injector.getInstance(CommandRegistry.class).register();
         {
@@ -62,7 +72,6 @@ public final class Main extends JavaPlugin {
             var manager = getServer().getPluginManager();
             manager.registerEvents(injector.getInstance(PlayerListener.class), this);
             manager.registerEvents(injector.getInstance(FakeplayerLifecycleListener.class), this);
-            manager.registerEvents(injector.getInstance(FakeplayerListener.class), this);
             manager.registerEvents(injector.getInstance(FakeplayerAutofishManager.class), this);
             manager.registerEvents(injector.getInstance(FakeplayerReplenishManager.class), this);
             manager.registerEvents(injector.getInstance(InvseeManager.class), this);
@@ -116,6 +125,26 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        shutdownResources();
+    }
+
+    public void shutdownResources() {
+        if (stopped) {
+            return;
+        }
+        stopped = true;
+        {
+            Exceptions.suppress(this, () -> CommandAPI.unregister("fp", true));
+            Exceptions.suppress(this, () -> CommandAPI.unregister("fakeplayer", true));
+        }
+        if (fakeplayerManager != null) {
+            Exceptions.suppress(this, fakeplayerManager::onDisable);
+            fakeplayerManager = null;
+        }
+        if (usedIdRepository != null) {
+            Exceptions.suppress(this, usedIdRepository::onDisable);
+            usedIdRepository = null;
+        }
         {
             Exceptions.suppress(this, () -> {
                 var messenger = getServer().getMessenger();

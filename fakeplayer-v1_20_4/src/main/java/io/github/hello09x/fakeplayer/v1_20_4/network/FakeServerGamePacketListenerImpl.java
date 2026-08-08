@@ -40,7 +40,7 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
 
     private void handleCustomPayloadPacket(@NotNull CustomPacketPayload payload) {
         var channel = payload.id().getNamespace() + ":" + payload.id().getPath();
-        if (!channel.equals(BUNGEE_CORD_CHANNEL)) {
+        if (!channel.equals(BUNGEE_CORD_CORRECTED_CHANNEL)) {
             return;
         }
 
@@ -54,11 +54,15 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
             return;
         }
 
-        var buf = new FriendlyByteBuf(Unpooled.buffer(0, 1048576));
-        payload.write(buf);
-        var message = buf.array();
-
-        recipient.sendPluginMessage(Main.getInstance(), channel, message);
+        var data = new FriendlyByteBuf(Unpooled.buffer());
+        try {
+            payload.write(data);
+            var message = new byte[data.readableBytes()];
+            data.getBytes(data.readerIndex(), message);
+            recipient.sendPluginMessage(Main.getInstance(), BUNGEE_CORD_CHANNEL, message);
+        } finally {
+            data.release();
+        }
     }
 
 }

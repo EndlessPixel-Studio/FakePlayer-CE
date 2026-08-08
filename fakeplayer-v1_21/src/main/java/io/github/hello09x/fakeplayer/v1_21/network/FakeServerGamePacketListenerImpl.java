@@ -76,7 +76,9 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
             return;
         }
 
-        var message = p.data().array();
+        var data = p.data();
+        var message = new byte[data.readableBytes()];
+        data.getBytes(data.readerIndex(), message);
         recipient.sendPluginMessage(Main.getInstance(), BUNGEE_CORD_CHANNEL, message);
     }
 

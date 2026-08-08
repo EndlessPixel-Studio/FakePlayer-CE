@@ -3,7 +3,6 @@ package io.github.hello09x.fakeplayer.core.listener;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.github.hello09x.devtools.core.utils.ComponentUtils;
-import io.github.hello09x.devtools.core.utils.Exceptions;
 import io.github.hello09x.devtools.core.utils.MetadataUtils;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
@@ -161,11 +160,10 @@ public class FakeplayerListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPluginDisable(@NotNull PluginDisableEvent event) {
         if (event.getPlugin() == Main.getInstance()) {
-            Exceptions.suppress(Main.getInstance(), manager::onDisable);
-            Exceptions.suppress(Main.getInstance(), usedIdRepository::onDisable);
+            Main.getInstance().shutdownResources();
         }
     }
 
