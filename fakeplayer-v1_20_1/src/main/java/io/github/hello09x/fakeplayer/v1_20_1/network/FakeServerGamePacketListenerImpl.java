@@ -35,7 +35,7 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
 
     private void handleCustomPayloadPacket(@NotNull ClientboundCustomPayloadPacket packet) {
         var channel = StandardMessenger.validateAndCorrectChannel(packet.getIdentifier().getNamespace() + ":" + packet.getIdentifier().getPath());
-        if (!channel.equals(BUNGEE_CORD_CHANNEL)) {
+        if (!channel.equals(BUNGEE_CORD_CORRECTED_CHANNEL)) {
             return;
         }
 
@@ -49,8 +49,10 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
             return;
         }
 
-        var message = packet.getData().array();
-        recipient.sendPluginMessage(Main.getInstance(), channel, message);
+        var data = packet.getData();
+        var message = new byte[data.readableBytes()];
+        data.getBytes(data.readerIndex(), message);
+        recipient.sendPluginMessage(Main.getInstance(), BUNGEE_CORD_CHANNEL, message);
     }
 
 }

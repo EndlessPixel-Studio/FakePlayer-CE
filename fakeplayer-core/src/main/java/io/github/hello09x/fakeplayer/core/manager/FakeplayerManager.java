@@ -5,6 +5,7 @@ import com.google.inject.Singleton;
 import io.github.hello09x.devtools.command.exception.CommandException;
 import io.github.hello09x.devtools.core.utils.Exceptions;
 import io.github.hello09x.devtools.core.utils.MetadataUtils;
+import io.github.hello09x.devtools.core.utils.SchedulerUtils;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
@@ -26,6 +27,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.plugin.IllegalPluginAccessException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,6 +61,7 @@ public class FakeplayerManager {
     private final NMSBridge nms;
     private final FakeplayerConfig config;
     private final ScheduledExecutorService lagMonitor;
+    private volatile boolean stopping;
     private int laglevel=0;
 
     @Inject
@@ -115,6 +118,9 @@ public class FakeplayerManager {
             @NotNull Location spawnAt,
             long lifespan
     ) {
+        if (stopping) {
+            return CompletableFuture.failedFuture(new IllegalStateException("Plugin is disabled"));
+        }
         this.checkLimit(creator);
 
         var sn = name == null ? nameManager.getRegularName(creator) : nameManager.getSpecifiedName(name);
@@ -128,12 +134,34 @@ public class FakeplayerManager {
         );
 
         var target = fp.getPlayer();    // 即使出现异常也不需要处理这个玩家, 最终会被 GC 掉
-        this.playerList.add(fp);
+        if (!this.playerList.add(fp)) {
+            this.nameManager.unregister(fp.getSequenceName());
+            return CompletableFuture.failedFuture(new CommandException(
+                    translatable("fakeplayer.spawn.error.name.online", text(fp.getName(), GOLD)).color(RED)
+            ));
+        }
 
-        this.dispatchCommandsEarly(fp, this.config.getPreSpawnCommands());
-        return CompletableFuture
+        try {
+            this.dispatchCommandsEarly(fp, this.config.getPreSpawnCommands());
+        } catch (RuntimeException error) {
+            this.playerList.remove(fp);
+            this.nameManager.unregister(fp.getSequenceName());
+            throw error;
+        }
+
+        var creatorId = creator instanceof Player player ? player.getUniqueId() : null;
+        var future = CompletableFuture
                 .supplyAsync(() -> {
-                    var configs = featureManager.getFeatures(creator);
+                    if (stopping) {
+                        throw new IllegalStateException("Plugin is disabled");
+                    }
+                    return featureManager.getUserConfigs(creatorId);
+                })
+                .thenCompose(userConfigs -> SchedulerUtils.runTask(Main.getInstance(), () -> {
+                    if (stopping) {
+                        throw new IllegalStateException("Plugin is disabled");
+                    }
+                    var configs = featureManager.getFeatures(creator, userConfigs);
                     return new SpawnOption(
                             spawnAt,
                             configs.get(Feature.invulnerable).asBoolean(),
@@ -145,9 +173,31 @@ public class FakeplayerManager {
                             configs.get(Feature.autofish).asBoolean(),
                             configs.get(Feature.wolverine).asBoolean()
                     );
-                })
-                .thenComposeAsync(fp::spawnAsync)
+                }))
+                .thenCompose(fp::spawnAsync)
                 .thenApply(ignored -> target);
+
+        return future.<CompletableFuture<Player>>handle((player, error) -> {
+            if (error == null) {
+                return CompletableFuture.completedFuture(player);
+            }
+            if (stopping) {
+                return CompletableFuture.<Player>failedFuture(error);
+            }
+            try {
+                return SchedulerUtils.runTask(Main.getInstance(), () -> {
+                    if (target.isOnline()) {
+                        target.kick(text(REMOVAL_REASON_PREFIX + "Failed to spawn"));
+                    }
+                    if (playerList.remove(fp)) {
+                        nameManager.unregister(fp.getSequenceName());
+                    }
+                }).thenCompose(ignored -> CompletableFuture.failedFuture(error));
+            } catch (IllegalPluginAccessException ignored) {
+                // onDisable owns cleanup once Bukkit rejects new tasks.
+                return CompletableFuture.<Player>failedFuture(error);
+            }
+        }).thenCompose(result -> result);
     }
 
     /**
@@ -528,7 +578,17 @@ public class FakeplayerManager {
     }
 
     public void onDisable() {
+        this.stopping = true;
         Exceptions.suppress(Main.getInstance(), () -> this.removeAll("Plugin disabled"));
+        Exceptions.suppress(Main.getInstance(), () -> this.playerList.getAll().forEach(fakeplayer -> {
+            if (this.playerList.remove(fakeplayer)) {
+                this.nameManager.unregister(fakeplayer.getSequenceName());
+            }
+        }));
+        Exceptions.suppress(Main.getInstance(), () -> Bukkit.getOnlinePlayers().stream()
+                .filter(player -> player.getMetadata(MetadataKeys.SPAWNED_AT).stream()
+                        .anyMatch(value -> value.getOwningPlugin() == Main.getInstance()))
+                .forEach(player -> player.kick(text(REMOVAL_REASON_PREFIX + "Plugin disabled"))));
         Exceptions.suppress(Main.getInstance(), this.lagMonitor::shutdownNow);
     }
 

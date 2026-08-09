@@ -7,6 +7,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.DiscardedPayload;
+import net.minecraft.network.protocol.game.ClientboundRespawnPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,6 +40,8 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
             this.handleCustomPayloadPacket(p);
         } else if (packet instanceof ClientboundSetEntityMotionPacket p) {
             this.handleClientboundSetEntityMotionPacket(p);
+        } else if (packet instanceof ClientboundRespawnPacket) {
+            this.player.hasChangedDimension();
         }
     }
 
@@ -46,20 +49,7 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
         if (packet.getId() == this.player.getId() && this.player.hurtMarked) {
             Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
                 this.player.hurtMarked = true;
-                try {
-                    var xa = (double) packet.getClass().getMethod("getXa").invoke(packet);
-                    var ya = (double) packet.getClass().getMethod("getYa").invoke(packet);
-                    var za = (double) packet.getClass().getMethod("getZa").invoke(packet);
-                    this.player.lerpMotion(new net.minecraft.world.phys.Vec3(xa, ya, za));
-                } catch (Exception e) {
-                    try {
-                        var x = (double) packet.getClass().getMethod("getX").invoke(packet);
-                        var y = (double) packet.getClass().getMethod("getY").invoke(packet);
-                        var z = (double) packet.getClass().getMethod("getZ").invoke(packet);
-                        this.player.lerpMotion(new net.minecraft.world.phys.Vec3(x, y, z));
-                    } catch (Exception ignored) {
-                    }
-                }
+                this.player.lerpMotion(packet.getMovement());
             });
         }
     }

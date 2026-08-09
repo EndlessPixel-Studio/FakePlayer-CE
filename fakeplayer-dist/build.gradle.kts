@@ -1,6 +1,12 @@
+import java.util.zip.ZipFile
+
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.named<Jar>("jar") {
+    enabled = false
 }
 
 dependencies {
@@ -55,7 +61,8 @@ tasks.register<Jar>("shadowJar") {
     dependsOn(":fakeplayer-v26_1_2:build")
     dependsOn(":fakeplayer-v26_2:build")
 
-    from(project(":fakeplayer-core").sourceSets.main.get().output)
+    val coreJar = project(":fakeplayer-core").tasks.named<Jar>("jar")
+    from(coreJar.map { zipTree(it.archiveFile.get().asFile) })
     from(project(":fakeplayer-api").sourceSets.main.get().output)
     from(project(":fakeplayer-v1_20_1").sourceSets.main.get().output)
     from(project(":fakeplayer-v1_20_2").sourceSets.main.get().output)
@@ -88,4 +95,52 @@ tasks.register<Jar>("shadowJar") {
 
     // Handle duplicate service files from dependency JARs
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    doLast {
+        ZipFile(archiveFile.get().asFile).use { jar ->
+            check(jar.getEntry("plugin.yml") != null) { "Distribution JAR is missing plugin.yml" }
+            val services = jar.getEntry("META-INF/services/io.github.hello09x.fakeplayer.api.spi.NMSBridge")
+            check(services != null) {
+                "Distribution JAR is missing the NMS bridge service descriptor"
+            }
+            val providers = jar.getInputStream(services).bufferedReader().useLines { lines ->
+                lines.map(String::trim).filter { it.isNotEmpty() && !it.startsWith("#") }.toList()
+            }
+            val expectedProviders = setOf(
+                "io.github.hello09x.fakeplayer.v1_20_1.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_20_2.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_20_3.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_20_4.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_20_5.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_20_6.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_21.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_21_1.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_21_3.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_21_4.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_21_5.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_21_6.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_21_7.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_21_8.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_21_9.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_21_10.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v1_21_11.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v26_1.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v26_1_1.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v26_1_2.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v26_2.spi.NMSBridgeImpl"
+            )
+            check(providers.toSet() == expectedProviders) {
+                "Distribution JAR has an incomplete NMS bridge provider set"
+            }
+            providers.forEach { provider ->
+                check(jar.getEntry(provider.replace('.', '/') + ".class") != null) {
+                    "Distribution JAR is missing NMS bridge provider $provider"
+                }
+            }
+        }
+    }
+}
+
+tasks.named("assemble") {
+    dependsOn("shadowJar")
 }

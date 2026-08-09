@@ -31,22 +31,28 @@ import static net.kyori.adventure.text.Component.translatable;
 
 public abstract class CommandSupports {
 
-    private final static FakeplayerManager manager = Main.getInjector().getInstance(FakeplayerManager.class);
+    private static @NotNull FakeplayerManager manager() {
+        return Main.getInjector().getInstance(FakeplayerManager.class);
+    }
 
-    private final static FakeplayerConfig config = Main.getInjector().getInstance(FakeplayerConfig.class);
+    private static @NotNull FakeplayerConfig config() {
+        return Main.getInjector().getInstance(FakeplayerConfig.class);
+    }
 
-    private static final ActionCommand actionCommand = Main.getInjector().getInstance(ActionCommand.class);
+    private static @NotNull ActionCommand actionCommand() {
+        return Main.getInjector().getInstance(ActionCommand.class);
+    }
 
     public static @NotNull CommandAPICommand[] newActionCommands(@NotNull ActionType action) {
         return new CommandAPICommand[]{
                 command("once")
                         .withShortDescription("fakeplayer.command.action.once")
                         .withOptionalArguments(fakeplayer("name"))
-                        .executes(actionCommand.action(action, ActionSetting.once())),
+                        .executes(actionCommand().action(action, ActionSetting.once())),
                 command("continuous")
                         .withShortDescription("fakeplayer.command.action.continuous")
                         .withOptionalArguments(fakeplayer("name"))
-                        .executes(actionCommand.action(action, ActionSetting.continuous())),
+                        .executes(actionCommand().action(action, ActionSetting.continuous())),
                 command("interval")
                         .withShortDescription("fakeplayer.command.action.interval")
                         .withOptionalArguments(
@@ -54,12 +60,12 @@ public abstract class CommandSupports {
                                 fakeplayer("name"))
                         .executes((sender, args) -> {
                     int interval = (int) args.getOptional("ticks").orElse(1);
-                    actionCommand.action(sender, args, action, ActionSetting.interval(interval));
+                    actionCommand().action(sender, args, action, ActionSetting.interval(interval));
                 }),
                 command("stop")
                         .withShortDescription("fakeplayer.command.action.stop")
                         .withOptionalArguments(fakeplayer("name"))
-                        .executes(actionCommand.action(action, ActionSetting.stop()))
+                        .executes(actionCommand().action(action, ActionSetting.stop()))
         };
     }
 
@@ -67,8 +73,8 @@ public abstract class CommandSupports {
         return new CustomArgument<>(new StringArgument(nodeName), info -> {
             var sender = info.sender();
             var target = sender.isOp()
-                    ? manager.get(info.currentInput())
-                    : manager.get(sender, info.currentInput());
+                    ? manager().get(info.currentInput())
+                    : manager().get(sender, info.currentInput());
             if (predicate != null && target != null && !predicate.test(target)) {
                 target = null;
             }
@@ -78,8 +84,8 @@ public abstract class CommandSupports {
             var arg = info.currentArg();
 
             var targets = sender.isOp()
-                    ? manager.getAll(predicate)
-                    : manager.getAll(sender, predicate);
+                    ? manager().getAll(predicate)
+                    : manager().getAll(sender, predicate);
 
             var names = targets.stream().map(Player::getName);
             if (!arg.isEmpty()) {
@@ -101,12 +107,12 @@ public abstract class CommandSupports {
             var arg = info.currentInput();
 
             if (arg.equals("-a")) {
-                return manager.getAll(sender);
+                return manager().getAll(sender);
             }
 
             var target = sender.isOp()
-                    ? manager.get(arg)
-                    : manager.get(sender, arg);
+                    ? manager().get(arg)
+                    : manager().get(sender, arg);
 
             return target == null ? Collections.emptyList() : Collections.singletonList(target);
         }).replaceSuggestions(ArgumentSuggestions.strings(info -> {
@@ -114,8 +120,8 @@ public abstract class CommandSupports {
             var arg = info.currentArg().toLowerCase();
 
             var fakes = sender.isOp()
-                    ? manager.getAll()
-                    : manager.getAll(sender);
+                    ? manager().getAll()
+                    : manager().getAll(sender);
 
             var names = Stream.concat(fakes.stream().map(Player::getName), Stream.of("-a"));
             if (!arg.isEmpty()) {
@@ -180,22 +186,22 @@ public abstract class CommandSupports {
     }
 
     public static boolean hasFakeplayerForRespawn(@NotNull CommandSender sender) {
-        if (config.isKickOnDead()) {
+        if (config().isKickOnDead()) {
             return false;
         }
         return hasFakeplayer(sender);
     }
 
     public static boolean needSelect(@NotNull CommandSender sender) {
-        return sender.isOp() || (config.getPlayerLimit() > 1 && manager.countByCreator(sender) > 0);
+        return sender.isOp() || (config().getPlayerLimit() > 1 && manager().countByCreator(sender) > 0);
     }
 
     public static boolean hasFakeplayer(@NotNull CommandSender sender) {
-        return sender.isOp() || manager.countByCreator(sender) > 0;
+        return sender.isOp() || manager().countByCreator(sender) > 0;
     }
 
     public static boolean isCmdAvailable(@NotNull CommandSender sender) {
-        return (sender.hasPermission(Permission.cmd) || !config.getAllowCommands().isEmpty()) && hasFakeplayer(sender);
+        return (sender.hasPermission(Permission.cmd) || !config().getAllowCommands().isEmpty()) && hasFakeplayer(sender);
     }
 
 }

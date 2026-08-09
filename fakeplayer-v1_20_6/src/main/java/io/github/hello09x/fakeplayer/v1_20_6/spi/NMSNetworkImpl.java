@@ -37,13 +37,8 @@ public class NMSNetworkImpl implements NMSNetwork {
         var profile = player.getPlayerProfile();
         var gameProfile = new com.mojang.authlib.GameProfile(profile.getUniqueId(), profile.getName());
         var cookie = CommonListenerCookie.createInitial(gameProfile, false);
-        var mcServer = (MinecraftServer) Reflections.getHandle(server);
-        try {
-            var method = MinecraftServer.class.getMethod("placeNewPlayer", net.minecraft.network.Connection.class, ServerPlayer.class, CommonListenerCookie.class);
-            method.invoke(mcServer, this.connection, handle, cookie);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        var mcServer = (MinecraftServer) Reflections.getServer(server);
+        mcServer.getPlayerList().placeNewPlayer(this.connection, handle, cookie);
 
         var listener = new FakeServerGamePacketListenerImpl(
                 mcServer,

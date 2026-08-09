@@ -16,15 +16,24 @@ public class FakeplayerList {
     private final Map<UUID, Fakeplayer> playersByUUID = new HashMap<>();
     private final Map<String, List<Fakeplayer>> playersByCreator = new HashMap<>();
 
+    private static @NotNull String nameKey(@NotNull String name) {
+        return name.toLowerCase(Locale.ROOT);
+    }
+
     /**
      * 添加一个假人到假人清单
      *
      * @param player 假人
      */
-    public void add(@NotNull Fakeplayer player) {
-        this.playersByName.put(player.getName(), player);
+    public boolean add(@NotNull Fakeplayer player) {
+        var name = nameKey(player.getName());
+        if (this.playersByName.containsKey(name) || this.playersByUUID.containsKey(player.getUUID())) {
+            return false;
+        }
+        this.playersByName.put(name, player);
         this.playersByUUID.put(player.getUUID(), player);
         this.playersByCreator.computeIfAbsent(player.getCreator().getName(), key -> new LinkedList<>()).add(player);
+        return true;
     }
 
     /**
@@ -34,7 +43,7 @@ public class FakeplayerList {
      * @return 假人
      */
     public @Nullable Fakeplayer getByName(@NotNull String name) {
-        return Optional.ofNullable(this.playersByName.get(name)).map(this::checkOnline).orElse(null);
+        return this.playersByName.get(nameKey(name));
     }
 
     /**
@@ -44,7 +53,7 @@ public class FakeplayerList {
      * @return 假人
      */
     public @Nullable Fakeplayer getByUUID(@NotNull UUID uuid) {
-        return Optional.ofNullable(this.playersByUUID.get(uuid)).map(this::checkOnline).orElse(null);
+        return this.playersByUUID.get(uuid);
     }
 
     /**
@@ -62,10 +71,15 @@ public class FakeplayerList {
      *
      * @param player 假人
      */
-    public void remove(@NotNull Fakeplayer player) {
-        this.playersByName.remove(player.getName());
+    public boolean remove(@NotNull Fakeplayer player) {
+        var name = nameKey(player.getName());
+        if (this.playersByName.get(name) != player || this.playersByUUID.get(player.getUUID()) != player) {
+            return false;
+        }
+        this.playersByName.remove(name);
         this.playersByUUID.remove(player.getUUID());
-        Optional.ofNullable(this.playersByCreator.get(player.getCreator().getName())).map(players -> players.remove(player));
+        Optional.ofNullable(this.playersByCreator.get(player.getCreator().getName())).ifPresent(players -> players.remove(player));
+        return true;
     }
 
     /**
@@ -103,21 +117,6 @@ public class FakeplayerList {
      */
     public @NotNull @Unmodifiable List<Fakeplayer> getAll() {
         return List.copyOf(this.playersByUUID.values());
-    }
-
-    /**
-     * 检测假人是否在线, 如果不在线了则移除并返回 {@code null}
-     *
-     * @param player 假人
-     * @return 假人
-     */
-    private @Nullable Fakeplayer checkOnline(@NotNull Fakeplayer player) {
-        if (!player.isOnline()) {
-            this.remove(player);
-            return null;
-        }
-
-        return player;
     }
 
     public @NotNull Stream<Fakeplayer> stream() {

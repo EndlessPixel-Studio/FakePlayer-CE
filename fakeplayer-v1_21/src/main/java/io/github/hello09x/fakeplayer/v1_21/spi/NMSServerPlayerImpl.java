@@ -17,6 +17,7 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.ChatVisiblity;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 
 import org.bukkit.entity.Entity;
@@ -194,7 +195,7 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
             return;
         }
 
-        var server = (net.minecraft.server.MinecraftServer) Reflections.getHandle(Bukkit.getServer());
+        var server = (net.minecraft.server.MinecraftServer) Reflections.getServer(Bukkit.getServer());
         try {
             ServerPlayer$advancements.set(
                     handle,
@@ -218,11 +219,7 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
 
     @Override
     public void setPlayBefore() {
-        try {
-            var method = player.getClass().getMethod("readExtraData", CompoundTag.class);
-            method.invoke(player, new CompoundTag());
-        } catch (Exception ignored) {
-        }
+        ((CraftPlayer) player).readExtraData(new CompoundTag());
     }
 
     @Override
