@@ -6,14 +6,14 @@
 
 ---
 
-> **FakePlayer CE** 是基于 FakePlayer 原项目的社区维护分支，通过 Gradle 多模块架构重构，实现了对 Minecraft `1.20.1` 至 `1.21.11` 全版本的**单一 Jar 包兼容**。
+> **FakePlayer CE** 是基于 FakePlayer 原项目的社区维护分支，通过 Gradle 多模块架构重构，实现了对 Minecraft `1.20.1` 至 `26.2` 全版本的**单一 Jar 包兼容**。
 
 ## ⚠️ 社区版声明
 
 本仓库为 **FakePlayer CE（Community Edition）** —— 一个独立的社区维护分支，**并非 FakePlayer 官方原版**。
 
 - 本项目**不由原作者发布、维护或背书**，系基于开源协议二次开发的社区版本。
-- 核心目标：重构并扩展至 Minecraft `1.20.1` ~ `1.21.11` 全版本跨版本兼容，单一 Jar 包通吃。
+- 核心目标：重构并扩展至 Minecraft `1.20.1` ~ `26.2` 全版本跨版本兼容，单一 Jar 包通吃。
 - 所有 Bug、功能需求、问题反馈**请仅提交至本仓库**，切勿提交至上游原作者仓库。
 
 ---
@@ -35,7 +35,7 @@ FakePlayer 是一款受 [Carpet-Mod](https://github.com/gnembon/fabric-carpet) �
 
 | 增强项 | 说明 |
 |---|---|
-| **单 Jar 多版本** | 一个通用 Jar 覆盖 MC `1.20.1 ~ 1.21.11`，无需分版本下载 |
+| **单 Jar 多版本** | 一个通用 Jar 覆盖 MC `1.20.1 ~ 26.2`，无需分版本下载 |
 | **Gradle Kotlin DSL 构建** | 从 Maven 迁移至现代化 Gradle 多模块工程架构 |
 | **NMS 版本隔离** | 各版本 NMS 代码独立封装，降低未来 MC 版本适配成本 |
 | **持续兼容维护** | 持续跟进 Paper/Purpur 最新版本兼容性修复 |
