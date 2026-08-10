@@ -2,7 +2,7 @@ package io.github.hello09x.fakeplayer.core.entity.action.impl;
 
 import io.github.hello09x.fakeplayer.api.spi.Action;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerPlayer;
-import io.papermc.paper.entity.LookAnchor;
+import io.github.hello09x.fakeplayer.core.util.LookUtils;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -35,7 +35,7 @@ public class LookAtEntityAction implements Action {
             return false;
         }
 
-        bukkitPlayer.lookAt(entity, LookAnchor.EYES, LookAnchor.EYES);
+        LookUtils.lookAt(player, entity.getLocation());
         player.resetLastActionTime();
         return true;
     }

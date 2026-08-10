@@ -6,8 +6,8 @@ import dev.jorel.commandapi.executors.CommandArguments;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import dev.jorel.commandapi.wrappers.Rotation;
 import io.github.hello09x.fakeplayer.core.constant.Direction;
+import io.github.hello09x.fakeplayer.core.util.LookUtils;
 import io.github.hello09x.fakeplayer.core.util.Mth;
-import io.papermc.paper.entity.LookAnchor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -25,7 +25,7 @@ public class RotationCommand extends AbstractCommand {
     public void lookAt(@NotNull CommandSender sender, @NotNull CommandArguments args) throws WrapperCommandSyntaxException {
         var fake = getFakeplayer(sender, args);
         var location = Objects.requireNonNull((Location) args.get("location"));
-        fake.lookAt(location, LookAnchor.EYES);
+        LookUtils.lookAt(bridge.fromPlayer(fake), location);
     }
 
     /**
@@ -44,7 +44,7 @@ public class RotationCommand extends AbstractCommand {
         if (!Objects.equals(fake.getWorld(), sender.getWorld())) {
             return;
         }
-        fake.lookAt(sender.getEyeLocation(), LookAnchor.EYES);
+        LookUtils.lookAt(bridge.fromPlayer(fake), sender.getEyeLocation());
     }
 
     /**
