@@ -263,4 +263,9 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
         ));
     }
 
+    @Override
+    public void chat(@NotNull String message) {
+        handle.connection.chat(message, false);
+    }
+
 }

@@ -18,7 +18,7 @@ public class SayCommand extends AbstractCommand {
         var fake = getFakeplayer(sender, args);
         var message = Objects.requireNonNull((String) args.get("message"));
 
-        fake.chat(message);
+        bridge.fromPlayer(fake).chat(message);
     }
 
 }

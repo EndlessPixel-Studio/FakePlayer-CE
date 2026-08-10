@@ -441,7 +441,6 @@ public class CommandRegistry {
                                 .withRequirement(CommandSupports::hasFakeplayer)
                                 .withPermission(Permission.say)
                                 .withArguments(new GreedyStringArgument("message"))
-                                .withOptionalArguments(fakeplayer("name"))
                                 .executes(sayCommand::say),
 
                         command("killall")

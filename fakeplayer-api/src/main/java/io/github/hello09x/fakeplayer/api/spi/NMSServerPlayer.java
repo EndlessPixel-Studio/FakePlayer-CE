@@ -221,4 +221,11 @@ public interface NMSServerPlayer {
      */
     void swapItemWithOffhand();
 
+    /**
+     * 发送聊天信息
+     *
+     * @param message 聊天信息
+     */
+    void chat(@NotNull String message);
+
 }
