@@ -24,3 +24,13 @@ jobs:
 
       - name: Build with Gradle
         run: gradle build --no-daemon
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fakeplayer-ce
+          path: |
+            fakeplayer-dist/build/libs/*.jar
+            fakeplayer-core/build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 30
