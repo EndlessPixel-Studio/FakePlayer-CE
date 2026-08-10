@@ -3,6 +3,8 @@ package io.github.hello09x.fakeplayer.core.manager.feature;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
+import io.github.hello09x.fakeplayer.core.entity.Fakeplayer;
+import io.github.hello09x.fakeplayer.core.manager.FakeplayerList;
 import io.github.hello09x.fakeplayer.core.repository.UserConfigRepository;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import io.github.hello09x.fakeplayer.core.repository.model.UserConfig;
@@ -24,11 +26,13 @@ public class FakeplayerFeatureManager {
 
     private final UserConfigRepository repository;
     private final FakeplayerConfig config;
+    private final FakeplayerList fakeplayerList;
 
     @Inject
-    public FakeplayerFeatureManager(UserConfigRepository repository, FakeplayerConfig config) {
+    public FakeplayerFeatureManager(UserConfigRepository repository, FakeplayerConfig config, FakeplayerList fakeplayerList) {
         this.repository = repository;
         this.config = config;
+        this.fakeplayerList = fakeplayerList;
     }
 
     private @NotNull String getDefaultOption(@NotNull Feature key) {
@@ -84,6 +88,15 @@ public class FakeplayerFeatureManager {
                 key,
                 value
         ));
+
+        // 同时实时应用到该创建者已生成的在线假人，避免修改配置后需重新生成才生效
+        if (key.hasModifier()) {
+            for (var fake : this.fakeplayerList.getAll()) {
+                if (fake.getCreator() instanceof Player creator && creator.getUniqueId().equals(player.getUniqueId())) {
+                    key.getModifier().accept(fake.getPlayer(), value);
+                }
+            }
+        }
     }
 
 }
