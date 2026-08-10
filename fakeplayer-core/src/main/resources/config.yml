@@ -287,6 +287,13 @@ default-features:
   autofish: false
   wolverine: false
 
+# 自动补货时工具的自动修复阈值
+# 取值 0-100, 表示工具磨损达到该百分比时自动修复 (耐久归零)
+# 0 表示不自动修复工具 (默认)
+replenish:
+  tools:
+    durability-threshold: 0
+
 
 # 检测更新
 # 仅仅是检测, 并不会帮你下载

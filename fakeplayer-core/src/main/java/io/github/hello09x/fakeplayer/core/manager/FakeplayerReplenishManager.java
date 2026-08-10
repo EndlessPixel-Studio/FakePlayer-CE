@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import io.github.hello09x.devtools.core.utils.BlockUtils;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.command.Permission;
+import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.constant.MetadataKeys;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -23,6 +24,7 @@ import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,10 +39,12 @@ import java.util.Optional;
 public class FakeplayerReplenishManager implements Listener {
 
     private final FakeplayerManager manager;
+    private final FakeplayerConfig config;
 
     @Inject
-    public FakeplayerReplenishManager(FakeplayerManager manager) {
+    public FakeplayerReplenishManager(FakeplayerManager manager, FakeplayerConfig config) {
         this.manager = manager;
+        this.config = config;
     }
 
     /**
@@ -254,6 +258,46 @@ public class FakeplayerReplenishManager implements Listener {
                 target.closeInventory(InventoryCloseEvent.Reason.PLAYER);
             }, 20);
             return;
+        }
+    }
+
+    /**
+     * 自动修复磨损的工具
+     * <p>工具靠耐久消耗, 而耐久下降时不会触发任何事件, 因此无法被 {@link #replenishLater} 处理.
+     * 这里周期性检查双手持有物品的磨损程度, 超过配置阈值时直接修复 (把 Damageable 的 damage 归零).</p>
+     *
+     * @param target 假人
+     */
+    public void replenishTools(@NotNull Player target) {
+        var threshold = this.config.getReplenishToolsDurabilityThreshold();
+        if (threshold <= 0) {
+            return;
+        }
+
+        for (var slot : new EquipmentSlot[]{EquipmentSlot.HAND, EquipmentSlot.OFF_HAND}) {
+            var item = target.getInventory().getItem(slot);
+            if (item == null || item.getType().isAir() || !(item.getItemMeta() instanceof Damageable damageable)) {
+                continue;
+            }
+
+            var maxDurability = item.getType().getMaxDurability();
+            if (maxDurability <= 0) {
+                continue;
+            }
+
+            var damaged = damageable.getDamage();
+            if (damaged <= 0) {
+                continue;
+            }
+
+            var wornPercent = damaged * 100 / maxDurability;
+            if (wornPercent < threshold) {
+                continue;
+            }
+
+            damageable.setDamage(0);
+            item.setItemMeta(damageable);
+            target.getInventory().setItem(slot, item);
         }
     }
 

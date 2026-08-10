@@ -3,6 +3,7 @@ package io.github.hello09x.fakeplayer.core.entity;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerPlayer;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
+import io.github.hello09x.fakeplayer.core.manager.FakeplayerReplenishManager;
 import org.bukkit.Location;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +46,15 @@ public class FakeplayerTicker extends BukkitRunnable {
             Main.getInjector().getInstance(FakeplayerManager.class).remove(player.getName(), "lifespan ends");
             super.cancel();
             return;
+        }
+
+        // 周期性修复磨损的工具 (耐久下降不触发事件, 无法走事件补货)
+        if (this.player.getTickCount() % 20 == 0) {
+            var replenishManager = Main.getInjector().getInstance(FakeplayerReplenishManager.class);
+            var bukkitPlayer = this.player.getPlayer();
+            if (replenishManager.isReplenish(bukkitPlayer)) {
+                replenishManager.replenishTools(bukkitPlayer);
+            }
         }
 
         // 真实的玩家是通过 ServerGamePacketListenerImpl#tick() 进行时刻运算的

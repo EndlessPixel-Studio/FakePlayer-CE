@@ -171,6 +171,12 @@ public class FakeplayerConfig extends PluginConfig {
 
     private Map<Feature, String> defaultFeatures;
 
+    /**
+     * 自动补货时工具磨损到多少百分比自动修复
+     * <p>取值 0-100, 0 表示不自动修复工具</p>
+     */
+    private int replenishToolsDurabilityThreshold;
+
     @Inject
     public FakeplayerConfig() {
         super(Main.getInstance());
@@ -214,6 +220,7 @@ public class FakeplayerConfig extends PluginConfig {
                                      .collect(Collectors.toMap(Function.identity(), key -> file.getString("default-features." + key.name(), key.getDefaultOption())));
         this.invseeImplement = ConfigUtils.getEnum(file, "invsee-implement", InvseeImplement.class, InvseeImplement.AUTO);
         this.debug = file.getBoolean("debug", false);
+        this.replenishToolsDurabilityThreshold = file.getInt("replenish.tools.durability-threshold", 0);
         this.nameStyleColor = this.getNameStyleColor(file);
         this.nameStyleDecorations = this.getNameStyleDecorations(file);
 
