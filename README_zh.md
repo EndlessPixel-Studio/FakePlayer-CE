@@ -1,6 +1,5 @@
 # FakePlayer CE（社区版）
 
-![BANNER_IMAGE](.github/README/BANNER.png)
 
 [English](README.md) | 简体中文
 

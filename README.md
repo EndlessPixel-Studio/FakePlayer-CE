@@ -1,7 +1,5 @@
 # FakePlayer CE (Community Edition)
 
-![BANNER_IMAGE](.github/README/BANNER.png)
-
 English | [简体中文](README_zh.md)
 
 ---
