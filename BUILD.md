@@ -1,12 +1,33 @@
-# Build introduction
+# Build Guide
 
-Here is a simple introduction lead you to build this project
+This project uses **paperweight-userdev** Gradle plugin to handle NMS dependencies automatically.
+No manual BuildTools setup is required.
 
-## Build NMS Dependencies
+## Prerequisites
 
-Mojang does not allow anyone to publish the remapped NMS jar to any public repository,
-so you need to build it yourself
+- **JDK 25** (for compiling Paper 1.21+ NMS)
+- An internet connection (first build downloads Paper server jars)
 
-1. Download [BuildTools](https://www.spigotmc.org/wiki/buildtools/)
-2. execute `java -jar BuildTools.jar --rev 1.21 --remapped` to install remapped NMS 1.21 to your local repository. _You might need to install other version depending on projects' requirements._
+## Quick Build
+
+```bash
+./gradlew build --no-daemon
+```
+
+The output jar will be at:
+
+```
+fakeplayer-dist/build/libs/fakeplayer-dist-fp.build2.jar
+```
+
+## How It Works
+
+Each version module (e.g. `fakeplayer-v1_21_6`) declares its Paper dev bundle via `paperweight.paperDevBundle()`.
+The plugin automatically:
+
+1. Downloads the appropriate Paper server jar
+2. Remaps and deobfuscates NMS classes
+3. Exposes them as compile-only dependencies
+
+This means you get full NMS source access without running BuildTools or managing local maven repos.
 
