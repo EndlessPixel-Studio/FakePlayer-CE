@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.CommandPermission;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument;
+import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import io.github.hello09x.devtools.command.HelpCommand;
 import io.github.hello09x.devtools.core.utils.ComponentUtils;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
@@ -79,6 +80,9 @@ public class CommandRegistry {
     private DebugCommand debugCommand;
     @Inject
     private StopCommand stopCommand;
+
+    @Inject
+    private SayCommand sayCommand;
 
     @Inject
     private FakeplayerConfig config;
@@ -431,6 +435,14 @@ public class CommandRegistry {
                                         new FakePlayerCommandArgument("command")
                                 )
                                 .executes(cmdCommand::cmd),
+
+                        command("say")
+                                .withShortDescription("fakeplayer.command.say.description")
+                                .withRequirement(CommandSupports::hasFakeplayer)
+                                .withPermission(Permission.say)
+                                .withArguments(new GreedyStringArgument("message"))
+                                .withOptionalArguments(fakeplayer("name"))
+                                .executes(sayCommand::say),
 
                         command("killall")
                                 .withShortDescription("fakeplayer.command.killall.description")

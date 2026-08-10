@@ -92,6 +92,7 @@ On first launch, FakePlayer generates a template file `config.tmpl.yml`. Rename 
 | /fp swap      | Swap main and off-hand items              | fakeplayer.command.swap      |                                                                 |
 | /fp hold      | Hold corresponding hotbar item            | fakeplayer.command.hold      |                                                                 |
 | /fp cmd       | Execute command                           | fakeplayer.command.cmd       |                                                                 |
+| /fp say       | Send chat message                         | fakeplayer.command.say       |                                                                 |
 | /fp reload    | Reload config file                        | OP                           |                                                                 |
 
 ## Personal Configuration
@@ -164,6 +165,7 @@ Action-related permissions:
 - `fakeplayer.command.wakeup` — Wake up
 - `fakeplayer.command.stop` — Stop all actions
 - `fakeplayer.command.hold` — Switch hotbar
+- `fakeplayer.command.say` — Send chat message
 - `fakeplayer.config.replenish` — Auto-replenish
 - `fakeplayer.config.replenish.chest` — Replenish from nearby chests
 - `fakeplayer.config.autofish` — Auto-fish

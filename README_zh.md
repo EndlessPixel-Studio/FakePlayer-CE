@@ -90,6 +90,7 @@ FakePlayer 是一款受 [Carpet-Mod](https://github.com/gnembon/fabric-carpet) �
 | /fp swap | 切换主手副手物品 | fakeplayer.command.swap | |
 | /fp hold | 切换快捷栏指定格子物品 | fakeplayer.command.hold | |
 | /fp cmd | 让假人执行控制台指令 | fakeplayer.command.cmd | |
+| /fp say | 让假人发送聊天消息 | fakeplayer.command.say | |
 | /fp reload | 重载插件配置文件 | OP | |
 
 ## 个人个性化配置
@@ -162,6 +163,7 @@ FakePlayer 是一款受 [Carpet-Mod](https://github.com/gnembon/fabric-carpet) �
 - `fakeplayer.command.wakeup` — 唤醒
 - `fakeplayer.command.stop` — 停止动作
 - `fakeplayer.command.hold` — 切换快捷栏
+- `fakeplayer.command.say` — 发送聊天消息
 - `fakeplayer.config.replenish` — 自动补物
 - `fakeplayer.config.replenish.chest` — 从附近箱子补货
 - `fakeplayer.config.autofish` — 自动钓鱼

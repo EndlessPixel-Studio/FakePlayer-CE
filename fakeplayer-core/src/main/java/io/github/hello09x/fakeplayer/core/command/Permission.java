@@ -43,6 +43,7 @@ public interface Permission {
     String sleep = "fakeplayer.command.sleep";
     String wakeup = "fakeplayer.command.wakeup";
     String cmd = "fakeplayer.command.cmd";
+    String say = "fakeplayer.command.say";
     String stop = "fakeplayer.command.stop";
 
 
