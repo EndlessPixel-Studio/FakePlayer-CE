@@ -1,40 +1,55 @@
-# FakePlayer CE（社区修改版）
+# FakePlayer CE（社区版）
 
 ![BANNER_IMAGE](.github/README/BANNER.png)
 
 [English](README.md) | 简体中文
 
-⚠️ **重要版本免责声明**
-本仓库为 **FakePlayer CE 社区修改版（Community Edition）**
-1. 本项目**并非 FakePlayer 官方原版**，不由原作者发布、维护、背书；
-2. 本分支基于原开源项目二次重构，核心目标是实现 Minecraft `1.20.1 ~ 1.21.11` 全版本单包兼容；
-3. 本版本所有 Bug、功能需求、问题反馈仅可提交至本仓库，请勿提交至上游原作者仓库。
+---
 
-本插件是受 Carpet-Mod 启发的服务端假人插件，适配 Minecraft 1.20.x、1.21.x 全系列版本。
+> **FakePlayer CE** 是基于 FakePlayer 原项目的社区维护分支，通过 Gradle 多模块架构重构，实现了对 Minecraft `1.20.1` 至 `1.21.11` 全版本的**单一 Jar 包兼容**。
 
-[点击查看演示视频](https://youtu.be/NePaDz-P5nI)
+## ⚠️ 社区版声明
+
+本仓库为 **FakePlayer CE（Community Edition）** —— 一个独立的社区维护分支，**并非 FakePlayer 官方原版**。
+
+- 本项目**不由原作者发布、维护或背书**，系基于开源协议二次开发的社区版本。
+- 核心目标：重构并扩展至 Minecraft `1.20.1` ~ `1.21.11` 全版本跨版本兼容，单一 Jar 包通吃。
+- 所有 Bug、功能需求、问题反馈**请仅提交至本仓库**，切勿提交至上游原作者仓库。
+
+---
+
+## 概述
+
+FakePlayer 是一款受 [Carpet-Mod](https://github.com/gnembon/fabric-carpet) 启发的服务端假人插件，可在 Minecraft 服务器上生成高度逼真的虚拟玩家。本社区版在原版基础上扩展了多版本兼容能力，并持续跟进维护。
+
+📺 [观看演示视频](https://youtu.be/NePaDz-P5nI)
 
 ## 功能特性
-- 生成对服务器完全透明的假人玩家，可用于区块常驻加载
-- 假人支持原版/插件指令管控（传送、封禁、背包编辑等）
-- 完整控制假人移动、攻击、挖矿、周期性自动化动作
-- 每位玩家拥有独立个性化默认配置
 
-### FakePlayer CE 专属改动
-✅ 单Jar通吃 `1.20.1 ~ 1.21.11` 全版本，无需分版本下载
-✅ 构建体系从 Maven 重构为 Gradle Kotlin DSL 多模块工程
-✅ NMS 版本隔离封装，后续MC新版本适配成本更低
-✅ 持续跟进 Paper/Purpur 新版本兼容性修复
+- 生成对服务器完全透明的假人玩家，适用于区块常驻加载
+- 完美支持原版及插件指令管控（传送、封禁、背包编辑等）
+- 完整操控假人行为：移动、跳跃、攻击、挖矿等，支持周期性自动化
+- 每位玩家拥有独立的个性化默认配置模板
+
+### FakePlayer CE 专属增强
+
+| 增强项 | 说明 |
+|---|---|
+| **单 Jar 多版本** | 一个通用 Jar 覆盖 MC `1.20.1 ~ 1.21.11`，无需分版本下载 |
+| **Gradle Kotlin DSL 构建** | 从 Maven 迁移至现代化 Gradle 多模块工程架构 |
+| **NMS 版本隔离** | 各版本 NMS 代码独立封装，降低未来 MC 版本适配成本 |
+| **持续兼容维护** | 持续跟进 Paper/Purpur 最新版本兼容性修复 |
 
 ## 运行前置依赖
-+ [Paper](https://papermc.io) 或 [Purpur](http://purpurmc.org) 核心服务端
-+ [CommandAPI](https://commandapi.jorel.dev) 前置插件（**禁止使用 10.0.0 版本**）
+
+- [Paper](https://papermc.io) 或 [Purpur](http://purpurmc.org) 核心服务端
+- [CommandAPI](https://commandapi.jorel.dev) 前置插件（**请勿使用 `10.0.0` 版本**）
 
 ## 配置文件说明
-插件首次加载仅会生成模板文件 `config.tmpl.yml`，你需要手动将其重命名为 `config.yml` 作为正式配置文件。
-该设计可以在版本升级时直观预览新增配置项。
 
-[点击查看配置文件示例](fakeplayer-core/src/main/resources/config.yml)
+插件首次加载时仅生成模板文件 `config.tmpl.yml`，需手动重命名为 `config.yml` 后生效。该模板机制可让你在升级时直观预览新增配置项，避免覆盖已有设置。
+
+[查看配置文件示例](fakeplayer-core/src/main/resources/config.yml)
 
 ## 指令列表
 | 指令 | 功能说明 | 权限节点 | 备注 |
@@ -78,124 +93,145 @@
 | /fp reload | 重载插件配置文件 | OP | |
 
 ## 个人个性化配置
-每位玩家都可以自定义专属创建参数，修改后**下次生成假人自动生效**
+
+每位玩家均可自定义专属创建参数，修改后**下次生成假人时自动生效**。
 
 使用示例：
-+ `/fp config list` - 查看全部可配置项
-+ `/fp config set collidable false` - 修改指定配置
+- `/fp config list` — 查看全部可配置项
+- `/fp config set collidable false` — 修改指定配置
 
 | 配置项 | 说明 |
 |--------|------|
-| collidable | 是否开启碰撞箱 |
-| invulnerable | 是否开启无敌模式 |
-| wolverine | 是否开启自动回血模式 |
-| look_at_entity | 自动看向周边可攻击实体，可搭配攻击指令实现自动打怪 |
-| pickup_items | 是否开启拾取物品 |
-| skin | 是否默认使用创建者皮肤 |
-| replenish | 是否开启物品自动补充 |
-| autofish | 是否开启自动钓鱼 |
+| `collidable`      | 是否开启碰撞箱 |
+| `invulnerable`    | 是否开启无敌模式 |
+| `wolverine`       | 是否开启自动回血（快速再生） |
+| `look_at_entity`  | 自动看向周边可攻击实体；搭配攻击指令可实现自动刷怪 |
+| `pickup_items`    | 是否开启物品拾取 |
+| `skin`            | 是否默认使用创建者皮肤 |
+| `replenish`       | 是否开启物品自动补充 |
+| `autofish`        | 是否开启自动钓鱼 |
 
 ## 权限分组说明
+
 <details>
 <summary>点击展开查看详情</summary>
 
-每条指令都拥有独立权限节点，插件同时封装了便捷权限组：
+每条指令均设有独立权限节点，插件同时提供了便捷的权限分组：
 
 ### 权限组 `fakeplayer.spawn`
-包含以下权限：
-- fakeplayer.command.spawn - 创建假人
-- fakeplayer.command.kill - 击杀假人
-- fakeplayer.command.list - 查看假人列表
-- fakeplayer.command.distance - 查询距离
-- fakeplayer.command.select - 选中假人
-- fakeplayer.command.selection - 查看选中假人
-- fakeplayer.command.drop - 丢弃物品
-- fakeplayer.command.dropstack - 丢弃整组物品
-- fakeplayer.command.dropinv - 清空背包
-- fakeplayer.command.skin - 复制皮肤
-- fakeplayer.command.invsee - 查看背包
-- fakeplayer.command.status - 查看状态
-- fakeplayer.command.respawn - 复活假人
-- fakeplayer.command.config - 修改默认配置
-- fakeplayer.command.set - 修改单假人配置
+
+包含基础假人管理权限：
+- `fakeplayer.command.spawn` — 创建假人
+- `fakeplayer.command.kill` — 击杀假人
+- `fakeplayer.command.list` — 查看假人列表
+- `fakeplayer.command.distance` — 查询距离
+- `fakeplayer.command.select` — 选中假人
+- `fakeplayer.command.selection` — 查看选中假人
+- `fakeplayer.command.drop` — 丢弃物品
+- `fakeplayer.command.dropstack` — 丢弃整组物品
+- `fakeplayer.command.dropinv` — 清空背包
+- `fakeplayer.command.skin` — 复制皮肤
+- `fakeplayer.command.invsee` — 查看背包
+- `fakeplayer.command.status` — 查看状态
+- `fakeplayer.command.respawn` — 复活假人
+- `fakeplayer.command.config` — 修改默认配置
+- `fakeplayer.command.set` — 修改单假人配置
 
 ### 权限组 `fakeplayer.tp`
-包含以下权限：
-- fakeplayer.command.tp
-- fakeplayer.command.tphere
-- fakeplayer.command.tps
+
+传送相关权限：
+- `fakeplayer.command.tp`
+- `fakeplayer.command.tphere`
+- `fakeplayer.command.tps`
 
 ### 权限组 `fakeplayer.action`
-包含以下权限：
-- fakeplayer.command.attack - 攻击
-- fakeplayer.command.mine - 挖矿
-- fakeplayer.command.use - 使用交互
-- fakeplayer.command.jump - 跳跃
-- fakeplayer.command.sneak - 潜行
-- fakeplayer.command.sprint - 疾跑
-- fakeplayer.command.look - 看向目标
-- fakeplayer.command.turn - 转向
-- fakeplayer.command.move - 移动
-- fakeplayer.command.ride - 骑乘
-- fakeplayer.command.swap - 主副手切换
-- fakeplayer.command.sleep - 睡觉
-- fakeplayer.command.wakeup - 唤醒
-- fakeplayer.command.stop - 停止动作
-- fakeplayer.command.hold - 切换快捷栏
-- fakeplayer.config.replenish - 自动补物
-- fakeplayer.config.replenish.chest - 自动从附近箱子补货
-- fakeplayer.config.autofish - 自动钓鱼
 
-如果服务器不需要严格权限管控，可直接分配 `fakeplayer.basic`，该分组包含除 `/fp cmd` 高危指令以外全部安全权限。
+行为动作权限：
+- `fakeplayer.command.attack` — 攻击
+- `fakeplayer.command.mine` — 挖矿
+- `fakeplayer.command.use` — 交互使用
+- `fakeplayer.command.jump` — 跳跃
+- `fakeplayer.command.sneak` — 潜行
+- `fakeplayer.command.sprint` — 疾跑
+- `fakeplayer.command.look` — 看向目标
+- `fakeplayer.command.turn` — 转向
+- `fakeplayer.command.move` — 移动
+- `fakeplayer.command.ride` — 骑乘
+- `fakeplayer.command.swap` — 主副手切换
+- `fakeplayer.command.sleep` — 睡觉
+- `fakeplayer.command.wakeup` — 唤醒
+- `fakeplayer.command.stop` — 停止动作
+- `fakeplayer.command.hold` — 切换快捷栏
+- `fakeplayer.config.replenish` — 自动补物
+- `fakeplayer.config.replenish.chest` — 从附近箱子补货
+- `fakeplayer.config.autofish` — 自动钓鱼
+
+若服务器无需严格权限管控，可直接分配 `fakeplayer.basic` 权限组，该组包含除 `/fp cmd` 高危指令外的全部安全权限。
+
 </details>
 
 ## 占位符变量
-+ `%fakeplayer_total%`：当前服务器假人总数
-+ `%fakeplayer_creator%`：假人创建者名称
-+ `%fakeplayer_actions%`：假人当前活跃动作，示例：`USE|ATTACK`
 
-# 自定义本地化翻译
-1. 在 `plugins/fakeplayer` 文件夹新建 `message` 目录
-2. 将 [模板翻译文件](fakeplayer-core/src/main/resources/message/message.properties) 复制进该目录
-3. 重命名为 `message_语言_地区.properties`，例如 `message_zh_cn.properties`
-4. 修改 `config.yml` 内 `i18n.locale` 配置为对应后缀名，示例：`zh_cn`
-5. 执行 `/fp reload-translation` 重载翻译；若修改语言配置项，需先执行 `/fp reload`
+| 占位符 | 说明 |
+|---|---|
+| `%fakeplayer_total%` | 当前服务器假人总数 |
+| `%fakeplayer_creator%` | 假人创建者名称 |
+| `%fakeplayer_actions%` | 假人当前活跃动作，如 `USE\|ATTACK` |
 
-**翻译文件必须使用 UTF-8 编码保存**
+## 自定义本地化翻译
 
-# 上游版本区别说明
+1. 在 `plugins/fakeplayer/` 下创建 `message` 目录
+2. 将[模板翻译文件](fakeplayer-core/src/main/resources/message/message.properties)复制到该目录
+3. 重命名为 `message_<语言>_<地区>.properties`，如 `message_zh_cn.properties`
+4. 修改 `config.yml` 中 `i18n.locale` 为对应后缀名，如 `zh_cn`
+5. 执行 `/fp reload-translation` 重载翻译；若修改了语言配置，需先执行 `/fp reload`
+
+> **注意：** 翻译文件必须使用 **UTF-8** 编码保存。
+
+## 上游版本区别说明
+
 ### FakePlayer 官方原版
-为本项目修改基础，原版每个版本仅适配单个 Minecraft 版本，使用 Maven 构建体系发布。
+
+为本项目的修改基础。原版每个版本仅适配单个 Minecraft 版本，采用 Maven 构建体系发布。
 
 ### FakePlayer CE 修改汇总
-1. 构建迁移：Maven 项目重构为 Gradle Kotlin DSL 多模块工程
-2. 跨版本适配：NMS 代码按版本拆分独立模块，覆盖 `1.20.1 ~ 1.21.11`
-3. 发布形式：统一单通用Jar包，不再分版本单独分发
-4. 长期维护：持续跟进 Paper/Purpur 新版本兼容性问题修复
-5. 针对性修复多版本运行时冲突Bug
 
-> 如需查看 FakePlayer 官方原版更新内容，请前往原作者上游仓库查阅。
+1. **构建体系**：从 Maven 迁移至 Gradle Kotlin DSL 多模块工程
+2. **跨版本适配**：NMS 代码按版本拆分为独立模块，覆盖 `1.20.1 ~ 1.21.11`
+3. **发布形式**：统一单通用 Jar 包，不再分版本单独分发
+4. **长期维护**：持续跟进 Paper/Purpur 新版本兼容性问题修复
+5. **多版本修复**：针对性修复跨版本运行时冲突 Bug
 
-# 常见问题
-## 断开连接：PacketEvents 2.0 failed to inject
-部分插件篡改假人网络连接对象，修改配置项即可解决：
+> 如需了解 FakePlayer 官方原版更新，请前往原作者上游仓库查阅。
+
+## 常见问题
+
+### 断开连接：PacketEvents 2.0 failed to inject
+
+部分插件会篡改假人的网络连接对象，修改以下配置即可解决：
+
 ```yaml
 # config.yml
 prevent-kicking: ALWAYS
 ```
 
-## 假人不会被怪物攻击
-假人默认开启无敌模式，执行 `/fp config set invulnerable false` 关闭后，假人才会受到生命值、饥饿值伤害；可搭配生命恢复药水、信标维持生存。
+### 假人不被怪物攻击
 
-## 假人一段时间后自动下线
-AuthMe 等登录插件会判定假人长时间未登录踢出，可在配置 `self-commands` 填入注册登录指令规避：
+假人默认开启无敌模式。执行 `/fp config set invulnerable false` 关闭无敌后，假人才会承受生命值与饥饿值伤害。可搭配生命恢复药水或信标维持生存。
+
+### 假人一段时间后自动掉线
+
+AuthMe 等登录插件会判定假人长时间未登录而踢出。在配置文件的 `self-commands` 中填入注册/登录指令可规避：
+
 ```yaml
-# 注意设置高强度密码，避免被AuthMe安全策略拦截
+# 请设置高强度密码，避免被 AuthMe 安全策略拦截
 self-commands:
   - '/register abc123! abc123!'
   - '/login abc123!'
 ```
 
-# 项目编译构建
-详细步骤查看 [BUILD.md](./BUILD.md)
-> 该编译文档仅适配 **FakePlayer CE Gradle 多模块编译流程**，无法用于原Maven架构官方项目编译。
+## 项目构建
+
+详细步骤请参阅 [BUILD.md](./BUILD.md)。
+
+> 该构建文档仅适用于 **FakePlayer CE Gradle 多模块编译流程**，无法用于原 Maven 架构官方项目的构建。
