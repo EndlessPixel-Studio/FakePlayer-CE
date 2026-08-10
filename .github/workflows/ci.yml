@@ -31,6 +31,5 @@ jobs:
           name: fakeplayer-ce
           path: |
             fakeplayer-dist/build/libs/*.jar
-            fakeplayer-core/build/libs/*.jar
           if-no-files-found: error
           retention-days: 30

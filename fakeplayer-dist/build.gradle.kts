@@ -36,7 +36,7 @@ dependencies {
 }
 
 tasks.register<Jar>("shadowJar") {
-    archiveFileName.set("fakeplayer-fp.build2.jar")
+    archiveFileName.set("fakeplayer-${version}.jar")
     dependsOn(":fakeplayer-core:build")
     dependsOn(":fakeplayer-api:build")
     dependsOn(":fakeplayer-v1_20_1:build")
