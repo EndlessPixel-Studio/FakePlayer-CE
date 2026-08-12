@@ -36,14 +36,20 @@ jobs:
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
 
+      - name: Grant execute permission to Gradlew
+        run: chmod +x ./gradlew
+
       - name: Build with Gradle
-        run: gradle build --no-daemon
+        run: ./gradlew :fakeplayer-dist:shadowJar \
+          --build-cache \
+          --configuration-cache \
+          --no-daemon \
+          --console=plain
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: fakeplayer-ce
-          path: |
-            fakeplayer-dist/build/libs/*.jar
+          path: fakeplayer-dist/build/libs/*.jar
           if-no-files-found: error
           retention-days: 30
