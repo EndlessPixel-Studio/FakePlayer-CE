@@ -25,8 +25,11 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.11.6")
 }
 
-tasks.processResources {
+val pluginRevision: String = version.toString()
+
+tasks.named<ProcessResources>("processResources") {
+    inputs.property("revision", pluginRevision)
     filesMatching("plugin.yml") {
-        expand("revision" to project.version)
+        expand(inputs.properties)
     }
 }
