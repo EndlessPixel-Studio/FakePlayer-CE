@@ -27,7 +27,7 @@ public class NMSServerImpl implements NMSServer {
     private final MinecraftServer handle;
 
     public NMSServerImpl(@NotNull Server server) {
-        this.handle = (MinecraftServer) Reflections.getServer(server);
+        this.handle = (MinecraftServer) Reflections.getMinecraftServer(server, MinecraftServer.class);
     }
 
     @Override

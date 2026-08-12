@@ -82,4 +82,30 @@ public class Reflections {
         }
     }
 
+    /**
+     * Resolves the NMS {@code MinecraftServer} from a Bukkit {@link org.bukkit.Server}.
+     *
+     * <p>Some server forks (e.g. Leaf 1.21.11) changed the semantics of
+     * {@code CraftServer#getServer()} so it no longer returns the {@code MinecraftServer}
+     * instance (it may return the player list instead). To stay compatible, we first look
+     * for a field whose exact type is the given {@code minecraftServerClass} (typically the
+     * {@code console} field on CraftServer), and only fall back to the {@code getServer()}
+     * method when no such field exists.</p>
+     *
+     * @param server               the Bukkit server instance
+     * @param minecraftServerClass the NMS {@code MinecraftServer} class of the current version
+     * @return the NMS {@code MinecraftServer} instance
+     */
+    public static Object getMinecraftServer(Object server, Class<?> minecraftServerClass) {
+        Field field = getFistFieldByTypeIncludeParent(server.getClass(), minecraftServerClass);
+        if (field != null) {
+            try {
+                return field.get(server);
+            } catch (Exception ignored) {
+                // fall through to method-based lookup
+            }
+        }
+        return getServer(server);
+    }
+
 }
