@@ -44,6 +44,28 @@ FakePlayer 是一款受 [Carpet-Mod](https://github.com/gnembon/fabric-carpet) �
 - [Paper](https://papermc.io) 或 [Purpur](http://purpurmc.org) 核心服务端
 - [CommandAPI](https://commandapi.jorel.dev) 前置插件（**请勿使用 `10.0.0` 版本**）
 
+## 下载
+
+FakePlayer CE 以**单一通用 jar**（`fakeplayer-fp.buildX.jar`）形式发布，覆盖 Minecraft `1.20.1 ~ 26.2` 全版本。
+
+### 1. 稳定版发布（推荐）
+
+从 GitHub Releases 页面下载最新稳定构建：
+
+- 📦 [Release 发布下载](https://github.com/EndlessPixel/FakePlayer-CE/releases)
+
+每个 Release 均包含预构建的 `fakeplayer-fp.buildX.jar`，将其放入服务端的 `plugins/` 目录即可。
+
+### 2. 自动构建（CI / 每次提交）
+
+每次 push 与 Pull Request 都会通过 GitHub Actions 触发 Gradle 构建。可在任意一次成功的构建运行中，于 **Artifacts（产物）** 区域获取最新 jar：
+
+- 🔧 [GitHub Actions 自动构建](https://github.com/EndlessPixel/FakePlayer-CE/actions)
+
+打开某次构建运行记录，向下滚动到 **Artifacts**，下载 `fakeplayer-dist` 产物（内含 `fakeplayer-fp.buildX.jar`）。此类构建适合在稳定版发布前抢先测试最新修复。
+
+> 下载完成后，将 `fakeplayer-fp.buildX.jar` 放入服务端 `plugins/` 目录并重启服务器。需先安装 CommandAPI 前置插件。
+
 ## 配置文件说明
 
 插件首次加载时仅生成模板文件 `config.tmpl.yml`，需手动重命名为 `config.yml` 后生效。该模板机制可让你在升级时直观预览新增配置项，避免覆盖已有设置。

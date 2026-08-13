@@ -44,6 +44,28 @@ FakePlayer is a server-side plugin inspired by [Carpet-Mod](https://github.com/g
 - [Paper](https://papermc.io) or [Purpur](http://purpurmc.org) server software
 - [CommandAPI](https://commandapi.jorel.dev) plugin (any version **except** `10.0.0`)
 
+## Download
+
+FakePlayer CE ships as a **single universal jar** (`fakeplayer-fp.buildX.jar`) that supports Minecraft `1.20.1 ~ 26.2`.
+
+### 1. Stable release (recommended)
+
+Download the latest stable build from the GitHub Releases page:
+
+- 📦 [Release Downloads](https://github.com/EndlessPixel/FakePlayer-CE/releases)
+
+Each release includes the pre-built `fakeplayer-fp.buildX.jar`. Place it into your server's `plugins/` folder.
+
+### 2. Automatic build (CI / nightly)
+
+Every push and pull request triggers a Gradle build via GitHub Actions. You can grab the freshly built jar from the **Artifacts** section of any successful workflow run:
+
+- 🔧 [GitHub Actions](https://github.com/EndlessPixel/FakePlayer-CE/actions)
+
+Open a workflow run, scroll down to **Artifacts**, and download the `fakeplayer-dist` artifact (contains `fakeplayer-fp.buildX.jar`). These builds are useful for testing the latest fixes before a stable release.
+
+> After downloading, put `fakeplayer-fp.buildX.jar` into your server's `plugins/` directory and restart the server. CommandAPI must be installed first.
+
 ## Config File
 
 On first launch, FakePlayer generates a template file `config.tmpl.yml`. Rename it to `config.yml` to activate your configuration. This template approach lets you preview new options when upgrading without overwriting your existing settings.
