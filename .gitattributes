@@ -1,1 +1,2 @@
 *.png binary
+*.kts linguist-language=Kotlin
