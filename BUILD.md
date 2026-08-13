@@ -17,7 +17,7 @@ No manual BuildTools setup is required.
 The output jar will be at:
 
 ```
-fakeplayer-dist/build/libs/fakeplayer-dist-fp.build2.jar
+fakeplayer-dist/build/libs/fakeplayer-fp.build6.jar
 ```
 
 ## How It Works
