@@ -18,6 +18,7 @@ import io.github.hello09x.fakeplayer.core.manager.feature.FakeplayerFeatureManag
 import io.github.hello09x.fakeplayer.core.manager.naming.NameManager;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import io.github.hello09x.fakeplayer.core.util.AddressUtils;
+import io.github.hello09x.fakeplayer.core.util.Reflections;
 import io.github.hello09x.fakeplayer.core.util.Commands;
 import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.Component;
@@ -289,6 +290,7 @@ public class FakeplayerManager {
                 text("[fakeplayer] "),
                 reason == null ? text("removed") : reason
         ));
+        this.cleanup(target);
         return true;
     }
 
@@ -301,6 +303,7 @@ public class FakeplayerManager {
         var targets = getAll();
         for (var target : targets) {
             target.kick(text(REMOVAL_REASON_PREFIX + (reason == null ? "removed" : reason)));
+            this.cleanup(target);
         }
         return targets.size();
     }
@@ -341,6 +344,66 @@ public class FakeplayerManager {
                     ActionType.DROP_INVENTORY,
                     ActionSetting.once()
             ).tick();
+        }
+        // 真正从服务器在线玩家列表中注销该假人实体。
+        // 假人通过自定义 NetworkManager 注入, Player.kick() 在 fake 网络上不会使其断线,
+        // 必须调用 NMS PlayerList.remove(ServerPlayer) 才能让服务器真正移除它。
+        removeFromServer(fakeplayer.getPlayer());
+    }
+
+    /**
+     * 通过 NMS 的 {@code PlayerList.remove} 真正注销一名玩家实体。
+     *
+     * <p>兼容 Leaf 等服务端分支: {@code CraftServer#getServer()} 在 Leaf 上可能直接返回
+     * {@code PlayerList} 本身 (而非 {@code MinecraftServer}), 因此优先尝试 {@code getPlayerList()}
+     * 方法, 若对象自身就是 {@code PlayerList} 则直接使用。</p>
+     *
+     * @param player 要注销的 Bukkit 玩家
+     */
+    private void removeFromServer(@NotNull Player player) {
+        try {
+            var server = Bukkit.getServer();
+            var playerList = resolvePlayerList(server);
+            if (playerList == null) {
+                return;
+            }
+            var serverPlayer = Reflections.getHandle(player);
+            for (var method : playerList.getClass().getMethods()) {
+                if (!method.getName().equals("remove") || method.getParameterCount() < 1) {
+                    continue;
+                }
+                var paramType = method.getParameterTypes()[0];
+                if (paramType.isInstance(serverPlayer)) {
+                    if (method.getParameterCount() == 1) {
+                        method.invoke(playerList, serverPlayer);
+                    } else {
+                        method.invoke(playerList, serverPlayer, "removed");
+                    }
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            // 兜底: 反射失败时退回到 kick (部分环境可能仍生效)
+            try {
+                player.kick(Component.text("removed"));
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private static @Nullable Object resolvePlayerList(@NotNull org.bukkit.Server server) {
+        try {
+            var srv = Reflections.getServer(server);
+            try {
+                var method = srv.getClass().getMethod("getPlayerList");
+                method.setAccessible(true);
+                return method.invoke(srv);
+            } catch (NoSuchMethodException e) {
+                // Leaf 等分支上 getServer() 已直接返回 PlayerList
+                return srv;
+            }
+        } catch (Exception e) {
+            return null;
         }
     }
 
