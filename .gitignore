@@ -129,3 +129,4 @@ build/
 !gradlew.bat
 
 marscode/*
+test-server/
