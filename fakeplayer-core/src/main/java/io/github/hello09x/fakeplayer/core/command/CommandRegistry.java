@@ -440,6 +440,7 @@ public class CommandRegistry {
                                 .withShortDescription("fakeplayer.command.say.description")
                                 .withRequirement(CommandSupports::hasFakeplayer)
                                 .withPermission(Permission.say)
+                                .withOptionalArguments(fakeplayer("name"))
                                 .withArguments(new GreedyStringArgument("message"))
                                 .executes(sayCommand::say),
 
