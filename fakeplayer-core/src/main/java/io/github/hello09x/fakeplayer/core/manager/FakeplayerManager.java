@@ -283,6 +283,11 @@ public class FakeplayerManager {
     public boolean remove(@NotNull String name, @Nullable Component reason) {
         var target = this.get(name);
         if (target == null) {
+            // 内部列表中没有, 但可能在服务器真实在线玩家列表中 (幽灵假人)。
+            // 回退到真实在线玩家, 借助 SPAWNED_AT 元数据识别假人实体。
+            target = this.findGhost(name);
+        }
+        if (target == null) {
             return false;
         }
 
@@ -295,12 +300,37 @@ public class FakeplayerManager {
     }
 
     /**
+     * 在服务器真实在线玩家列表中按名称查找幽灵假人 (内部列表已丢失记录的假人实体)。
+     *
+     * @param name 名称
+     * @return 命中的假人玩家, 不存在或不是假人则返回 {@code null}
+     */
+    private @Nullable Player findGhost(@NotNull String name) {
+        for (var player : Bukkit.getOnlinePlayers()) {
+            if (player.getName().equalsIgnoreCase(name)
+                    && MetadataKeys.getSpawnedAt(player) != null) {
+                return player;
+            }
+        }
+        return null;
+    }
+
+    /**
      * 移除所有假人
      *
      * @return 移除的假人数量
      */
     public int removeAll(@Nullable String reason) {
-        var targets = getAll();
+        // 内部列表中的假人
+        var targets = new java.util.ArrayList<>(getAll());
+        // 补齐服务器真实在线玩家里、内部列表丢失记录的假人 (幽灵)
+        for (var player : Bukkit.getOnlinePlayers()) {
+            if (MetadataKeys.getSpawnedAt(player) != null
+                    && targets.stream().noneMatch(p -> p.getUniqueId().equals(player.getUniqueId()))) {
+                targets.add(player);
+            }
+        }
+
         for (var target : targets) {
             target.kick(text(REMOVAL_REASON_PREFIX + (reason == null ? "removed" : reason)));
             this.cleanup(target);
@@ -368,26 +398,26 @@ public class FakeplayerManager {
                 return;
             }
             var serverPlayer = Reflections.getHandle(player);
-            for (var method : playerList.getClass().getMethods()) {
-                if (!method.getName().equals("remove") || method.getParameterCount() < 1) {
-                    continue;
-                }
-                var paramType = method.getParameterTypes()[0];
-                if (paramType.isInstance(serverPlayer)) {
-                    if (method.getParameterCount() == 1) {
+            var spClass = serverPlayer.getClass();
+            // 优先尝试 remove(ServerPlayer), 其次 remove(ServerPlayer, String)
+            for (var paramTypes : new Class<?>[][]{new Class<?>[]{spClass}, new Class<?>[]{spClass, String.class}}) {
+                try {
+                    var method = playerList.getClass().getMethod("remove", paramTypes);
+                    method.setAccessible(true);
+                    if (paramTypes.length == 1) {
                         method.invoke(playerList, serverPlayer);
                     } else {
                         method.invoke(playerList, serverPlayer, "removed");
                     }
                     return;
+                } catch (NoSuchMethodException ignored) {
+                    // 尝试下一签名
                 }
             }
+            log.warning("未能找到 PlayerList.remove(" + spClass.getName() + ") 方法, 假人 "
+                    + player.getName() + " 可能未被真正移除");
         } catch (Exception e) {
-            // 兜底: 反射失败时退回到 kick (部分环境可能仍生效)
-            try {
-                player.kick(Component.text("removed"));
-            } catch (Exception ignored) {
-            }
+            log.warning("调用 PlayerList.remove 移除假人 " + player.getName() + " 失败: " + e);
         }
     }
 
