@@ -27,6 +27,7 @@ public class ActionTickerImpl extends BaseActionTicker implements ActionTicker {
                 case USE -> new UseAction((ServerPlayer) Reflections.getHandle(player));
                 case JUMP, LOOK_AT_NEAREST_ENTITY, DROP_INVENTORY, DROP_STACK, DROP_ITEM ->
                         throw new UnsupportedOperationException();
+                case SAY -> this.action;
             };
         }
     }

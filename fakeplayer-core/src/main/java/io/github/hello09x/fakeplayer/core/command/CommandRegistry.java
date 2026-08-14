@@ -440,9 +440,39 @@ public class CommandRegistry {
                                 .withShortDescription("fakeplayer.command.say.description")
                                 .withRequirement(CommandSupports::hasFakeplayer)
                                 .withPermission(Permission.say)
-                                .withOptionalArguments(fakeplayer("name"))
-                                .withArguments(new GreedyStringArgument("message"))
-                                .executes(sayCommand::say),
+                                .withSubcommands(
+                                        command("once")
+                                                .withShortDescription("fakeplayer.command.say.once")
+                                                .withOptionalArguments(
+                                                        fakeplayer("name"),
+                                                        new GreedyStringArgument("message"))
+                                                .executes(sayCommand.say(ActionSetting.once())),
+                                        command("continuous")
+                                                .withShortDescription("fakeplayer.command.say.continuous")
+                                                .withOptionalArguments(
+                                                        fakeplayer("name"),
+                                                        new GreedyStringArgument("message"))
+                                                .executes(sayCommand.say(ActionSetting.continuous())),
+                                        command("interval")
+                                                .withShortDescription("fakeplayer.command.say.interval")
+                                                .withOptionalArguments(
+                                                        int32("ticks", 1),
+                                                        fakeplayer("name"),
+                                                        new GreedyStringArgument("message"))
+                                                .executes((sender, args) -> {
+                                                    int interval = (int) args.getOptional("ticks").orElse(1);
+                                                    sayCommand.say(ActionSetting.interval(interval)).run(sender, args);
+                                                }),
+                                        command("stop")
+                                                .withShortDescription("fakeplayer.command.say.stop")
+                                                .withOptionalArguments(fakeplayer("name"))
+                                                .executes(sayCommand.say(ActionSetting.stop())),
+                                        command("help")
+                                                .withShortDescription("fakeplayer.command.say.help")
+                                                .executes((sender, args) -> {
+                                                    sender.sendMessage(translatable("fakeplayer.command.say.help"));
+                                                })
+                                ),
 
                         command("killall")
                                 .withShortDescription("fakeplayer.command.killall.description")

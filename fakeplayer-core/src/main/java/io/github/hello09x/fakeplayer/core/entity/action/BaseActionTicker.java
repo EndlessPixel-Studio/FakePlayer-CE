@@ -2,6 +2,7 @@ package io.github.hello09x.fakeplayer.core.entity.action;
 
 import io.github.hello09x.fakeplayer.api.spi.*;
 import io.github.hello09x.fakeplayer.core.entity.action.impl.*;
+import io.github.hello09x.fakeplayer.core.entity.action.impl.SayAction;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +31,7 @@ public abstract class BaseActionTicker implements ActionTicker {
             case DROP_ITEM -> new DropItemAction(nms.fromPlayer(player));
             case DROP_STACK -> new DropStackAction(nms.fromPlayer(player));
             case DROP_INVENTORY -> new DropInventoryAction(nms.fromPlayer(player));
+            case SAY -> new SayAction(nms.fromPlayer(player), setting.message);
             default -> null;    // 子类需要实现其他 Action
         };
     }

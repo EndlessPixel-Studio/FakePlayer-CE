@@ -30,15 +30,25 @@ class ActionSetting implements Cloneable {
      */
     public int wait;
 
+    /**
+     * 随动作携带的消息 (如 SAY 动作发送的聊天内容), 可为 null
+     */
+    public String message;
+
     public ActionSetting(int maximum, int interval) {
         this(maximum, interval, 0);
     }
 
     public ActionSetting(int maximum, int interval, int wait) {
+        this(maximum, interval, wait, null);
+    }
+
+    public ActionSetting(int maximum, int interval, int wait, String message) {
         this.maximum = maximum;
         this.remains = maximum;
         this.interval = interval;
         this.wait = wait;
+        this.message = message;
     }
 
     public static ActionSetting once() {

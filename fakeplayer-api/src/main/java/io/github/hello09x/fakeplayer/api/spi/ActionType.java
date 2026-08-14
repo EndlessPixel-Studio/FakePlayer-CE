@@ -50,7 +50,12 @@ enum ActionType implements Translatable {
     /**
      * 丢弃背包
      */
-    DROP_INVENTORY("fakeplayer.action.drop-inventory");
+    DROP_INVENTORY("fakeplayer.action.drop-inventory"),
+
+    /**
+     * 发送聊天消息
+     */
+    SAY("fakeplayer.action.say");
 
     final String translationKey;
 
