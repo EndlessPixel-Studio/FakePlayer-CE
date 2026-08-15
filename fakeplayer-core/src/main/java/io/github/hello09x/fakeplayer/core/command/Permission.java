@@ -4,6 +4,7 @@ public interface Permission {
 
     String spawn = "fakeplayer.command.spawn";
     String spawnName = "fakeplayer.command.spawn.name";
+    String spawnNameForceReal = "fakeplayer.command.spawn.name.force-real";
     String spawnLocation = "fakeplayer.command.spawn.location";
 
     String select = "fakeplayer.command.select";
