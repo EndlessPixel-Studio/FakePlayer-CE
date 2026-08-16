@@ -124,7 +124,7 @@ public class FakeplayerManager {
         }
         this.checkLimit(creator);
 
-        var sn = name == null ? nameManager.getRegularName(creator) : nameManager.getSpecifiedName(name);
+        var sn = name == null ? nameManager.getRegularName(creator) : nameManager.getSpecifiedName(creator, name);
         log.info("UUID of fake player %s is %s".formatted(sn.name(), sn.uuid()));
 
         var fp = new Fakeplayer(

@@ -16,6 +16,9 @@ permissions:
     description: 'Allow player to run /fp spawn'
   fakeplayer.command.spawn.name:
     description: 'Allow player to run /fp spawn and specify a name'
+  fakeplayer.command.spawn.name.force-real:
+    description: 'Allow player to spawn a fake player using a real player data when the name is already used by a real player'
+    default: op
   fakeplayer.command.spawn.location:
     description: 'Allow player to run /fp spawn and specify a spawn location'
   fakeplayer.command.kill:
@@ -150,6 +153,7 @@ permissions:
     description: 'Includes all permissions'
     children:
       - fakeplayer.spawn
+      - fakeplayer.command.spawn.name.force-real
       - fakeplayer.tp
       - fakeplayer.exp
       - fakeplayer.action

@@ -13,6 +13,7 @@ import io.github.hello09x.fakeplayer.core.manager.FakeplayerAutofishManager;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerReplenishManager;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerSkinManager;
 import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
+import io.github.hello09x.fakeplayer.core.manager.naming.NameManager;
 import io.github.hello09x.fakeplayer.core.manager.naming.SequenceName;
 import io.github.hello09x.fakeplayer.core.util.Attributes;
 import io.github.hello09x.fakeplayer.core.util.InternalAddressGenerator;
@@ -47,6 +48,9 @@ public class Fakeplayer {
     private final FakeplayerReplenishManager replenishManager;
     private final FakeplayerAutofishManager autofishManager;
     private final ActionManager actionManager;
+
+    @NotNull
+    private final NameManager nameManager;
 
 
     @NotNull
@@ -102,6 +106,7 @@ public class Fakeplayer {
         this.replenishManager = injector.getInstance(FakeplayerReplenishManager.class);
         this.autofishManager = injector.getInstance(FakeplayerAutofishManager.class);
         this.actionManager = injector.getInstance(ActionManager.class);
+        this.nameManager = injector.getInstance(NameManager.class);
 
         this.name = sequenceName.name();
         this.uuid = sequenceName.uuid();
@@ -148,10 +153,11 @@ public class Fakeplayer {
                         }
                     }
 
-                    if (config.isDropInventoryOnQuiting()) {
+                    if (config.isDropInventoryOnQuiting() && !nameManager.isRealPlayerUUID(this.uuid)) {
                         // 跨服背包同步插件可能导致假人既丢弃了一份到地上，在重新生成的时候又回来了
                         // 因此在生成的时候清空一次背包
                         // 但无法解决登陆后延迟同步背包的情况
+                        // 如果该假人使用了真实玩家的 UUID(已玩过), 则保留其原有数据, 不清空背包
                         this.player.getInventory().clear();
                     }
 

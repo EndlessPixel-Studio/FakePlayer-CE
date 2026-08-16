@@ -3,6 +3,7 @@ package io.github.hello09x.fakeplayer.core.manager.naming;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.command.Permission;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.manager.naming.exception.IllegalCustomNameException;
 import io.github.hello09x.fakeplayer.core.repository.FakeplayerProfileRepository;
@@ -113,12 +114,25 @@ public class NameManager {
     }
 
     /**
+     * 判断 UUID 是否属于有玩家数据的真实玩家，而不是假人 UUID。
+     *
+     * @param uuid UUID
+     * @return 是否为真实玩家 UUID
+     */
+    public boolean isRealPlayerUUID(@NotNull UUID uuid) {
+        return Bukkit.getOfflinePlayer(uuid).hasPlayedBefore()
+                && !legacyUsedIdRepository.contains(uuid)
+                && !profileRepository.existsByUUID(uuid);
+    }
+
+    /**
      * 通过自定义名称获取序列名
      *
-     * @param name 自定义名称
+     * @param sender 创建者
+     * @param name   自定义名称
      * @return 序列名
      */
-    public @NotNull SequenceName getSpecifiedName(@NotNull String name) {
+    public @NotNull SequenceName getSpecifiedName(@NotNull CommandSender sender, @NotNull String name) {
         if (StringUtils.isNotBlank(config.getNamePrefix())) {
             name = config.getNamePrefix().trim() + name;
         }
@@ -160,12 +174,22 @@ public class NameManager {
 
         var player = Bukkit.getOfflinePlayer(name);
         var uuid = player.getUniqueId();
-        if (player.hasPlayedBefore() && !legacyUsedIdRepository.contains(uuid) && !profileRepository.existsByUUID(uuid)) {
-            throw new IllegalCustomNameException(translatable(
-                    "fakeplayer.spawn.error.name.used",
-                    text(name, GOLD),
-                    text(uuid.toString(), GOLD)
-            ).color(RED));
+        if (this.isRealPlayerUUID(uuid)) {
+            if (!sender.hasPermission(Permission.spawnNameForceReal)) {
+                throw new IllegalCustomNameException(translatable(
+                        "fakeplayer.spawn.error.name.used",
+                        text(name, GOLD),
+                        text(uuid.toString(), GOLD)
+                ).color(RED));
+            }
+
+            // 有权限: 强行使用该真实玩家的 UUID, 从而读取其玩家数据(背包、末影箱、经验等)
+            return new SequenceName(
+                    "custom",
+                    0,
+                    uuid,
+                    name
+            );
         }
 
         return new SequenceName(
