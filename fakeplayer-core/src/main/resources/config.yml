@@ -155,6 +155,10 @@ kale-tps: 0
 #   SIMPLE: 一个简单的内嵌实现, 使用这个不能看到或者编辑假人的装备栏
 invsee-implement: AUTO
 
+# Allow non-OP players to open fake player inventories
+# 允许非 OP 玩家打开假人背包 (默认关闭, 开启后所有玩家均可打开)
+allow-non-op-open-inv: false
+
 
 # Pre-Spawn-Commands
 # Server will execute the following commands BEFORE trying to spawn a fake player.
