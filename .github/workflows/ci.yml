@@ -2,19 +2,23 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
       - 'LICENSE'
       - '.gitignore'
   pull_request:
-    branches: [main]
+    branches: [master]
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
       - 'LICENSE'
       - '.gitignore'
+
+# 最小权限：CI 只构建并上传 artifact，不需要写仓库
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,11 +28,12 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v5
 
+      # 保留 JDK 25
       - name: Setup JDK 25
         uses: actions/setup-java@v5
         with:
@@ -42,9 +47,11 @@ jobs:
           cache-write-only: ${{ github.event_name == 'push' }}
 
       - name: Build with Gradle
-        run: ./gradlew :fakeplayer-dist:shadowJar --build-cache --console=plain
+        run: ./gradlew :fakeplayer-dist:shadowJar --build-cache --parallel --console=plain
 
+      # PR 仅验证构建，产物主要用于发布，故仅 push 到 master 时上传
       - name: Upload artifacts
+        if: ${{ github.event_name == 'push' }}
         uses: actions/upload-artifact@v4
         with:
           name: fakeplayer-ce
