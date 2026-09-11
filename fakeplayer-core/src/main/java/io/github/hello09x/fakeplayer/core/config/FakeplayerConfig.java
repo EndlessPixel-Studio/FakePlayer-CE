@@ -207,6 +207,11 @@ public class FakeplayerConfig extends PluginConfig {
      */
     private int randomPasswordLength;
 
+    /**
+     * 修改密码命令模板, %oldpassword% 与 %newpassword% 分别替换为旧密码和新密码
+     */
+    private String changePasswordCommand;
+
     @Inject
     public FakeplayerConfig() {
         super(Main.getInstance());
