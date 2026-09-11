@@ -3,6 +3,7 @@ package io.github.hello09x.fakeplayer.core.manager.invsee;
 import com.google.common.base.Throwables;
 import com.lishid.openinv.IOpenInv;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerList;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import org.bukkit.Bukkit;
@@ -21,8 +22,8 @@ public class OpenInvInvseeManagerImpl extends AbstractInvseeManager {
     private final static Logger log = Main.getInstance().getLogger();
     private final IOpenInv openInv;
 
-    public OpenInvInvseeManagerImpl(FakeplayerManager manager, FakeplayerList fakeplayerList) {
-        super(manager, fakeplayerList);
+    public OpenInvInvseeManagerImpl(FakeplayerManager manager, FakeplayerList fakeplayerList, FakeplayerConfig config) {
+        super(manager, fakeplayerList, config);
         this.openInv = (IOpenInv) Bukkit.getPluginManager().getPlugin("OpenInv");
     }
 
