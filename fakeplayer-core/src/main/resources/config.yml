@@ -302,3 +302,18 @@ replenish:
 # 检测更新
 # 仅仅是检测, 并不会帮你下载
 check-for-updates: true
+
+
+# 自动登录
+# 假人生成后是否自动执行注册/登录命令, 需要先通过 '/fp password <名称> <密码>' 为假人设置密码
+# 密码保存在插件数据库中
+# 命令模板中的 %password% 会被替换为数据库中存储的密码, 其余 %p %u %c 占位符会自动替换
+# 默认: false
+# Auto login
+# Whether fake players automatically run register/login commands after spawn.
+# You should set a password first via '/fp password <name> <password>', the password is stored in the plugin database.
+# %password% in the templates will be replaced with the stored password, %p %u %c are replaced automatically.
+# Default: false
+auto-login: false
+register: "/reg %password% %password%"
+login: "/login %password%"
