@@ -85,6 +85,9 @@ public class CommandRegistry {
     private SayCommand sayCommand;
 
     @Inject
+    private PasswordCommand passwordCommand;
+
+    @Inject
     private FakeplayerConfig config;
 
     public void register() {
