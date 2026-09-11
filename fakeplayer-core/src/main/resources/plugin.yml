@@ -89,6 +89,12 @@ permissions:
     description: 'Allow player to run /fp hold'
   fakeplayer.command.cmd:
     description: 'Allow player to run /fp cmd'
+  fakeplayer.command.say:
+    description: 'Allow player to run /fp say'
+  fakeplayer.command.password:
+    description: 'Allow player to run /fp password'
+  fakeplayer.command.changepassword:
+    description: 'Allow player to run /fp changepassword'
   fakeplayer.config.replenish:
     description: 'Allow player to configure fake players can replenish'
   fakeplayer.config.replenish.chest:
@@ -158,3 +164,6 @@ permissions:
       - fakeplayer.exp
       - fakeplayer.action
       - fakeplayer.cmd
+      - fakeplayer.command.say
+      - fakeplayer.command.password
+      - fakeplayer.command.changepassword
