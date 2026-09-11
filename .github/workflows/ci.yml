@@ -2,28 +2,32 @@ name: CI
 
 on:
   push:
+    branches: [main]
     paths-ignore:
       - '**/*.md'
-      - '**/*.txt'
-      - 'LICENSE'
       - 'docs/**'
+      - 'LICENSE'
       - '.gitignore'
   pull_request:
+    branches: [main]
     paths-ignore:
       - '**/*.md'
-      - '**/*.txt'
-      - 'LICENSE'
       - 'docs/**'
+      - 'LICENSE'
       - '.gitignore'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
       - name: Setup JDK 25
         uses: actions/setup-java@v5
@@ -34,13 +38,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
-
-      - name: Grant execute permission to Gradlew
-        run: chmod +x ./gradlew
+          cache-read-only: ${{ github.event_name != 'push' }}
+          cache-write-only: ${{ github.event_name == 'push' }}
 
       - name: Build with Gradle
-        run: ./gradlew :fakeplayer-dist:shadowJar --build-cache --configuration-cache --no-daemon --console=plain
+        run: ./gradlew :fakeplayer-dist:shadowJar --build-cache --console=plain
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -49,3 +51,4 @@ jobs:
           path: fakeplayer-dist/build/libs/*.jar
           if-no-files-found: error
           retention-days: 30
+          compression-level: 9
