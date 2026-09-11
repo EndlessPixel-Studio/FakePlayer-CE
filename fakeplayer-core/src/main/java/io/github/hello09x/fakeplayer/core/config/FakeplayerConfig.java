@@ -197,6 +197,16 @@ public class FakeplayerConfig extends PluginConfig {
      */
     private String loginCommand;
 
+    /**
+     * 随机密码字符集, 为空表示不自动生成密码
+     */
+    private String randomPasswordCharset;
+
+    /**
+     * 随机密码长度
+     */
+    private int randomPasswordLength;
+
     @Inject
     public FakeplayerConfig() {
         super(Main.getInstance());
@@ -245,6 +255,9 @@ public class FakeplayerConfig extends PluginConfig {
         this.autoLogin = file.getBoolean("auto-login", false);
         this.registerCommand = file.getString("register", "/reg %password% %password%");
         this.loginCommand = file.getString("login", "/login %password%");
+        this.randomPasswordCharset = file.getString("random-password", "");
+        var randomLength = file.getInt("random-password-length", 12);
+        this.randomPasswordLength = randomLength <= 0 ? 12 : randomLength;
         this.nameStyleColor = this.getNameStyleColor(file);
         this.nameStyleDecorations = this.getNameStyleDecorations(file);
 
