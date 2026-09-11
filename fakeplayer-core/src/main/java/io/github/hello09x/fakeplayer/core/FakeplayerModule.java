@@ -50,10 +50,17 @@ public class FakeplayerModule extends AbstractModule {
 
     @Provides
     @Singleton
-    private @NotNull NMSBridge nmsBridge() {
-        var bridge = ServiceLoader
-                .load(NMSBridge.class, NMSBridge.class.getClassLoader())
-                .stream()
+    private @NotNull NMSBridge nmsBridge(FakeplayerConfig config) {
+        var loader = ServiceLoader.load(NMSBridge.class, NMSBridge.class.getClassLoader());
+        if (config.isForcedExecution()) {
+            // 忽略版本检查, 以第一个可用的 NMSBridge 实现兜底 (可能不兼容, 风险自负)
+            return loader.stream()
+                    .map(ServiceLoader.Provider::get)
+                    .findFirst()
+                    .orElseThrow(() -> new ExceptionInInitializerError("No NMSBridge implementation found"));
+        }
+
+        var bridge = loader.stream()
                 .map(ServiceLoader.Provider::get)
                 .filter(NMSBridge::isSupported)
                 .findAny()

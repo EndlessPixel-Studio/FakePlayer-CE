@@ -212,6 +212,12 @@ public class FakeplayerConfig extends PluginConfig {
      */
     private String changePasswordCommand;
 
+    /**
+     * 是否忽略版本检查强制在不支持的 Minecraft 版本上运行
+     * <p>开启后会以第一个可用的 NMSBridge 实现兜底, 可能因 NMS 不兼容而崩溃, 风险自负</p>
+     */
+    private boolean forcedExecution;
+
     @Inject
     public FakeplayerConfig() {
         super(Main.getInstance());
@@ -264,6 +270,7 @@ public class FakeplayerConfig extends PluginConfig {
         var randomLength = file.getInt("random-password-length", 12);
         this.randomPasswordLength = randomLength <= 0 ? 12 : randomLength;
         this.changePasswordCommand = file.getString("change-password", "/changepassword %oldpassword% %newpassword% %newpassword%");
+        this.forcedExecution = file.getBoolean("forced-execution", false);
         this.nameStyleColor = this.getNameStyleColor(file);
         this.nameStyleDecorations = this.getNameStyleDecorations(file);
 
