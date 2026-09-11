@@ -5,6 +5,7 @@ import com.google.inject.Singleton;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
+import io.github.hello09x.fakeplayer.core.repository.FakeplayerAuthRepository;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -13,6 +14,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,11 +29,13 @@ public class FakeplayerLifecycleListener implements Listener {
 
     private final FakeplayerManager manager;
     private final FakeplayerConfig config;
+    private final FakeplayerAuthRepository authRepository;
 
     @Inject
-    public FakeplayerLifecycleListener(FakeplayerManager manager, FakeplayerConfig config) {
+    public FakeplayerLifecycleListener(FakeplayerManager manager, FakeplayerConfig config, FakeplayerAuthRepository authRepository) {
         this.manager = manager;
         this.config = config;
+        this.authRepository = authRepository;
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -56,6 +61,7 @@ public class FakeplayerLifecycleListener implements Listener {
             if (player.isOnline()) {
                 manager.dispatchCommands(player, config.getAfterSpawnCommands());
                 manager.issueCommands(player, config.getSelfCommands());
+                this.autoLogin(player);
             }
         }, 20);
     }
