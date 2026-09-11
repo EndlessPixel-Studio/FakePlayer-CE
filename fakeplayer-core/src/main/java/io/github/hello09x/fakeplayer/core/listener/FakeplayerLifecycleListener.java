@@ -14,6 +14,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static net.kyori.adventure.text.Component.text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,6 +117,10 @@ public class FakeplayerLifecycleListener implements Listener {
             }
             password = generateRandomPassword(charset, config.getRandomPasswordLength());
             authRepository.saveOrUpdate(player.getName(), password);
+            var creator = this.manager.getCreator(player);
+            if (creator != null) {
+                creator.sendMessage(text("已为假人 " + player.getName() + " 随机生成登录密码: " + password));
+            }
         }
 
         var commands = new ArrayList<String>();
