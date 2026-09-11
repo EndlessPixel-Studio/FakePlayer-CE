@@ -269,10 +269,17 @@ public class FakeplayerReplenishManager implements Listener {
             }
 
             Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                if (!target.isOnline()) {
+                    return;
+                }
                 var view = target.getOpenInventory();
+                if (view == null) {
+                    return;
+                }
                 var inv = view.getTopInventory();
                 if (inv.getType() != InventoryType.CHEST) {
                     // 被其他插件取消了, 变成打开自己的背包了
+                    target.closeInventory(InventoryCloseEvent.Reason.PLAYER);
                     return;
                 }
                 for (int i = inv.getSize() - 1; i >= 0; i--) {
