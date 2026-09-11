@@ -1,6 +1,8 @@
 package io.github.hello09x.fakeplayer.core.manager.invsee;
 
 import io.github.hello09x.devtools.core.utils.ComponentUtils;
+import io.github.hello09x.fakeplayer.core.command.Permission;
+import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerList;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import org.bukkit.Sound;
@@ -26,10 +28,12 @@ public abstract class AbstractInvseeManager implements InvseeManager {
 
     protected final FakeplayerManager manager;
     protected final FakeplayerList fakeplayerList;
+    protected final FakeplayerConfig config;
 
-    protected AbstractInvseeManager(FakeplayerManager manager, FakeplayerList fakeplayerList) {
+    protected AbstractInvseeManager(FakeplayerManager manager, FakeplayerList fakeplayerList, FakeplayerConfig config) {
         this.manager = manager;
         this.fakeplayerList = fakeplayerList;
+        this.config = config;
     }
 
     @Override
@@ -38,7 +42,8 @@ public abstract class AbstractInvseeManager implements InvseeManager {
         if (fp == null) {
             return false;
         }
-        if (!viewer.isOp() && !fp.isCreatedBy(viewer)) {
+        if (!viewer.hasPermission(Permission.invsee) && !viewer.isOp() && !fp.isCreatedBy(viewer) && !config.isAllowNonOpOpenInv()) {
+            viewer.sendMessage(translatable("fakeplayer.command.invsee.error.no-permission"));
             return false;
         }
         var view = this.openInventory(viewer, whom);
