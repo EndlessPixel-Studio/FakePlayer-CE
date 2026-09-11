@@ -8,16 +8,16 @@
 - [EndlessPixel/FakePlayer-CE PR #7](https://github.com/EndlessPixel/FakePlayer-CE/pull/7) 修复 NMS 兼容性与插件生命周期稳定性（多版本加载/卸载崩溃）
 - [EndlessPixel/FakePlayer-CE PR #8](https://github.com/EndlessPixel/FakePlayer-CE/pull/8) 新增特权复用真实玩家数据（名称被占用时可复用真实玩家数据生成假人）
 - [EndlessPixel/FakePlayer-CE PR #10](https://github.com/EndlessPixel/FakePlayer-CE/pull/10) 修复假人使用/消耗物品后不自动补货（重写 `FakeplayerReplenishManager` 并增加补货前状态校验）
-- [tanyaofei/minecraft-fakeplayer Issue #172](https://github.com/tanyaofei/minecraft-fakeplayer/issues/172) 修复占位符（如 `%fakeplayer_actions%`）无效：占位符 identifier 原取插件名导致前缀为 `fakeplayer-ce_`，改为固定 `fakeplayer`
 
 ## tanyaofei/minecraft-fakeplayer
+- [tanyaofei/minecraft-fakeplayer Issue #172](https://github.com/tanyaofei/minecraft-fakeplayer/issues/172) 修复占位符（如 `%fakeplayer_actions%`）无效：占位符 identifier 原取插件名导致前缀为 `fakeplayer-ce_`，改为固定 `fakeplayer`
 - [tanyaofei/minecraft-fakeplayer Issue #178](https://github.com/tanyaofei/minecraft-fakeplayer/issues/178) 修复关闭无敌后仍无法造成伤害/击退
 - [tanyaofei/minecraft-fakeplayer Issue #181](https://github.com/tanyaofei/minecraft-fakeplayer/issues/181) 修复无法关闭无敌模式及重载插件崩溃
+- [tanyaofei/minecraft-fakeplayer PR #190](https://github.com/tanyaofei/minecraft-fakeplayer/pull/190) 修复切换维度后假人仍处于无敌状态（处理 `ClientboundRespawnPacket` 并调用 `player.hasChangedDimension()` 完成维度切换）
+- [tanyaofei/minecraft-fakeplayer PR #196](https://github.com/tanyaofei/minecraft-fakeplayer/pull/196) 新增 1.21.11 NMS 模块支持（fakeplayer-v1_21_11），使插件可运行于 Minecraft 1.21.11
 - [tanyaofei/minecraft-fakeplayer Issue #195](https://github.com/tanyaofei/minecraft-fakeplayer/issues/195) 修复工具不被补货（新增耐久阈值周期检查 `replenish.tools.durability-threshold`）
 - [tanyaofei/minecraft-fakeplayer Issue #199](https://github.com/tanyaofei/minecraft-fakeplayer/issues/199) 修复无敌配置不生效（保存后立即推送至在线假人）
 - [tanyaofei/minecraft-fakeplayer Issue #200](https://github.com/tanyaofei/minecraft-fakeplayer/issues/200) 修复 Mohist 加载崩溃（改用纯 NMS `LookUtils`）
-- [tanyaofei/minecraft-fakeplayer PR #190](https://github.com/tanyaofei/minecraft-fakeplayer/pull/190) 修复切换维度后假人仍处于无敌状态（处理 `ClientboundRespawnPacket` 并调用 `player.hasChangedDimension()` 完成维度切换）
-- [tanyaofei/minecraft-fakeplayer PR #196](https://github.com/tanyaofei/minecraft-fakeplayer/pull/196) 新增 1.21.11 NMS 模块支持（fakeplayer-v1_21_11），使插件可运行于 Minecraft 1.21.11
 
 ## xiplugin/FakePlayer（同步修复）
 - [xiplugin/FakePlayer commit 9d21b2c](https://github.com/xiplugin/FakePlayer/commit/9d21b2c8f410729c5d2e30ff71d3bf972c34dcbe) 修复动作过滤逻辑：`remains == -1`（无限次数）的动作被错误剔除，导致无限次动作不生效
