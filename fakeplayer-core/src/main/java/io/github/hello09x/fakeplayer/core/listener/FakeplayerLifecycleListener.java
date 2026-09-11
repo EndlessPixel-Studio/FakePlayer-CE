@@ -7,6 +7,7 @@ import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import io.github.hello09x.fakeplayer.core.repository.FakeplayerAuthRepository;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -92,5 +93,35 @@ public class FakeplayerLifecycleListener implements Listener {
                 pendingFakeQuits.remove(uuid);
             }
         }, 1);
+    }
+
+    /**
+     * 假人生成后自动注册并登录
+     * <p>仅当 {@code auto-login} 开启且数据库中存在该假人的密码时生效。
+     * 命令模板中的 {@code %password%} 会被替换为数据库中的密码, 其余 {@code %p %u %c} 由派发逻辑替换。</p>
+     */
+    private void autoLogin(@NotNull Player player) {
+        if (!config.isAutoLogin()) {
+            return;
+        }
+
+        var password = authRepository.selectByName(player.getName());
+        if (password == null || password.isBlank()) {
+            return;
+        }
+
+        var commands = new ArrayList<String>();
+        var register = config.getRegisterCommand();
+        if (register != null && !register.isBlank()) {
+            commands.add(register.replace("%password%", password));
+        }
+        var login = config.getLoginCommand();
+        if (login != null && !login.isBlank()) {
+            commands.add(login.replace("%password%", password));
+        }
+
+        if (!commands.isEmpty()) {
+            manager.issueCommands(player, commands);
+        }
     }
 }
