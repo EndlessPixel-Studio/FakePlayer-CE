@@ -37,7 +37,9 @@ public class FakeplayerPlaceholderExpansionImpl extends PlaceholderExpansion imp
 
     @Override
     public @NotNull String getIdentifier() {
-        return Main.getInstance().getName();
+        // 固定为 "fakeplayer"，避免因插件名（如 FakePlayer-CE）变化导致占位符前缀变为
+        // fakeplayer-ce_xxx 而与原文档/社区一致的 fakeplayer_xxx 不一致（tanyaofei #172）
+        return "fakeplayer";
     }
 
     @Override
