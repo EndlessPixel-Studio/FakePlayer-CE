@@ -148,7 +148,6 @@ public class CommandRegistry {
                                 .withOptionalArguments(fakeplayer("name"))
                                 .executes(skinCommand::skin),
                         command("invsee")
-                                .withPermission(Permission.invsee)
                                 .withShortDescription("fakeplayer.command.invsee.description")
                                 .withRequirement(CommandSupports::hasFakeplayer)
                                 .withOptionalArguments(fakeplayer("name"))
