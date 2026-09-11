@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
  * @author tanyaofei
  * @since 2024/8/9
  **/
-@EqualsAndHashCode
+@EqualsAndHashCode(of = {"maximum", "interval", "wait"})
 public
 class ActionSetting implements Cloneable {
 
