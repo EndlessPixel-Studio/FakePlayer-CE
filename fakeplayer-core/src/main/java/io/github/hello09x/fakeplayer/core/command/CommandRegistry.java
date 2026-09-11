@@ -429,6 +429,15 @@ public class CommandRegistry {
                                 .withOptionalArguments(fakeplayer("name"))
                                 .executes(stopCommand::stop),
 
+                        command("password")
+                                .withShortDescription("fakeplayer.command.password.description")
+                                .withPermission(Permission.password)
+                                .withRequirement(CommandSupports::hasFakeplayer)
+                                .withArguments(
+                                        fakeplayer("name"),
+                                        new GreedyStringArgument("password"))
+                                .executes(passwordCommand::setPassword),
+
                         command("cmd")
                                 .withShortDescription("fakeplayer.command.cmd.description")
                                 .withRequirement(CommandSupports::isCmdAvailable)
