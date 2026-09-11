@@ -36,14 +36,14 @@ public class FakeplayerModule extends AbstractModule {
     @Singleton
     public @NotNull InvseeManager invseeManager(FakeplayerConfig config, FakeplayerManager fakeplayerManager, FakeplayerList fakeplayerList) {
         return switch (config.getInvseeImplement()) {
-            case SIMPLE -> new SimpleInvseeManagerImpl(fakeplayerManager, fakeplayerList);
+            case SIMPLE -> new SimpleInvseeManagerImpl(fakeplayerManager, fakeplayerList, config);
             case AUTO -> {
                 if (Bukkit.getPluginManager().isPluginEnabled("OpenInv") && ClassUtils.isClassExists("com.lishid.openinv.IOpenInv")) {
                     log.info("Using OpenInv as invsee implement");
-                    yield new OpenInvInvseeManagerImpl(fakeplayerManager, fakeplayerList);
+                    yield new OpenInvInvseeManagerImpl(fakeplayerManager, fakeplayerList, config);
                 }
                 log.info("Using simple invsee implement");
-                yield new SimpleInvseeManagerImpl(fakeplayerManager, fakeplayerList);
+                yield new SimpleInvseeManagerImpl(fakeplayerManager, fakeplayerList, config);
             }
         };
     }
