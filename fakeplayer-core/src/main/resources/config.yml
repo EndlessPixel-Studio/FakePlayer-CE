@@ -318,6 +318,12 @@ auto-login: false
 register: "/reg %password% %password%"
 login: "/login %password%"
 
+# 强制在不支持的版本运行 (忽略 NMSBridge 版本检查)
+# Force running on unsupported Minecraft versions by ignoring the NMSBridge version check.
+# 开启后将以第一个可用的 NMSBridge 实现兜底, 可能因 NMS 不兼容而崩溃, 风险自负.
+# Default: false
+forced-execution: false
+
 # 随机密码字符集
 # 当 auto-login 开启且某个假人尚未通过 '/fp password' 设置密码时, 从以下字符集中随机生成密码并自动注册/登录
 # 留空表示不自动生成, 必须手动设置密码后才能自动登录
