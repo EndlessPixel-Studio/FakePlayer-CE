@@ -441,6 +441,17 @@ public class CommandRegistry {
                                         new GreedyStringArgument("password"))
                                 .executes(passwordCommand::setPassword),
 
+                        command("changepassword")
+                                .withAliases("changepw")
+                                .withShortDescription("fakeplayer.command.changepassword.description")
+                                .withPermission(Permission.changepassword)
+                                .withRequirement(CommandSupports::hasFakeplayer)
+                                .withArguments(
+                                        fakeplayer("name"),
+                                        text("old"),
+                                        text("new"))
+                                .executes(changepasswordCommand::change),
+
                         command("cmd")
                                 .withShortDescription("fakeplayer.command.cmd.description")
                                 .withRequirement(CommandSupports::isCmdAvailable)
