@@ -317,3 +317,16 @@ check-for-updates: true
 auto-login: false
 register: "/reg %password% %password%"
 login: "/login %password%"
+
+# 随机密码字符集
+# 当 auto-login 开启且某个假人尚未通过 '/fp password' 设置密码时, 从以下字符集中随机生成密码并自动注册/登录
+# 留空表示不自动生成, 必须手动设置密码后才能自动登录
+# Random password charset
+# When auto-login is enabled and a fake player has no password set, a random password is generated from this charset and used to register/login automatically.
+# Leave empty to disable auto generation (a password must be set manually).
+random-password: ""
+
+# 随机密码长度
+# Random password length
+# 默认: 12
+random-password-length: 12
