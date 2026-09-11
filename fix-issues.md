@@ -8,6 +8,7 @@
 - [EndlessPixel/FakePlayer-CE PR #7](https://github.com/EndlessPixel/FakePlayer-CE/pull/7) 修复 NMS 兼容性与插件生命周期稳定性（多版本加载/卸载崩溃）
 - [EndlessPixel/FakePlayer-CE PR #8](https://github.com/EndlessPixel/FakePlayer-CE/pull/8) 新增特权复用真实玩家数据（名称被占用时可复用真实玩家数据生成假人）
 - [EndlessPixel/FakePlayer-CE PR #10](https://github.com/EndlessPixel/FakePlayer-CE/pull/10) 修复假人使用/消耗物品后不自动补货（重写 `FakeplayerReplenishManager` 并增加补货前状态校验）
+- [tanyaofei/minecraft-fakeplayer Issue #172](https://github.com/tanyaofei/minecraft-fakeplayer/issues/172) 修复占位符（如 `%fakeplayer_actions%`）无效：占位符 identifier 原取插件名导致前缀为 `fakeplayer-ce_`，改为固定 `fakeplayer`
 
 ## tanyaofei/minecraft-fakeplayer
 - [tanyaofei/minecraft-fakeplayer Issue #178](https://github.com/tanyaofei/minecraft-fakeplayer/issues/178) 修复关闭无敌后仍无法造成伤害/击退
