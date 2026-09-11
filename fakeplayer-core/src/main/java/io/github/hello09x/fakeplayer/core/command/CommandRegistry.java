@@ -218,7 +218,7 @@ public class CommandRegistry {
                                 .executesPlayer(teleportCommand::tphere),
                         command("tps")
                                 .withPermission(Permission.tps)
-                                .withShortDescription("fakeplayer.command.tphere.description")
+                                .withShortDescription("fakeplayer.command.tps.description")
                                 .withRequirement(CommandSupports::hasFakeplayer)
                                 .withOptionalArguments(fakeplayer("name"))
                                 .executesPlayer(teleportCommand::tps),
