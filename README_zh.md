@@ -112,6 +112,8 @@ FakePlayer CE 以**单一通用 jar**（`fakeplayer-fp.buildX.jar`）形式发�
 | /fp hold | 切换快捷栏指定格子物品 | fakeplayer.command.hold | |
 | /fp cmd | 让假人执行控制台指令 | fakeplayer.command.cmd | |
 | /fp say | 让假人发送聊天消息 | fakeplayer.command.say | |
+| /fp password | 设置假人登录密码 (存入插件数据库) | fakeplayer.command.password | 需配合 auto-login 使用 |
+| /fp changepassword | 修改假人登录密码 (旧密码可省略, 留空则使用已保存密码) | fakeplayer.command.changepassword | |
 | /fp reload | 重载插件配置文件 | OP | |
 
 ## 个人个性化配置
