@@ -100,8 +100,13 @@ public class FakeplayerManager {
                                                    else {
                                                        //Restore fakeplayer limits, one at a time
                                                        //如果卡顿恢复，则每周期恢复1个假人上限
-                                                       if(laglevel>0)Bukkit.broadcast(Component.text("Fakeplayer restrictions removed! Current limits: ").color(GREEN).append(Component.text(this.config.getPlayerLimit()-laglevel+1).color(AQUA)));
-                                                       laglevel=max(laglevel-1,0);
+                                                       // 在主线程中递减 laglevel 并广播, 避免跨线程竞争与主线程外调用 Bukkit API
+                                                       Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                                                           if (laglevel > 0) {
+                                                               Bukkit.broadcast(Component.text("Fakeplayer restrictions removed! Current limits: ").color(GREEN).append(Component.text(this.config.getPlayerLimit() - laglevel + 1).color(AQUA)));
+                                                           }
+                                                           laglevel = max(laglevel - 1, 0);
+                                                       });
                                                    }
                                                }, 0, 60, TimeUnit.SECONDS
         );
