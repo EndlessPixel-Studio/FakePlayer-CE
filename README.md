@@ -113,6 +113,8 @@ On first launch, FakePlayer generates a template file `config.tmpl.yml`. Rename 
 | /fp hold      | Hold corresponding hotbar item            | fakeplayer.command.hold      |                                                                 |
 | /fp cmd       | Execute command                           | fakeplayer.command.cmd       |                                                                 |
 | /fp say       | Send chat message                         | fakeplayer.command.say       |                                                                 |
+| /fp password  | Set fake player login password (stored in plugin database) | fakeplayer.command.password | Used with auto-login                                           |
+| /fp changepassword | Change fake player login password (old password optional) | fakeplayer.command.changepassword |                                                          |
 | /fp reload    | Reload config file                        | OP                           |                                                                 |
 
 ## Personal Configuration
