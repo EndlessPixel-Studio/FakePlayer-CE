@@ -47,5 +47,6 @@ public interface Permission {
     String say = "fakeplayer.command.say";
     String stop = "fakeplayer.command.stop";
     String password = "fakeplayer.command.password";
+    String changepassword = "fakeplayer.command.changepassword";
 
 }
