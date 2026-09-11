@@ -33,6 +33,10 @@ public class SayCommand extends AbstractCommand {
     public @NotNull CommandExecutor say(@NotNull ActionSetting setting) {
         return (sender, args) -> {
             var message = (String) args.get("message");
+            if (message == null || message.isBlank()) {
+                sender.sendMessage(translatable("fakeplayer.command.say.error.empty"));
+                return;
+            }
             var fake = super.getFakeplayer(sender, args);
             var copy = setting.clone();
             copy.message = message;
