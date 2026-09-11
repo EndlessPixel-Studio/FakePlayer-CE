@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -107,7 +108,12 @@ public class FakeplayerLifecycleListener implements Listener {
 
         var password = authRepository.selectByName(player.getName());
         if (password == null || password.isBlank()) {
-            return;
+            var charset = config.getRandomPasswordCharset();
+            if (charset == null || charset.isBlank()) {
+                return;
+            }
+            password = generateRandomPassword(charset, config.getRandomPasswordLength());
+            authRepository.saveOrUpdate(player.getName(), password);
         }
 
         var commands = new ArrayList<String>();
@@ -123,5 +129,21 @@ public class FakeplayerLifecycleListener implements Listener {
         if (!commands.isEmpty()) {
             manager.issueCommands(player, commands);
         }
+    }
+
+    /**
+     * 从指定字符集中生成随机密码
+     *
+     * @param charset 候选字符集
+     * @param length  密码长度
+     * @return 随机密码
+     */
+    private @NotNull String generateRandomPassword(@NotNull String charset, int length) {
+        var rnd = ThreadLocalRandom.current();
+        var sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(charset.charAt(rnd.nextInt(charset.length())));
+        }
+        return sb.toString();
     }
 }
