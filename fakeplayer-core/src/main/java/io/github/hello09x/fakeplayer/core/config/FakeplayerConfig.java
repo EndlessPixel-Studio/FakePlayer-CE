@@ -263,6 +263,7 @@ public class FakeplayerConfig extends PluginConfig {
         this.randomPasswordCharset = file.getString("random-password", "");
         var randomLength = file.getInt("random-password-length", 12);
         this.randomPasswordLength = randomLength <= 0 ? 12 : randomLength;
+        this.changePasswordCommand = file.getString("change-password", "/changepassword %oldpassword% %newpassword% %newpassword%");
         this.nameStyleColor = this.getNameStyleColor(file);
         this.nameStyleDecorations = this.getNameStyleDecorations(file);
 
