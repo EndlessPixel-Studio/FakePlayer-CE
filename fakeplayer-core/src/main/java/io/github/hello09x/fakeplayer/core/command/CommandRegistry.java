@@ -448,8 +448,8 @@ public class CommandRegistry {
                                 .withRequirement(CommandSupports::hasFakeplayer)
                                 .withArguments(
                                         fakeplayer("name"),
-                                        text("old"),
-                                        text("new"))
+                                        text("new"),
+                                        OptionalArgument.of(text("old")))
                                 .executes(changepasswordCommand::change),
 
                         command("cmd")
