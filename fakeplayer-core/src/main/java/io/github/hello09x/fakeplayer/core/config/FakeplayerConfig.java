@@ -164,6 +164,11 @@ public class FakeplayerConfig extends PluginConfig {
     private InvseeImplement invseeImplement;
 
     /**
+     * 允许非 OP 玩家打开假人背包
+     */
+    private boolean allowNonOpOpenInv;
+
+    /**
      * 真实皮肤
      */
     @Beta
@@ -219,6 +224,7 @@ public class FakeplayerConfig extends PluginConfig {
         this.defaultFeatures = Arrays.stream(Feature.values())
                                      .collect(Collectors.toMap(Function.identity(), key -> file.getString("default-features." + key.name(), key.getDefaultOption())));
         this.invseeImplement = ConfigUtils.getEnum(file, "invsee-implement", InvseeImplement.class, InvseeImplement.AUTO);
+        this.allowNonOpOpenInv = file.getBoolean("allow-non-op-open-inv", false);
         this.debug = file.getBoolean("debug", false);
         this.replenishToolsDurabilityThreshold = file.getInt("replenish.tools.durability-threshold", 0);
         this.nameStyleColor = this.getNameStyleColor(file);
