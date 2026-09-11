@@ -330,3 +330,12 @@ random-password: ""
 # Random password length
 # 默认: 12
 random-password-length: 12
+
+# 修改密码命令模板
+# 当玩家使用 '/fp changepassword <名称> <旧密码> <新密码>' 时为假人执行修改密码命令
+# %oldpassword% 与 %newpassword% 会分别替换为旧密码和新密码
+# 默认使用 AuthMe 风格的 /changepassword, 若你的登录插件使用 /changepw 请按需修改
+# Change password command template
+# %oldpassword% and %newpassword% are replaced with the old and new password.
+# Default uses AuthMe-style /changepassword, change it if your auth plugin uses /changepw.
+change-password: "/changepassword %oldpassword% %newpassword% %newpassword%"
