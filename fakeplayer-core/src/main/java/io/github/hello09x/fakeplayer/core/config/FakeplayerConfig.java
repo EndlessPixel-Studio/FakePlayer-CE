@@ -182,6 +182,21 @@ public class FakeplayerConfig extends PluginConfig {
      */
     private int replenishToolsDurabilityThreshold;
 
+    /**
+     * 假人生成后是否自动登录
+     */
+    private boolean autoLogin;
+
+    /**
+     * 自动注册命令模板, %password% 会被替换为数据库中存储的密码
+     */
+    private String registerCommand;
+
+    /**
+     * 自动登录命令模板, %password% 会被替换为数据库中存储的密码
+     */
+    private String loginCommand;
+
     @Inject
     public FakeplayerConfig() {
         super(Main.getInstance());
@@ -227,6 +242,9 @@ public class FakeplayerConfig extends PluginConfig {
         this.allowNonOpOpenInv = file.getBoolean("allow-non-op-open-inv", false);
         this.debug = file.getBoolean("debug", false);
         this.replenishToolsDurabilityThreshold = file.getInt("replenish.tools.durability-threshold", 0);
+        this.autoLogin = file.getBoolean("auto-login", false);
+        this.registerCommand = file.getString("register", "/reg %password% %password%");
+        this.loginCommand = file.getString("login", "/login %password%");
         this.nameStyleColor = this.getNameStyleColor(file);
         this.nameStyleDecorations = this.getNameStyleDecorations(file);
 
