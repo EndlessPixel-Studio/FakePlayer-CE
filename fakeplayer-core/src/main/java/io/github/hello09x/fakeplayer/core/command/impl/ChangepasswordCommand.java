@@ -24,7 +24,7 @@ public class ChangepasswordCommand extends AbstractCommand {
      */
     public void change(@NotNull CommandSender sender, @NotNull CommandArguments args) throws WrapperCommandSyntaxException {
         var target = super.getFakeplayer(sender, args);
-        var oldPassword = (String) args.get("old");
+        var oldInput = (String) args.get("old");
         var newPassword = (String) args.get("new");
 
         if (newPassword == null || newPassword.isBlank()) {
@@ -38,9 +38,15 @@ public class ChangepasswordCommand extends AbstractCommand {
             return;
         }
 
-        if (!stored.equals(oldPassword)) {
+        // 旧密码可省略: 省略时直接使用数据库中已保存的密码, 方便忘记随机密码时重置
+        String oldPassword;
+        if (oldInput == null || oldInput.isBlank()) {
+            oldPassword = stored;
+        } else if (!stored.equals(oldInput)) {
             sender.sendMessage(text("旧密码不正确").color(NamedTextColor.RED));
             return;
+        } else {
+            oldPassword = oldInput;
         }
 
         var template = config.getChangePasswordCommand();
