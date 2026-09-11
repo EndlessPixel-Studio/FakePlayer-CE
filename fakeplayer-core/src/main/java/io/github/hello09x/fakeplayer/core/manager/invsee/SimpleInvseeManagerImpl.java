@@ -3,6 +3,7 @@ package io.github.hello09x.fakeplayer.core.manager.invsee;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.github.hello09x.devtools.core.utils.ComponentUtils;
+import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerList;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import org.bukkit.entity.Player;
@@ -23,8 +24,8 @@ import static net.kyori.adventure.text.Component.translatable;
 public class SimpleInvseeManagerImpl extends AbstractInvseeManager {
 
     @Inject
-    public SimpleInvseeManagerImpl(FakeplayerManager manager, FakeplayerList fakeplayerList) {
-        super(manager, fakeplayerList);
+    public SimpleInvseeManagerImpl(FakeplayerManager manager, FakeplayerList fakeplayerList, FakeplayerConfig config) {
+        super(manager, fakeplayerList, config);
     }
 
     @Override
