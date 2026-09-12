@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -110,6 +111,7 @@ public class HttpAdminService {
             return;
         }
         var names = manager.getAll().stream().map(Player::getName).collect(Collectors.toList());
+        logCall(ex, 200, "success", names.size() + " fake player(s)");
         send(ex, 200, "application/json", "{\"fakeplayer\":" + toJsonArray(names) + "}");
     }
 
@@ -285,7 +287,32 @@ public class HttpAdminService {
         sendJson(ex, 401, "failure", "Unauthorized");
     }
 
+    /**
+     * 打印 HTTP 调用日志, query 中的 token 已脱敏
+     */
+    private static void logCall(HttpExchange ex, int code, String status, String detail) {
+        var uri = ex.getRequestURI();
+        var sb = new StringBuilder(uri.getPath());
+        var q = uri.getQuery();
+        if (q != null && !q.isEmpty()) {
+            sb.append('?').append(Arrays.stream(q.split("&"))
+                    .map(p -> p.startsWith("token=") ? "token=***" : p)
+                    .collect(Collectors.joining("&")));
+        }
+        var remote = ex.getRemoteAddress();
+        var ip = remote == null ? "unknown" : remote.getAddress().getHostAddress();
+        log.info("[HTTP] %s %s from %s -> %d %s%s".formatted(
+                ex.getRequestMethod(),
+                sb,
+                ip,
+                code,
+                status,
+                detail == null ? "" : " (" + detail + ")"
+        ));
+    }
+
     private void sendJson(HttpExchange ex, int code, String status, String msg) throws IOException {
+        logCall(ex, code, status, msg);
         var body = msg == null
                 ? "{\"status\":\"" + status + "\"}"
                 : "{\"status\":\"" + status + "\",\"msg\":\"" + escape(msg) + "\"}";
