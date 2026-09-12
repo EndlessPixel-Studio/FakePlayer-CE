@@ -55,7 +55,16 @@ public abstract class AbstractCommand {
      * @throws WrapperCommandSyntaxException 找不到唯一的假人时抛出次异常
      */
     protected @NotNull Player getFakeplayer(@NotNull CommandSender sender, @NotNull CommandArguments args, @Nullable Predicate<Player> predicate) throws WrapperCommandSyntaxException {
-        var fake = (Player) args.get("name");
+        var raw = args.get("name");
+        Player fake = null;
+        if (raw instanceof Player p) {
+            fake = p;
+        } else if (raw instanceof String s && !s.isBlank()) {
+            // 兼容 say 命令: name 以字符串形式传入 (单参数时回退为消息, 该字符串通常不是有效假人名)
+            fake = manager.getAll(sender).stream()
+                    .filter(f -> f.getName().equalsIgnoreCase(s))
+                    .findFirst().orElse(null);
+        }
         if (fake == null && sender instanceof Player p && args.getRaw("name") == null) {
             fake = manager.getSelection(p);
         }

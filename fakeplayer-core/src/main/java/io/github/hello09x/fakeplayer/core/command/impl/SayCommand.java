@@ -32,10 +32,16 @@ public class SayCommand extends AbstractCommand {
      */
     public @NotNull CommandExecutor say(@NotNull ActionSetting setting) {
         return (sender, args) -> {
+            var name = (String) args.get("name");
             var message = (String) args.get("message");
+            // 单参数回退: fp say once 1234 -> 把 1234 当作消息, 作用于默认假人
             if (message == null || message.isBlank()) {
-                sender.sendMessage(translatable("fakeplayer.command.say.error.empty"));
-                return;
+                if (name != null && !name.isBlank()) {
+                    message = name;
+                } else {
+                    sender.sendMessage(translatable("fakeplayer.command.say.error.empty"));
+                    return;
+                }
             }
             var fake = super.getFakeplayer(sender, args);
             var copy = setting.clone();
