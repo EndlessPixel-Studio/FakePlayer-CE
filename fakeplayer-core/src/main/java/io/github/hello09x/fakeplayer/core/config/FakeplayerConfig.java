@@ -127,6 +127,11 @@ public class FakeplayerConfig extends PluginConfig {
     private boolean kickOnDead;
 
     /**
+     * 是否在服务器启动后自动恢复上次在线的假人
+     */
+    private boolean restoreOnStart;
+
+    /**
      * 自定义名称规则
      */
     private Pattern namePattern;
@@ -289,6 +294,7 @@ public class FakeplayerConfig extends PluginConfig {
         this.dropInventoryOnQuiting = file.getBoolean("drop-inventory-on-quiting", true);
         this.persistData = file.getBoolean("persist-data", true);
         this.kickOnDead = file.getBoolean("kick-on-dead", true);
+        this.restoreOnStart = file.getBoolean("restore-on-start", false);
         this.checkForUpdates = file.getBoolean("check-for-updates", true);
         this.namePattern = getNamePattern(file);
         this.preventKicking = this.getPreventKicking(file);

@@ -134,6 +134,11 @@ persistent-data: true
 # if this value is false, players can type command '/fp respawn' to respawn him
 kick-on-dead: true
 
+# 是否记录当前在线的假人, 并在下一次服务器启动时自动恢复 (含原位置与创建者)
+# Record online fake players and restore them automatically (with position and creator) on the next server start
+# Default: false
+restore-on-start: false
+
 
 # 服务器最近 5 分钟平均 TPS 低于这个值清除所有假人
 # 每 60 秒检测一次

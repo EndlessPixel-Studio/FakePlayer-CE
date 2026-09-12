@@ -17,6 +17,7 @@ import io.github.hello09x.fakeplayer.core.listener.PlayerListener;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerAutofishManager;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerReplenishManager;
+import io.github.hello09x.fakeplayer.core.manager.FakeplayerRestoreManager;
 import io.github.hello09x.fakeplayer.core.http.HttpAdminService;
 import io.github.hello09x.fakeplayer.core.manager.WildFakeplayerManager;
 import io.github.hello09x.fakeplayer.core.manager.invsee.InvseeManager;
@@ -90,6 +91,12 @@ public final class Main extends JavaPlugin {
 
         injector.getInstance(HttpAdminService.class).start();
 
+        {
+            var restoreManager = injector.getInstance(FakeplayerRestoreManager.class);
+            getServer().getPluginManager().registerEvents(restoreManager, this);
+            restoreManager.start();
+        }
+
         if (injector.getInstance(FakeplayerConfig.class).isCheckForUpdates()) {
             checkForUpdatesAsync();
         }
@@ -141,6 +148,7 @@ public final class Main extends JavaPlugin {
             Exceptions.suppress(this, () -> CommandAPI.unregister("fakeplayer", true));
         }
         Exceptions.suppress(this, () -> injector.getInstance(HttpAdminService.class).stop());
+        Exceptions.suppress(this, () -> injector.getInstance(FakeplayerRestoreManager.class).saveSnapshot());
 
         if (fakeplayerManager != null) {
             Exceptions.suppress(this, fakeplayerManager::onDisable);
