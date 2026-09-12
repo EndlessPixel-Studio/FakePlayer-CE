@@ -144,6 +144,8 @@ http-admin:
     list: true           # 启用 GET /list
     spawn: true          # 启用 GET /spawn
     kick: true           # 启用 GET /kick
+    kill: true           # 启用 GET /kill
+    say: true            # 启用 GET /say
 ```
 
 所有接口均为 `GET` 请求，且必须携带正确令牌 —— 通过 URL 参数 `?token=xxx` 或请求头 `Authorization: Bearer xxx` 传递均可。
@@ -153,11 +155,15 @@ http-admin:
 | `GET /list` | 列出所有在线假人 | `{"fakeplayer":["name1","name2"]}` | — |
 | `GET /spawn?name=<名字>` | 在主世界出生点生成一个假人 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /kick?name=<名字>` | 踢出（移除）一个假人 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /kill?name=<名字>` | 杀死一个假人（真实死亡，可能掉落物品） | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /say?name=<名字>&message=<内容>` | 以假人身份发送聊天消息（内容需 URL 编码） | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 
 常见失败提示：
 
 - 生成 — `The dummy's name conflicts with that of an actual player.`（与真实玩家重名）/ `The dummy is already online.`（假人已在线）
 - 踢出 — `Dummies do not exist.`（假人不存在）
+- 杀死 — `The dummy does not exist.`（假人不存在）/ `The dummy is already dead.`（假人已死亡）
+- 发言 — `Name is required`（缺少假人名）/ `Message is required`（缺少消息内容）
 - 鉴权与开关 — `Unauthorized`（401，令牌缺失或错误）/ `Interface disabled`（403，对应接口已关闭）
 
 调用示例：
@@ -171,6 +177,12 @@ curl "http://localhost:3253/spawn?name=klmgun&token=YOUR_TOKEN"
 
 # 踢出假人（令牌走请求头）
 curl -H "Authorization: Bearer YOUR_TOKEN" "http://localhost:3253/kick?name=klmgun"
+
+# 杀死假人
+curl "http://localhost:3253/kill?name=klmgun&token=YOUR_TOKEN"
+
+# 让假人发言（消息内容需 URL 编码）
+curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlencode "message=你好 世界" --data-urlencode "token=YOUR_TOKEN"
 ```
 
 > **安全提示：** 请妥善保管令牌，并建议在防火墙层面限制访问来源，避免将接口直接暴露到公网。
