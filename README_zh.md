@@ -47,6 +47,7 @@ FakePlayer 是一款受 [Carpet-Mod](https://github.com/gnembon/fabric-carpet) �
 | **Gradle Kotlin DSL 构建** | 从 Maven 迁移至现代化 Gradle 多模块工程架构 |
 | **NMS 版本隔离** | 各版本 NMS 代码独立封装，降低未来 MC 版本适配成本 |
 | **持续兼容维护** | 持续跟进 Paper/Purpur 最新版本兼容性修复 |
+| **HTTP 管理接口** | 内置轻量 HTTP 接口，可远程查询 / 生成 / 踢出假人 |
 
 ## 运行前置依赖
 
@@ -124,6 +125,53 @@ FakePlayer CE 以**单一通用 jar**（`fakeplayer-fp.buildX.jar`）形式发�
 | /fp password | 设置假人登录密码 (存入插件数据库) | fakeplayer.command.password | 需配合 auto-login 使用 |
 | /fp changepassword | 修改假人登录密码 (旧密码可省略, 留空则使用已保存密码) | fakeplayer.command.changepassword | |
 | /fp reload | 重载插件配置文件 | OP | |
+
+## HTTP 管理接口
+
+FakePlayer CE 内置一个可选的轻量 HTTP 接口，用于远程管理假人（对接 Web 面板、自动化脚本等）。该功能**默认关闭**，基于 JDK 内置 HTTP 服务器实现，无需额外依赖。
+
+在 `config.yml` 中启用：
+
+```yaml
+http-admin:
+  enabled: true          # 是否启用 HTTP 接口
+  host: 0.0.0.0          # 监听地址
+  port: 3253             # 监听端口
+  token: ""              # 鉴权令牌；留空时启动会自动生成随机令牌并打印到控制台
+  interface:
+    list: true           # 启用 GET /list
+    spawn: true          # 启用 GET /spawn
+    kick: true           # 启用 GET /kick
+```
+
+所有接口均为 `GET` 请求，且必须携带正确令牌 —— 通过 URL 参数 `?token=xxx` 或请求头 `Authorization: Bearer xxx` 传递均可。
+
+| 接口 | 说明 | 成功返回 | 失败返回 |
+|---|---|---|---|
+| `GET /list` | 列出所有在线假人 | `{"fakeplayer":["name1","name2"]}` | — |
+| `GET /spawn?name=<名字>` | 在主世界出生点生成一个假人 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /kick?name=<名字>` | 踢出（移除）一个假人 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+
+常见失败提示：
+
+- 生成 — `The dummy's name conflicts with that of an actual player.`（与真实玩家重名）/ `The dummy is already online.`（假人已在线）
+- 踢出 — `Dummies do not exist.`（假人不存在）
+- 鉴权与开关 — `Unauthorized`（401，令牌缺失或错误）/ `Interface disabled`（403，对应接口已关闭）
+
+调用示例：
+
+```bash
+# 列出所有假人
+curl "http://localhost:3253/list?token=YOUR_TOKEN"
+
+# 生成假人
+curl "http://localhost:3253/spawn?name=klmgun&token=YOUR_TOKEN"
+
+# 踢出假人（令牌走请求头）
+curl -H "Authorization: Bearer YOUR_TOKEN" "http://localhost:3253/kick?name=klmgun"
+```
+
+> **安全提示：** 请妥善保管令牌，并建议在防火墙层面限制访问来源，避免将接口直接暴露到公网。
 
 ## 个人个性化配置
 
