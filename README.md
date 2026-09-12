@@ -281,7 +281,7 @@ The original project is the foundation of this fork. It targets a **single fixed
 ### FakePlayer CE Changes
 
 1. **Build system**: Migrated from Maven to Gradle Kotlin DSL multi-module project
-2. **Cross-version support**: NMS code isolated into version-specific modules covering `1.20.1 ~ 1.21.11`
+2. **Cross-version support**: NMS code isolated into version-specific modules covering `1.20.1 ~ 26.2`
 3. **Unified release**: Single universal jar replaces per-version artifacts
 4. **Ongoing maintenance**: Continuous compatibility updates for latest Paper/Purpur builds
 5. **Multi-version fixes**: Targeted bug fixes for cross-version runtime conflicts

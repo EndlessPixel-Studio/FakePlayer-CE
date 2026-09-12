@@ -279,7 +279,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" "http://localhost:3253/kick?name=klmg
 ### FakePlayer CE 修改汇总
 
 1. **构建体系**：从 Maven 迁移至 Gradle Kotlin DSL 多模块工程
-2. **跨版本适配**：NMS 代码按版本拆分为独立模块，覆盖 `1.20.1 ~ 1.21.11`
+2. **跨版本适配**：NMS 代码按版本拆分为独立模块，覆盖 `1.20.1 ~ 26.2`
 3. **发布形式**：统一单通用 Jar 包，不再分版本单独分发
 4. **长期维护**：持续跟进 Paper/Purpur 新版本兼容性问题修复
 5. **多版本修复**：针对性修复跨版本运行时冲突 Bug
