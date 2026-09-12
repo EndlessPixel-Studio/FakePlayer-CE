@@ -88,7 +88,9 @@ On first launch, FakePlayer generates a template file `config.tmpl.yml`. Rename 
 | Command       | Description                               | Permission                   | Note                                                            |
 |---------------|-------------------------------------------|------------------------------|-----------------------------------------------------------------|
 | /fp spawn     | Spawn a fake player                       | fakeplayer.command.spawn     |                                                                 |
-| /fp kill      | Kill a fake player                        | fakeplayer.command.kill      |                                                                 |
+| /fp kick      | Kick fake players (remove from the server) | fakeplayer.command.kick     |                                                                 |
+| /fp kickall   | Kick all fake players on the server       | OP                           |                                                                 |
+| /fp kill      | Kill fake players (real death, may drop loot) | fakeplayer.command.kill  |                                                                 |
 | /fp killall   | Kill all fake players on the server       | OP                           |                                                                 |
 | /fp select    | Select a fake player as default           | fakeplayer.command.select    | Available  when player spawned more then 1 fake players         |
 | /fp selection | View selected fake player                 | fakeplayer.command.selection | Available  only when player spawned more then 1 fake players    |
@@ -205,7 +207,7 @@ Each command has an individual permission node. Convenience permission groups ar
 
 Includes basic spawn management permissions:
 - `fakeplayer.command.spawn` — Create fake players
-- `fakeplayer.command.kill` — Kill fake players
+- `fakeplayer.command.kick` — Kick fake players
 - `fakeplayer.command.list` — List fake players
 - `fakeplayer.command.distance` — View distance
 - `fakeplayer.command.select` — Select fake player

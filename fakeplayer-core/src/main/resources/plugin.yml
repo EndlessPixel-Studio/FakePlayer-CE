@@ -21,6 +21,8 @@ permissions:
     default: op
   fakeplayer.command.spawn.location:
     description: 'Allow player to run /fp spawn and specify a spawn location'
+  fakeplayer.command.kick:
+    description: 'Allow player to run /fp kick'
   fakeplayer.command.kill:
     description: 'Allow player to run /fp kill'
   fakeplayer.command.list:
@@ -106,7 +108,7 @@ permissions:
     description: 'Includes all basic permissions'
     children:
       - fakeplayer.command.spawn
-      - fakeplayer.command.kill
+      - fakeplayer.command.kick
       - fakeplayer.command.list
       - fakeplayer.command.distance
       - fakeplayer.command.select

@@ -47,14 +47,14 @@ public class ListCommand extends AbstractCommand {
                             ? textOfChildren(space(), translatable("fakeplayer.command.list.button.teleport", AQUA).clickEvent(runCommand("/fp tp " + fakeplayer.getName())))
                             : empty();
 
-                    var partKill = textOfChildren(space(), translatable("fakeplayer.command.list.button.kill", RED)).clickEvent(runCommand("/fp kill " + fakeplayer.getName()));
+                    var partKick = textOfChildren(space(), translatable("fakeplayer.command.list.button.kick", RED)).clickEvent(runCommand("/fp kick " + fakeplayer.getName()));
 
                     return textOfChildren(
                             text(fakeplayer.getName() + " (" + manager.getCreatorName(fakeplayer) + ")", GOLD),
                             text(" - ", GRAY),
                             text(toLocationString(fakeplayer.getLocation()), WHITE),
                             partTp,
-                            partKill
+                            partKick
                     );
                 },
                 i -> "/fp list " + i + " " + size
