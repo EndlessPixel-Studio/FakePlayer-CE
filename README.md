@@ -146,6 +146,8 @@ http-admin:
     list: true           # Enable GET /list
     spawn: true          # Enable GET /spawn
     kick: true           # Enable GET /kick
+    kill: true           # Enable GET /kill
+    say: true            # Enable GET /say
 ```
 
 All endpoints are `GET` requests and require a valid token — pass it either as a query parameter (`?token=xxx`) or via the `Authorization: Bearer xxx` header.
@@ -155,11 +157,15 @@ All endpoints are `GET` requests and require a valid token — pass it either as
 | `GET /list` | List all online fake players | `{"fakeplayer":["name1","name2"]}` | — |
 | `GET /spawn?name=<name>` | Spawn a fake player at the main world's spawn point | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /kick?name=<name>` | Kick (remove) a fake player | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /kill?name=<name>` | Kill a fake player (real death, may drop loot) | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /say?name=<name>&message=<text>` | Send a chat message as a fake player (URL-encode the text) | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 
 Common failure messages:
 
 - Spawn — `The dummy's name conflicts with that of an actual player.` / `The dummy is already online.`
 - Kick — `Dummies do not exist.`
+- Kill — `The dummy does not exist.` / `The dummy is already dead.`
+- Say — `Name is required` / `Message is required`
 - Auth & switches — `Unauthorized` (401, missing or wrong token) / `Interface disabled` (403, endpoint turned off)
 
 Examples:
@@ -173,6 +179,12 @@ curl "http://localhost:3253/spawn?name=klmgun&token=YOUR_TOKEN"
 
 # Kick a fake player (token via header)
 curl -H "Authorization: Bearer YOUR_TOKEN" "http://localhost:3253/kick?name=klmgun"
+
+# Kill a fake player
+curl "http://localhost:3253/kill?name=klmgun&token=YOUR_TOKEN"
+
+# Make a fake player say something (URL-encode the message)
+curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlencode "message=hello world" --data-urlencode "token=YOUR_TOKEN"
 ```
 
 > **Security tip:** Keep the token secret and restrict access at the firewall level — avoid exposing this API to the public internet.

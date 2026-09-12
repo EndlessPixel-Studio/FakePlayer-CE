@@ -349,6 +349,8 @@ http-admin:
     list: true
     spawn: true
     kick: true
+    kill: true
+    say: true
 
 # 随机密码字符集
 # 当 auto-login 开启且某个假人尚未通过 '/fp password' 设置密码时, 从以下字符集中随机生成密码并自动注册/登录

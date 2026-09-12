@@ -253,6 +253,16 @@ public class FakeplayerConfig extends PluginConfig {
      */
     private boolean httpAdminKick;
 
+    /**
+     * 是否启用 kill 接口
+     */
+    private boolean httpAdminKill;
+
+    /**
+     * 是否启用 say 接口
+     */
+    private boolean httpAdminSay;
+
     @Inject
     public FakeplayerConfig() {
         super(Main.getInstance());
@@ -314,6 +324,8 @@ public class FakeplayerConfig extends PluginConfig {
         this.httpAdminList = file.getBoolean("http-admin.interface.list", true);
         this.httpAdminSpawn = file.getBoolean("http-admin.interface.spawn", true);
         this.httpAdminKick = file.getBoolean("http-admin.interface.kick", true);
+        this.httpAdminKill = file.getBoolean("http-admin.interface.kill", true);
+        this.httpAdminSay = file.getBoolean("http-admin.interface.say", true);
         this.nameStyleColor = this.getNameStyleColor(file);
         this.nameStyleDecorations = this.getNameStyleDecorations(file);
 
