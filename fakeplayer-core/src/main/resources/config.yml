@@ -324,6 +324,32 @@ login: "/login %password%"
 # Default: false
 forced-execution: false
 
+# ============================================================
+# HTTP 远程管理接口
+# HTTP admin interface for remote fake player management
+# 启用后可通过 GET 请求远程管理假人 (list / spawn / kick)
+# ============================================================
+http-admin:
+  # 是否启用 HTTP 接口
+  # Enable the HTTP admin interface
+  # Default: false
+  enabled: false
+  # 监听地址, 0.0.0.0 表示监听所有网卡
+  # Listen address, 0.0.0.0 listens on all interfaces
+  host: 0.0.0.0
+  # 监听端口
+  # Listen port
+  port: 3253
+  # 鉴权令牌, 为空时启动时随机生成并在控制台打印
+  # Auth token; if empty, a random token is generated at startup and printed to console
+  token: ""
+  # 各接口开关
+  # Per-interface switches
+  interface:
+    list: true
+    spawn: true
+    kick: true
+
 # 随机密码字符集
 # 当 auto-login 开启且某个假人尚未通过 '/fp password' 设置密码时, 从以下字符集中随机生成密码并自动注册/登录
 # 留空表示不自动生成, 必须手动设置密码后才能自动登录

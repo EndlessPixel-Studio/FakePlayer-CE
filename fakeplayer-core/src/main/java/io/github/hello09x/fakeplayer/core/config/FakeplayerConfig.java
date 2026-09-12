@@ -218,6 +218,41 @@ public class FakeplayerConfig extends PluginConfig {
      */
     private boolean forcedExecution;
 
+    /**
+     * 是否启用 HTTP 远程管理接口
+     */
+    private boolean httpAdminEnabled;
+
+    /**
+     * HTTP 服务监听地址
+     */
+    private String httpAdminHost;
+
+    /**
+     * HTTP 服务监听端口
+     */
+    private int httpAdminPort;
+
+    /**
+     * HTTP 接口鉴权令牌, 为空时启动时随机生成
+     */
+    private String httpAdminToken;
+
+    /**
+     * 是否启用 list 接口
+     */
+    private boolean httpAdminList;
+
+    /**
+     * 是否启用 spawn 接口
+     */
+    private boolean httpAdminSpawn;
+
+    /**
+     * 是否启用 kick 接口
+     */
+    private boolean httpAdminKick;
+
     @Inject
     public FakeplayerConfig() {
         super(Main.getInstance());
@@ -271,6 +306,14 @@ public class FakeplayerConfig extends PluginConfig {
         this.randomPasswordLength = randomLength <= 0 ? 12 : randomLength;
         this.changePasswordCommand = file.getString("change-password", "/changepassword %oldpassword% %newpassword% %newpassword%");
         this.forcedExecution = file.getBoolean("forced-execution", false);
+
+        this.httpAdminEnabled = file.getBoolean("http-admin.enabled", false);
+        this.httpAdminHost = file.getString("http-admin.host", "0.0.0.0");
+        this.httpAdminPort = file.getInt("http-admin.port", 3253);
+        this.httpAdminToken = file.getString("http-admin.token", "");
+        this.httpAdminList = file.getBoolean("http-admin.interface.list", true);
+        this.httpAdminSpawn = file.getBoolean("http-admin.interface.spawn", true);
+        this.httpAdminKick = file.getBoolean("http-admin.interface.kick", true);
         this.nameStyleColor = this.getNameStyleColor(file);
         this.nameStyleDecorations = this.getNameStyleDecorations(file);
 
