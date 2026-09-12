@@ -54,18 +54,15 @@ public class FakeplayerRestoreManager implements Listener {
 
     /**
      * 注册周期性快照任务 (插件启用时调用)
+     * <p>任务始终注册, 是否记录由 {@link #saveSnapshot()} 内的配置开关决定, 以便 /fp reload 后动态生效。</p>
      */
     public void start() {
-        if (!config.isRestoreOnStart()) {
-            return;
-        }
         Bukkit.getScheduler().runTaskTimerAsynchronously(
                 Main.getInstance(),
                 this::saveSnapshot,
                 SNAPSHOT_INTERVAL_TICKS,
                 SNAPSHOT_INTERVAL_TICKS
         );
-        log.info("restore-on-start is enabled, online fake players will be restored on the next server start");
     }
 
     /**
