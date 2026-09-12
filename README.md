@@ -48,6 +48,7 @@ FakePlayer is a server-side plugin inspired by [Carpet-Mod](https://github.com/g
 | **Gradle Kotlin DSL Build** | Migrated from Maven to a modern Gradle multi-module project structure |
 | **Isolated NMS Modules** | Version-specific NMS code encapsulated independently, reducing adaptation cost for future releases |
 | **Ongoing Compatibility** | Continuous fixes for latest Paper/Purpur builds |
+| **HTTP Admin API** | Built-in lightweight HTTP API for remote list / spawn / kick management |
 
 ## Requirements
 
@@ -126,6 +127,53 @@ On first launch, FakePlayer generates a template file `config.tmpl.yml`. Rename 
 | /fp password  | Set fake player login password (stored in plugin database) | fakeplayer.command.password | Used with auto-login                                           |
 | /fp changepassword | Change fake player login password (old password optional) | fakeplayer.command.changepassword |                                                          |
 | /fp reload    | Reload config file                        | OP                           |                                                                 |
+
+## HTTP Admin API
+
+FakePlayer CE ships with an optional lightweight HTTP API for remote management (web panels, automation scripts, etc.). It is **disabled by default** and built on the JDK's built-in HTTP server — no extra dependencies required.
+
+Enable it in `config.yml`:
+
+```yaml
+http-admin:
+  enabled: true          # Enable the HTTP admin API
+  host: 0.0.0.0          # Listen address
+  port: 3253             # Listen port
+  token: ""              # Auth token; if left empty, a random token is generated at startup and printed to the console
+  interface:
+    list: true           # Enable GET /list
+    spawn: true          # Enable GET /spawn
+    kick: true           # Enable GET /kick
+```
+
+All endpoints are `GET` requests and require a valid token — pass it either as a query parameter (`?token=xxx`) or via the `Authorization: Bearer xxx` header.
+
+| Endpoint | Description | Success | Failure |
+|---|---|---|---|
+| `GET /list` | List all online fake players | `{"fakeplayer":["name1","name2"]}` | — |
+| `GET /spawn?name=<name>` | Spawn a fake player at the main world's spawn point | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /kick?name=<name>` | Kick (remove) a fake player | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+
+Common failure messages:
+
+- Spawn — `The dummy's name conflicts with that of an actual player.` / `The dummy is already online.`
+- Kick — `Dummies do not exist.`
+- Auth & switches — `Unauthorized` (401, missing or wrong token) / `Interface disabled` (403, endpoint turned off)
+
+Examples:
+
+```bash
+# List fake players
+curl "http://localhost:3253/list?token=YOUR_TOKEN"
+
+# Spawn a fake player
+curl "http://localhost:3253/spawn?name=klmgun&token=YOUR_TOKEN"
+
+# Kick a fake player (token via header)
+curl -H "Authorization: Bearer YOUR_TOKEN" "http://localhost:3253/kick?name=klmgun"
+```
+
+> **Security tip:** Keep the token secret and restrict access at the firewall level — avoid exposing this API to the public internet.
 
 ## Personal Configuration
 
