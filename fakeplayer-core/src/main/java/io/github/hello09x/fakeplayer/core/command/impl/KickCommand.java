@@ -12,31 +12,27 @@ import static net.kyori.adventure.text.Component.*;
 import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
 
 @Singleton
-public class KillCommand extends AbstractCommand {
+public class KickCommand extends AbstractCommand {
 
     /**
-     * 杀死假人 (真实死亡, 而非移除)
+     * 踢出假人 (从服务器移除)
      */
-    public void kill(@NotNull CommandSender sender, @NotNull CommandArguments args) throws WrapperCommandSyntaxException {
+    public void kick(@NotNull CommandSender sender, @NotNull CommandArguments args) throws WrapperCommandSyntaxException {
         var fakes = super.getFakeplayers(sender, args);
 
-        var names = new StringJoiner(", ");
-        for (var fake : fakes) {
-            if (fake.isDead()) {
-                continue;
-            }
-            var name = fake.getName();
-            fake.setHealth(0D);
-            names.add(name);
-        }
-
-        if (names.length() == 0) {
-            sender.sendMessage(translatable("fakeplayer.command.kill.error.non-killed", GRAY));
+        if (fakes.isEmpty()) {
+            sender.sendMessage(translatable("fakeplayer.command.kick.error.non-removed", GRAY));
             return;
         }
 
+        var names = new StringJoiner(", ");
+        for (var fake : fakes) {
+            if (manager.remove(fake.getName(), "command kick")) {
+                names.add(fake.getName());
+            }
+        }
         sender.sendMessage(textOfChildren(
-                translatable("fakeplayer.command.kill.success.killed", GRAY),
+                translatable("fakeplayer.command.kick.success.removed", GRAY),
                 space(),
                 text(names.toString())
         ));

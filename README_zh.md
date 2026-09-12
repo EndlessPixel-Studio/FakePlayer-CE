@@ -86,8 +86,10 @@ FakePlayer CE 以**单一通用 jar**（`fakeplayer-fp.buildX.jar`）形式发�
 | 指令 | 功能说明 | 权限节点 | 备注 |
 |------|---------|---------|------|
 | /fp spawn | 创建假人 | fakeplayer.command.spawn | |
-| /fp kill | 击杀单个假人 | fakeplayer.command.kill | |
-| /fp killall | 清空服务器所有假人 | OP | |
+| /fp kick | 踢出假人（从服务器移除） | fakeplayer.command.kick | |
+| /fp kickall | 踢出服务器所有假人 | OP | |
+| /fp kill | 杀死假人（真实死亡，可能掉落物品） | fakeplayer.command.kill | |
+| /fp killall | 杀死服务器所有假人 | OP | |
 | /fp select | 设置默认操作假人 | fakeplayer.command.select | 创建多个假人后可用 |
 | /fp selection | 查看当前选中假人 | fakeplayer.command.selection | 创建多个假人后可用 |
 | /fp list | 列出所有在线假人 | fakeplayer.command.list | |
@@ -203,7 +205,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" "http://localhost:3253/kick?name=klmg
 
 包含基础假人管理权限：
 - `fakeplayer.command.spawn` — 创建假人
-- `fakeplayer.command.kill` — 击杀假人
+- `fakeplayer.command.kick` — 踢出假人
 - `fakeplayer.command.list` — 查看假人列表
 - `fakeplayer.command.distance` — 查询距离
 - `fakeplayer.command.select` — 选中假人

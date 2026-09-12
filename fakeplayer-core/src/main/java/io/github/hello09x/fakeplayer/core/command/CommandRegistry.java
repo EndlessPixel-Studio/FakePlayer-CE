@@ -42,6 +42,10 @@ public class CommandRegistry {
     @Inject
     private InvseeCommand invseeCommand;
     @Inject
+    private KickCommand kickCommand;
+    @Inject
+    private KickallCommand kickallCommand;
+    @Inject
     private KillCommand killCommand;
     @Inject
     private KillallCommand killallCommand;
@@ -127,6 +131,12 @@ public class CommandRegistry {
                                         world("world").withPermission(Permission.spawnLocation),
                                         location("location").withPermission(Permission.spawnLocation))
                                 .executes(spawnCommand::spawn),
+                        command("kick")
+                                .withPermission(Permission.kick)
+                                .withShortDescription("fakeplayer.command.kick.description")
+                                .withRequirement(CommandSupports::hasFakeplayer)
+                                .withOptionalArguments(fakeplayers("names"))
+                                .executes(kickCommand::kick),
                         command("kill")
                                 .withPermission(Permission.kill)
                                 .withShortDescription("fakeplayer.command.kill.description")
@@ -500,6 +510,10 @@ public class CommandRegistry {
                                                 })
                                 ),
 
+                        command("kickall")
+                                .withShortDescription("fakeplayer.command.kickall.description")
+                                .withPermission(CommandPermission.OP)
+                                .executes(kickallCommand::kickall),
                         command("killall")
                                 .withShortDescription("fakeplayer.command.killall.description")
                                 .withPermission(CommandPermission.OP)

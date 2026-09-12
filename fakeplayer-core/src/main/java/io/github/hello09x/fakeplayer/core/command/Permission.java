@@ -10,6 +10,7 @@ public interface Permission {
     String select = "fakeplayer.command.select";
     String selection = "fakeplayer.command.selection";
 
+    String kick = "fakeplayer.command.kick";
     String kill = "fakeplayer.command.kill";
     String list = "fakeplayer.command.list";
     String distance = "fakeplayer.command.distance";
