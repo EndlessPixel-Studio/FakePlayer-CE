@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -31,7 +32,9 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -47,7 +50,7 @@ public class FakeplayerReplenishManager implements Listener {
     private final FakeplayerConfig config;
     private final Set<ReplenishRequest> pendingReplenishments = new HashSet<>();
     private final Set<ReplenishRequest> pendingContainerReturns = new HashSet<>();
-    private final Set<ReplenishRequest> pendingToolReplacements = new HashSet<>();
+    private final Map<ReplenishRequest, Boolean> pendingToolReplacements = new HashMap<>();
 
     @Inject
     public FakeplayerReplenishManager(FakeplayerManager manager, FakeplayerConfig config) {
@@ -150,7 +153,7 @@ public class FakeplayerReplenishManager implements Listener {
         }
 
         if (slot == EquipmentSlot.HAND && this.isReplaceTools(player)) {
-            this.replaceToolLater(player, slot, item);
+            this.replaceToolLater(player, slot, item, true);
             return;
         }
 
@@ -194,8 +197,10 @@ public class FakeplayerReplenishManager implements Listener {
         var remainingDurability = maxDurability - damageable.getDamage() - event.getDamage();
         if (slot == EquipmentSlot.HAND
                 && this.isReplaceTools(player)
-                && remainingDurability <= this.config.getToolReplacementRemainingDurabilityThreshold()) {
-            this.replaceToolLater(player, slot, held);
+                && (remainingDurability <= 0
+                    || (this.hasMendingEnchant(held)
+                        && remainingDurability <= this.config.getToolReplacementRemainingDurabilityThreshold()))) {
+            this.replaceToolLater(player, slot, held, remainingDurability <= 0);
         }
 
         if (!this.isReplenish(player) || damageable.getDamage() + event.getDamage() < maxDurability) {
@@ -461,7 +466,7 @@ public class FakeplayerReplenishManager implements Listener {
                 for (int i = inv.getSize() - 1; i >= 0; i--) {
                     var replacement = inv.getItem(i);
                     if (replacement != null && (matchToolType
-                            ? this.isToolReplacementMatch(replacement, item)
+                            ? this.isToolReplacementCandidate(replacement, item)
                             : this.isReplenishmentMatch(replacement, item))) {
                         var event = new InventoryClickEvent(
                                 view,
@@ -527,11 +532,14 @@ public class FakeplayerReplenishManager implements Listener {
     }
 
     /**
-     * Replace a worn main-hand item with the most durable matching item type in the player's inventory.
+     * Apply GCA's default policy to a nearly worn main-hand Mending tool.
      */
     public void replaceWornTool(@NotNull Player target) {
         var item = target.getInventory().getItemInMainHand();
         if (item == null || item.getType().isAir() || !(item.getItemMeta() instanceof Damageable damageable)) {
+            return;
+        }
+        if (!this.hasMendingEnchant(item)) {
             return;
         }
 
@@ -545,28 +553,36 @@ public class FakeplayerReplenishManager implements Listener {
             return;
         }
 
-        this.replaceToolFromInventory(target, EquipmentSlot.HAND, item, remainingDurability);
+        this.replaceToolFromInventory(target, EquipmentSlot.HAND, item);
     }
 
     /**
      * Wait for the current damage event to finish before looking at the hand and swapping items.
      */
-    private void replaceToolLater(@NotNull Player target, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {
+    private void replaceToolLater(
+            @NotNull Player target,
+            @NotNull EquipmentSlot slot,
+            @NotNull ItemStack item,
+            boolean broken
+    ) {
         var required = item.clone();
         var request = new ReplenishRequest(target.getUniqueId(), slot);
-        if (!this.pendingToolReplacements.add(request)) {
+        var existingRequest = this.pendingToolReplacements.putIfAbsent(request, broken);
+        if (existingRequest != null) {
+            if (broken && !existingRequest) {
+                this.pendingToolReplacements.put(request, true);
+            }
             return;
         }
 
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
-            this.pendingToolReplacements.remove(request);
+            var wasBroken = Boolean.TRUE.equals(this.pendingToolReplacements.remove(request));
             if (!target.isOnline() || !this.isReplaceTools(target)) {
                 return;
             }
 
             var held = target.getInventory().getItem(slot);
             var current = held == null || held.getType().isAir() ? null : held;
-            var remainingDurability = 0;
             if (current != null) {
                 if (!this.isToolReplacementMatch(current, required)
                         || !(current.getItemMeta() instanceof Damageable damageable)) {
@@ -576,13 +592,22 @@ public class FakeplayerReplenishManager implements Listener {
                 if (maxDurability <= 0) {
                     return;
                 }
-                remainingDurability = maxDurability - damageable.getDamage();
-                if (remainingDurability > this.config.getToolReplacementRemainingDurabilityThreshold()) {
+                var remainingDurability = maxDurability - damageable.getDamage();
+                if (wasBroken && remainingDurability <= 0) {
+                    target.getInventory().setItem(slot, null);
+                    current = null;
+                } else if (wasBroken) {
+                    // GCA keeps a currently valid replacement candidate in hand.
+                    if (this.isToolReplacementCandidate(current, required)) {
+                        return;
+                    }
+                } else if (!this.hasMendingEnchant(current)
+                        || remainingDurability > this.config.getToolReplacementRemainingDurabilityThreshold()) {
                     return;
                 }
             }
 
-            if (!this.replaceToolFromInventory(target, slot, current == null ? required : current, remainingDurability)
+            if (!this.replaceToolFromInventory(target, slot, current == null ? required : current)
                     && current == null
                     && this.isReplenish(target)
                     && Optional.ofNullable(manager.getCreator(target))
@@ -594,13 +619,12 @@ public class FakeplayerReplenishManager implements Listener {
     }
 
     /**
-     * Find the highest-durability matching item that is better than the item currently held, then swap slots.
+     * Use the first GCA-eligible item of the same type, then swap slots.
      */
     private boolean replaceToolFromInventory(
             @NotNull Player target,
             @NotNull EquipmentSlot slot,
-            @NotNull ItemStack required,
-            int currentRemainingDurability
+            @NotNull ItemStack required
     ) {
         if (slot != EquipmentSlot.HAND || !(required.getItemMeta() instanceof Damageable)) {
             return false;
@@ -609,42 +633,22 @@ public class FakeplayerReplenishManager implements Listener {
         var inventory = target.getInventory();
         var storage = inventory.getStorageContents();
         var selectedSlot = inventory.getHeldItemSlot();
-        var bestSlot = -1;
-        var bestRemainingDurability = currentRemainingDurability;
-
         for (int i = 0; i < storage.length; i++) {
             if (i == selectedSlot) {
                 continue;
             }
 
             var replacement = inventory.getItem(i);
-            if (replacement == null || replacement.getType().isAir()
-                    || !this.isToolReplacementMatch(replacement, required)
-                    || !(replacement.getItemMeta() instanceof Damageable damageable)) {
+            if (!this.isToolReplacementCandidate(replacement, required)) {
                 continue;
             }
 
-            var maxDurability = replacement.getType().getMaxDurability();
-            if (maxDurability <= 0) {
-                continue;
-            }
-
-            var remainingDurability = maxDurability - damageable.getDamage();
-            if (remainingDurability > bestRemainingDurability) {
-                bestSlot = i;
-                bestRemainingDurability = remainingDurability;
-            }
+            var worn = inventory.getItemInMainHand();
+            inventory.setItem(i, worn == null || worn.getType().isAir() ? null : worn.clone());
+            inventory.setItemInMainHand(replacement.clone());
+            return true;
         }
-
-        if (bestSlot < 0) {
-            return false;
-        }
-
-        var replacement = inventory.getItem(bestSlot).clone();
-        var worn = inventory.getItemInMainHand();
-        inventory.setItem(bestSlot, worn == null || worn.getType().isAir() ? null : worn.clone());
-        inventory.setItemInMainHand(replacement);
-        return true;
+        return false;
     }
 
     /**
@@ -702,6 +706,29 @@ public class FakeplayerReplenishManager implements Listener {
      */
     private boolean isToolReplacementMatch(@NotNull ItemStack replacement, @NotNull ItemStack required) {
         return replacement.getType() == required.getType();
+    }
+
+    /**
+     * GCA's default mode accepts every same-type non-Mending tool and only Mending tools
+     * with more remaining durability than the configured threshold.
+     */
+    private boolean isToolReplacementCandidate(@Nullable ItemStack candidate, @NotNull ItemStack required) {
+        if (candidate == null || candidate.getType().isAir()
+                || !this.isToolReplacementMatch(candidate, required)
+                || !(candidate.getItemMeta() instanceof Damageable damageable)) {
+            return false;
+        }
+        if (!this.hasMendingEnchant(candidate)) {
+            return true;
+        }
+
+        var maxDurability = candidate.getType().getMaxDurability();
+        return maxDurability > 0
+                && maxDurability - damageable.getDamage() > this.config.getToolReplacementRemainingDurabilityThreshold();
+    }
+
+    private boolean hasMendingEnchant(@NotNull ItemStack item) {
+        return item.getEnchantmentLevel(Enchantment.MENDING) > 0;
     }
 
     /**

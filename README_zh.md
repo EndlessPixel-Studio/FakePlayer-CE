@@ -204,12 +204,12 @@ curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlenc
 | `pickup_items`    | 是否开启物品拾取 |
 | `skin`            | 是否默认使用创建者皮肤 |
 | `replenish`       | 自动补充消耗或使用完的物品；`/fp drop` 或 `/fp dropstack` 丢掉主手最后一个物品后也会补货 |
-| `replace_tools`   | 主手工具耐久较低时，从背包换入同类型且耐久更高的工具；附魔不同也会匹配 |
+| `replace_tools`   | GCA 风格的工具替换：非经验修补工具损坏后更换，经验修补工具在低耐久阈值附近更换 |
 | `autofish`        | 是否开启自动钓鱼 |
 
-在 `config.yml` 中通过 `tool-replacement.remaining-durability-threshold` 设置换工具时的剩余耐久阈值（默认 `10`）；使用 `/fp config set replace_tools true` 为假人开启。
+在 `config.yml` 中通过 `tool-replacement.remaining-durability-threshold` 设置经验修补工具的剩余耐久阈值（默认 `10`）；使用 `/fp config set replace_tools true` 为假人开启。
 
-工具替换按物品类型匹配，遵循 Carpet 的行为；附魔差异不会阻止替换，并会优先换入剩余耐久最高的同类型工具。
+遵循 GCA 的默认模式，非经验修补工具损坏后才会更换；经验修补工具达到阈值时，如果背包中有同类型的非经验修补工具，或剩余耐久高于阈值的经验修补工具，就会更换。匹配只看物品类型，附魔差异不会阻止更换；按背包顺序选择第一个合格工具。
 
 开启 `replenish` 后，消耗奶桶、炖菜、蜂蜜瓶或可饮用药水时，如果背包里有同款补货物且能存下返回的空桶、碗或玻璃瓶，就会将容器放进背包并补回原物；否则容器会留在手上。`/fp dropinv` 仍会直接清空背包，不会自动补货。
 

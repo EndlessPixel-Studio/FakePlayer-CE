@@ -304,10 +304,11 @@ replenish:
   tools:
     durability-threshold: 0
 
-# Automatically replace a worn main-hand tool with a more durable matching item from the inventory.
-# The threshold is measured in remaining durability points; 10 means replace at 10 durability or less.
+# GCA-style replacement: non-Mending tools are replaced after breaking; Mending tools are replaced at this threshold.
+# Mending tools with more remaining durability than the threshold are eligible replacements.
 # This feature is enabled per fake player with `/fp config set replace_tools true`.
-# 手持工具剩余耐久达到此值或更低时，从背包中换入耐久更高的同款工具；旧工具放回背包原槽位。
+# GCA 风格替换：非经验修补工具损坏后更换；经验修补工具在剩余耐久达到此值或更低时更换。
+# 经验修补候选工具的剩余耐久必须高于此值；非经验修补候选工具不受耐久值限制。
 tool-replacement:
   remaining-durability-threshold: 10
 
