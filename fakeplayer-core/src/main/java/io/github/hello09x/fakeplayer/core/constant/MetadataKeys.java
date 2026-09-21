@@ -12,6 +12,8 @@ public interface MetadataKeys {
 
     String REPLENISH = "fakeplayer:replenish";
 
+    String REPLACE_TOOLS = "fakeplayer:replace_tools";
+
     String SPAWNED_AT = "fakeplayer:spawned_at";
 
     String AUTOFISH = "fakeplayer:autofish";

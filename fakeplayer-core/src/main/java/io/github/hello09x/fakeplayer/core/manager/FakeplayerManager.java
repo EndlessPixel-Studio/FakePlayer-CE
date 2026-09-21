@@ -176,6 +176,7 @@ public class FakeplayerManager {
                             configs.get(Feature.pickup_items).asBoolean(),
                             configs.get(Feature.skin).asBoolean(),
                             configs.get(Feature.replenish).asBoolean(),
+                            configs.get(Feature.replace_tools).asBoolean(),
                             configs.get(Feature.autofish).asBoolean(),
                             configs.get(Feature.wolverine).asBoolean()
                     );

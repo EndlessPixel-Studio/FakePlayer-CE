@@ -48,10 +48,13 @@ public class FakeplayerTicker extends BukkitRunnable {
             return;
         }
 
-        // 周期性修复磨损的工具 (耐久下降不触发事件, 无法走事件补货)
+        // 周期性处理磨损工具，作为耐久事件之外的兜底检查。
         if (this.player.getTickCount() % 20 == 0) {
             var replenishManager = Main.getInjector().getInstance(FakeplayerReplenishManager.class);
             var bukkitPlayer = this.player.getPlayer();
+            if (replenishManager.isReplaceTools(bukkitPlayer)) {
+                replenishManager.replaceWornTool(bukkitPlayer);
+            }
             if (replenishManager.isReplenish(bukkitPlayer)) {
                 replenishManager.replenishTools(bukkitPlayer);
             }

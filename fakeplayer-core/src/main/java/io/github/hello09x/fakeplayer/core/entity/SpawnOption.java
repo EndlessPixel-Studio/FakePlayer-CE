@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
  * @param lookAtEntity 是否看向附近实体
  * @param pickupItems  是否拾取物品
  * @param replenish    自动补货
+ * @param replaceTools 自动替换低耐久工具
  */
 public record SpawnOption(
 
@@ -27,6 +28,8 @@ public record SpawnOption(
         boolean skin,
 
         boolean replenish,
+
+        boolean replaceTools,
 
         boolean autofish,
 
