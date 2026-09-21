@@ -205,11 +205,13 @@ Usage examples:
 | `look_at_entity`  | Auto-look at nearby attackable entities; combine with `attack` for auto-combat |
 | `pickup_items`    | Enable item pickup |
 | `skin`            | Use the creator's skin by default |
-| `replenish`       | Enable auto-replenish from inventory |
+| `replenish`       | Refill consumed or used items from inventory, including the final item dropped by `/fp drop` or `/fp dropstack` |
 | `replace_tools`  | Replace a worn main-hand tool with a more durable matching item from inventory |
 | `autofish`        | Enable auto-fishing |
 
 Set `tool-replacement.remaining-durability-threshold` in `config.yml` to choose the remaining durability at which replacement starts (default `10`). Enable it per fake player with `/fp config set replace_tools true`.
+
+With `replenish` enabled, container-returning consumables such as milk buckets, stews, honey bottles, and drinkable potions are refilled when a matching item is available and the returned bucket, bowl, or bottle fits in inventory. Otherwise, the returned container stays in hand. `/fp dropinv` continues to empty the inventory without refilling it.
 
 ## Permissions
 
