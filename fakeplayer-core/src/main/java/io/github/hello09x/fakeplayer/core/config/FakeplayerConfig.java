@@ -273,6 +273,61 @@ public class FakeplayerConfig extends PluginConfig {
      */
     private boolean httpAdminSay;
 
+    /**
+     * 是否启用 status 接口
+     */
+    private boolean httpAdminStatus;
+
+    /**
+     * 是否启用 info 接口
+     */
+    private boolean httpAdminInfo;
+
+    /**
+     * 是否启用 action 接口
+     */
+    private boolean httpAdminAction;
+
+    /**
+     * 是否启用 stop 接口
+     */
+    private boolean httpAdminStop;
+
+    /**
+     * 是否启用 teleport 接口
+     */
+    private boolean httpAdminTeleport;
+
+    /**
+     * 是否启用 look 接口
+     */
+    private boolean httpAdminLook;
+
+    /**
+     * 是否启用 hold 接口
+     */
+    private boolean httpAdminHold;
+
+    /**
+     * 是否启用 swap 接口
+     */
+    private boolean httpAdminSwap;
+
+    /**
+     * 是否启用 respawn 接口
+     */
+    private boolean httpAdminRespawn;
+
+    /**
+     * 是否启用 cmd 接口
+     */
+    private boolean httpAdminCmd;
+
+    /**
+     * 是否启用批量接口 (kickall / killall / sayall)
+     */
+    private boolean httpAdminBatch;
+
     @Inject
     public FakeplayerConfig() {
         super(Main.getInstance());
@@ -338,6 +393,17 @@ public class FakeplayerConfig extends PluginConfig {
         this.httpAdminKick = file.getBoolean("http-admin.interface.kick", true);
         this.httpAdminKill = file.getBoolean("http-admin.interface.kill", true);
         this.httpAdminSay = file.getBoolean("http-admin.interface.say", true);
+        this.httpAdminStatus = file.getBoolean("http-admin.interface.status", true);
+        this.httpAdminInfo = file.getBoolean("http-admin.interface.info", true);
+        this.httpAdminAction = file.getBoolean("http-admin.interface.action", true);
+        this.httpAdminStop = file.getBoolean("http-admin.interface.stop", true);
+        this.httpAdminTeleport = file.getBoolean("http-admin.interface.teleport", true);
+        this.httpAdminLook = file.getBoolean("http-admin.interface.look", true);
+        this.httpAdminHold = file.getBoolean("http-admin.interface.hold", true);
+        this.httpAdminSwap = file.getBoolean("http-admin.interface.swap", true);
+        this.httpAdminRespawn = file.getBoolean("http-admin.interface.respawn", true);
+        this.httpAdminCmd = file.getBoolean("http-admin.interface.cmd", true);
+        this.httpAdminBatch = file.getBoolean("http-admin.interface.batch", true);
         this.nameStyleColor = this.getNameStyleColor(file);
         this.nameStyleDecorations = this.getNameStyleDecorations(file);
 

@@ -7,11 +7,17 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **HTTP admin API expanded from 5 to 18 endpoints.** New query endpoints: `GET /status` (detailed fake player state — position, rotation, health, food, exp, game mode, creator, held items, hotbar slot and the actions currently running; omit `name` to get every fake player) and `GET /info` (plugin, Minecraft and server version, fake player / online player counts and limits). New control endpoints: `GET /action` (drive any action with `count`, `interval`, `wait` and `message`), `GET /stop`, `GET /teleport`, `GET /look` (`direction`, `at=x,y,z` or `yaw`+`pitch`), `GET /hold`, `GET /swap`, `GET /respawn`, `GET /cmd`, plus the batch endpoints `GET /kickall`, `GET /killall` and `GET /sayall`. Batch endpoints return `{"status":"success","count":n}`.
+- Every new endpoint has its own switch under `http-admin.interface` (`status`, `info`, `action`, `stop`, `teleport`, `look`, `hold`, `swap`, `respawn`, `cmd`, `batch`), all defaulting to `true`. `config.yml` version bumped to 20; existing configs keep working and fall back to the defaults for the new keys.
+- Parameters are validated and reported with proper status codes: unknown action / direction / world, malformed `at`, non-numeric coordinates, out-of-range slot, `count < -1`, respawning a living fake player and missing required parameters all return `400` with a descriptive message (`401` for a bad token, `403` for a disabled endpoint, `405` for non-GET requests).
 - Added an independent GCA-style `replace_tools` feature: non-Mending tools are replaced after breaking, while Mending tools are replaced at the configured low-durability threshold. Same-type non-Mending tools are eligible at any durability; Mending replacements must remain above the threshold. The first eligible inventory item is used.
 - Broadened `replenish`: `/fp drop` and `/fp dropstack` refill the main hand after its last item is dropped; consumed milk buckets, stews, honey bottles, and drinkable potions can be refilled while their returned bucket, bowl, or bottle is stored in inventory. If there is no matching refill item or no room for the remainder, it stays in hand.
 
 ### 中文
 
+- **HTTP 管理接口从 5 个端点扩展到 18 个。** 新增查询类接口：`GET /status`（假人详细状态：坐标、朝向、血量、饥饿、经验、游戏模式、创建者、手持物品、主手槽位以及正在进行的动作；省略 `name` 时返回全部假人）、`GET /info`（插件、Minecraft 与服务端版本、假人在线数与各项上限）。新增控制类接口：`GET /action`（通过 `count`、`interval`、`wait`、`message` 驱动任意动作）、`GET /stop`、`GET /teleport`、`GET /look`（`direction`、`at=x,y,z` 或 `yaw`+`pitch` 三种写法）、`GET /hold`、`GET /swap`、`GET /respawn`、`GET /cmd`，以及批量接口 `GET /kickall`、`GET /killall`、`GET /sayall`；批量接口返回 `{"status":"success","count":n}`。
+- 每个新接口都在 `http-admin.interface` 下拥有独立开关（`status`、`info`、`action`、`stop`、`teleport`、`look`、`hold`、`swap`、`respawn`、`cmd`、`batch`），默认均为 `true`。`config.yml` 版本号提升至 20；旧配置可继续使用，新配置项自动采用默认值。
+- 参数会经过校验并返回恰当的响应码：未知动作 / 方向 / 世界、`at` 格式错误、坐标非数字、槽位越界、`count < -1`、对存活假人执行重生以及缺少必填参数均返回 `400` 并附带具体提示（令牌错误 `401`、接口关闭 `403`、非 GET 请求 `405`）。
 - 新增独立的 GCA 风格 `replace_tools` 特性：非经验修补工具损坏后才更换；经验修补工具在达到配置的低耐久阈值时更换。同类型非经验修补工具无论耐久多少都可作为候选；经验修补候选的剩余耐久必须高于阈值，并按背包顺序选择第一个符合条件的工具。
 - 扩展 `replenish`：`/fp drop` 与 `/fp dropstack` 丢掉主手最后一个物品后会自动补货；消耗奶桶、炖菜、蜂蜜瓶和可饮用药水后，可将返回的空桶、碗或玻璃瓶放入背包并补回原物。没有同款补货物或背包没有余物空间时，返回容器会留在手上。
 

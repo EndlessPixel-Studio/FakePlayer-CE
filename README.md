@@ -48,7 +48,7 @@ FakePlayer is a server-side plugin inspired by [Carpet-Mod](https://github.com/g
 | **Gradle Kotlin DSL Build** | Migrated from Maven to a modern Gradle multi-module project structure |
 | **Isolated NMS Modules** | Version-specific NMS code encapsulated independently, reducing adaptation cost for future releases |
 | **Ongoing Compatibility** | Continuous fixes for latest Paper/Purpur builds |
-| **HTTP Admin API** | Built-in lightweight HTTP API for remote list / spawn / kick management |
+| **HTTP Admin API** | Built-in lightweight HTTP API for querying state, spawning / removing fake players and driving their actions, rotation, inventory and commands |
 
 ## Requirements
 
@@ -143,11 +143,26 @@ http-admin:
   port: 3253             # Listen port
   token: ""              # Auth token; if left empty, a random token is generated at startup and printed to the console
   interface:
+    # Queries
     list: true           # Enable GET /list
+    status: true         # Enable GET /status
+    info: true           # Enable GET /info
+    # Lifecycle
     spawn: true          # Enable GET /spawn
     kick: true           # Enable GET /kick
     kill: true           # Enable GET /kill
+    respawn: true        # Enable GET /respawn
+    # Behaviour
+    action: true         # Enable GET /action
+    stop: true           # Enable GET /stop
     say: true            # Enable GET /say
+    teleport: true       # Enable GET /teleport
+    look: true           # Enable GET /look
+    hold: true           # Enable GET /hold
+    swap: true           # Enable GET /swap
+    # Misc
+    cmd: true            # Enable GET /cmd
+    batch: true          # Enable GET /kickall, /killall and /sayall
 ```
 
 All endpoints are `GET` requests and require a valid token — pass it either as a query parameter (`?token=xxx`) or via the `Authorization: Bearer xxx` header.
@@ -155,17 +170,45 @@ All endpoints are `GET` requests and require a valid token — pass it either as
 | Endpoint | Description | Success | Failure |
 |---|---|---|---|
 | `GET /list` | List all online fake players | `{"fakeplayer":["name1","name2"]}` | — |
+| `GET /status[?name=<name>]` | Detailed state of a fake player (position, rotation, health, food, exp, game mode, creator, held items, active actions, ...); omit `name` to get every fake player | `{"fakeplayer":[{...}]}` | `{"status":"failure","msg":"..."}` |
+| `GET /info` | Plugin and server information (plugin version, MC version, server, fake player count, online players, limits) | `{"plugin":"...","minecraft":"...",...}` | — |
 | `GET /spawn?name=<name>` | Spawn a fake player at the main world's spawn point | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /kick?name=<name>` | Kick (remove) a fake player | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /kill?name=<name>` | Kill a fake player (real death, may drop loot) | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /respawn?name=<name>` | Respawn a dead fake player | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /say?name=<name>&message=<text>` | Send a chat message as a fake player (URL-encode the text) | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /action?name=<name>&action=<action>` | Trigger any action, see the parameters below | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /stop?name=<name>` | Stop every action currently running on the fake player | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /teleport?name=<name>[&world=&x=&y=&z=&yaw=&pitch=]` | Teleport a fake player; omitted parameters keep their current value | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /look?name=<name>&direction=<direction>` | Make a fake player face `north`/`south`/`east`/`west`/`up`/`down` | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /look?name=<name>&at=<x,y,z>` | Make a fake player look at the given coordinates | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /look?name=<name>&yaw=<yaw>&pitch=<pitch>` | Set the fake player's rotation directly | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /hold?name=<name>&slot=<1-9>` | Switch the fake player's hotbar slot | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /swap?name=<name>` | Swap the fake player's main hand and off hand items | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /cmd?name=<name>&command=<command>` | Run a command as the fake player | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /kickall` | Remove every fake player on the server | `{"status":"success","count":n}` | — |
+| `GET /killall` | Kill every fake player on the server | `{"status":"success","count":n}` | — |
+| `GET /sayall?message=<text>` | Make every fake player send a chat message | `{"status":"success","count":n}` | — |
+
+Parameters of `/action`:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `action` | required | Action name, case insensitive, `-` and `_` are equivalent. Available: `ATTACK` `MINE` `USE` `JUMP` `LOOK_AT_NEAREST_ENTITY` `DROP_ITEM` `DROP_STACK` `DROP_INVENTORY` `SAY` |
+| `count` | `1` | Number of executions; `-1` means keep running |
+| `interval` | `0` | Ticks between two executions; supplying only `interval` (without `count`) keeps the action running |
+| `wait` | `0` | Ticks to wait before the first execution |
+| `message` | — | Required by the `SAY` action only |
 
 Common failure messages:
 
 - Spawn — `The dummy's name conflicts with that of an actual player.` / `The dummy is already online.`
 - Kick — `Dummies do not exist.`
 - Kill — `The dummy does not exist.` / `The dummy is already dead.`
+- Respawn — `The dummy does not exist.` / `The dummy is not dead.`
 - Say — `Name is required` / `Message is required`
+- Action — `Action is required, available actions: ...` / `Message is required for the say action`
+- Teleport — `Invalid number: x` / `Unknown world: xxx`
 - Auth & switches — `Unauthorized` (401, missing or wrong token) / `Interface disabled` (403, endpoint turned off)
 
 Examples:
@@ -173,6 +216,12 @@ Examples:
 ```bash
 # List fake players
 curl "http://localhost:3253/list?token=YOUR_TOKEN"
+
+# Detailed state (omitting name returns every fake player)
+curl -G "http://localhost:3253/status" --data-urlencode "name=klmgun" --data-urlencode "token=YOUR_TOKEN"
+
+# Plugin and server information
+curl "http://localhost:3253/info?token=YOUR_TOKEN"
 
 # Spawn a fake player
 curl "http://localhost:3253/spawn?name=klmgun&token=YOUR_TOKEN"
@@ -182,6 +231,21 @@ curl -H "Authorization: Bearer YOUR_TOKEN" "http://localhost:3253/kick?name=klmg
 
 # Kill a fake player
 curl "http://localhost:3253/kill?name=klmgun&token=YOUR_TOKEN"
+
+# Keep attacking every 10 ticks
+curl "http://localhost:3253/action?name=klmgun&action=attack&interval=10&token=YOUR_TOKEN"
+
+# Stop every running action
+curl "http://localhost:3253/stop?name=klmgun&token=YOUR_TOKEN"
+
+# Teleport a fake player
+curl "http://localhost:3253/teleport?name=klmgun&world=world&x=0&y=64&z=0&token=YOUR_TOKEN"
+
+# Make a fake player face east
+curl "http://localhost:3253/look?name=klmgun&direction=east&token=YOUR_TOKEN"
+
+# Run a command as a fake player
+curl -G "http://localhost:3253/cmd" --data-urlencode "name=klmgun" --data-urlencode "command=say hello" --data-urlencode "token=YOUR_TOKEN"
 
 # Make a fake player say something (URL-encode the message)
 curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlencode "message=hello world" --data-urlencode "token=YOUR_TOKEN"
