@@ -41,6 +41,7 @@ public interface Permission {
     String swap = "fakeplayer.command.swap";
     String replenish = "fakeplayer.config.replenish";
     String replenishFromChest = "fakeplayer.config.replenish.chest";
+    String replaceTools = "fakeplayer.config.replace-tools";
     String autofish = "fakeplayer.config.autofish";
     String sleep = "fakeplayer.command.sleep";
     String wakeup = "fakeplayer.command.wakeup";

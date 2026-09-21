@@ -173,6 +173,9 @@ public class Fakeplayer {
                     if (option.replenish()) {
                         replenishManager.setReplenish(player, true);
                     }
+                    if (option.replaceTools()) {
+                        replenishManager.setReplaceTools(player, true);
+                    }
                     if (option.autofish()) {
                         autofishManager.setAutofish(player, true);
                     }

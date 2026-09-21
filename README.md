@@ -206,7 +206,10 @@ Usage examples:
 | `pickup_items`    | Enable item pickup |
 | `skin`            | Use the creator's skin by default |
 | `replenish`       | Enable auto-replenish from inventory |
+| `replace_tools`  | Replace a worn main-hand tool with a more durable matching item from inventory |
 | `autofish`        | Enable auto-fishing |
+
+Set `tool-replacement.remaining-durability-threshold` in `config.yml` to choose the remaining durability at which replacement starts (default `10`). Enable it per fake player with `/fp config set replace_tools true`.
 
 ## Permissions
 
@@ -262,6 +265,7 @@ Action-related permissions:
 - `fakeplayer.command.say` — Send chat message
 - `fakeplayer.config.replenish` — Auto-replenish
 - `fakeplayer.config.replenish.chest` — Replenish from nearby chests
+- `fakeplayer.config.replace-tools` — Replace worn tools
 - `fakeplayer.config.autofish` — Auto-fish
 
 For servers without strict permission management, assign `fakeplayer.basic` — it includes all safe permissions **except** `/fp cmd`.

@@ -123,6 +123,18 @@ public enum Feature implements Translatable, Singletons {
     ),
 
     /**
+     * 是否自动替换低耐久工具
+     */
+    replace_tools(
+            "fakeplayer.config.replace_tools",
+            List.of(Permission.config, Permission.replaceTools),
+            List.of("true", "false"),
+            "false",
+            faker -> String.valueOf(replenishManager.get().isReplaceTools(faker)),
+            (faker, value) -> replenishManager.get().setReplaceTools(faker, Boolean.parseBoolean(value))
+    ),
+
+    /**
      * 是否自动钓鱼
      */
     autofish(
