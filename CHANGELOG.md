@@ -3,12 +3,22 @@
 FakePlayer CE 版本更新日志。版本号 `fp.buildN` 与 git tag / GitHub Release 一一对应。
 Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Release.
 
-## fp.build10 - Unreleased
+## fp.build11 - Not Published
 
 ### English
 
 - Added an independent GCA-style `replace_tools` feature: non-Mending tools are replaced after breaking, while Mending tools are replaced at the configured low-durability threshold. Same-type non-Mending tools are eligible at any durability; Mending replacements must remain above the threshold. The first eligible inventory item is used.
 - Broadened `replenish`: `/fp drop` and `/fp dropstack` refill the main hand after its last item is dropped; consumed milk buckets, stews, honey bottles, and drinkable potions can be refilled while their returned bucket, bowl, or bottle is stored in inventory. If there is no matching refill item or no room for the remainder, it stays in hand.
+
+### 中文
+
+- 新增独立的 GCA 风格 `replace_tools` 特性：非经验修补工具损坏后才更换；经验修补工具在达到配置的低耐久阈值时更换。同类型非经验修补工具无论耐久多少都可作为候选；经验修补候选的剩余耐久必须高于阈值，并按背包顺序选择第一个符合条件的工具。
+- 扩展 `replenish`：`/fp drop` 与 `/fp dropstack` 丢掉主手最后一个物品后会自动补货；消耗奶桶、炖菜、蜂蜜瓶和可饮用药水后，可将返回的空桶、碗或玻璃瓶放入背包并补回原物。没有同款补货物或背包没有余物空间时，返回容器会留在手上。
+
+## fp.build10 - 2026-09-12
+
+### English
+
 - **New: built-in HTTP admin API.** Optional remote management for web panels and automation: `GET /list`, `/spawn`, `/kick`, `/kill`, `/say`. Authenticated via `?token=` or `Authorization: Bearer`; each endpoint can be toggled independently under `http-admin.interface`; every call is logged with the token redacted.
 - **Breaking: `/fp kill` now truly kills.** `/fp kill` / `/fp killall` go through the real death flow (`setHealth(0)`), following the `kick-on-dead` config: by default the fake player is removed after death (death event cancelled, no loot); with `kick-on-dead: false` the corpse remains and can be revived via `/fp respawn`, with normal loot rules applied. The previous "remove without death" behavior is now `/fp kick` (single) / `/fp kickall` (all).
 - New permission node `fakeplayer.command.kick`; the `fakeplayer.spawn` permission group now includes `kick` instead of `kill` (the latter now controls the real kill commands).
@@ -17,8 +27,6 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
-- 新增独立的 GCA 风格 `replace_tools` 特性：非经验修补工具损坏后才更换；经验修补工具在达到配置的低耐久阈值时更换。同类型非经验修补工具无论耐久多少都可作为候选；经验修补候选的剩余耐久必须高于阈值，并按背包顺序选择第一个符合条件的工具。
-- 扩展 `replenish`：`/fp drop` 与 `/fp dropstack` 丢掉主手最后一个物品后会自动补货；消耗奶桶、炖菜、蜂蜜瓶和可饮用药水后，可将返回的空桶、碗或玻璃瓶放入背包并补回原物。没有同款补货物或背包没有余物空间时，返回容器会留在手上。
 - **新增：内置 HTTP 管理接口。** 可选的远程管理能力，适用于 Web 面板与自动化脚本：`GET /list`、`/spawn`、`/kick`、`/kill`、`/say`。通过 `?token=` 或 `Authorization: Bearer` 鉴权；各接口可在 `http-admin.interface` 下独立开关；所有调用均记录日志（token 已脱敏）。
 - **破坏性变更：`/fp kill` 现为"真正杀死"。** `/fp kill` / `/fp killall` 现在通过真实死亡流程（`setHealth(0)`）击杀假人，并遵循 `kick-on-dead` 配置：默认死亡后即被移除（死亡事件被取消，不掉落物品）；`kick-on-dead: false` 时保留尸体并可用 `/fp respawn` 复活，掉落按服务端规则生效。原先"不造成死亡直接下线"的行为改为 `/fp kick`（单个）/ `/fp kickall`（批量）。
 - 新增权限节点 `fakeplayer.command.kick`；`fakeplayer.spawn` 权限组现包含 `kick` 而非 `kill`（`kill` 现在对应真杀死命令）。
