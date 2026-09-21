@@ -204,10 +204,12 @@ curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlenc
 | `pickup_items`    | 是否开启物品拾取 |
 | `skin`            | 是否默认使用创建者皮肤 |
 | `replenish`       | 自动补充消耗或使用完的物品；`/fp drop` 或 `/fp dropstack` 丢掉主手最后一个物品后也会补货 |
-| `replace_tools`   | 主手工具耐久较低时，从背包换入耐久更高的同款工具 |
+| `replace_tools`   | 主手工具耐久较低时，从背包换入同类型且耐久更高的工具；附魔不同也会匹配 |
 | `autofish`        | 是否开启自动钓鱼 |
 
 在 `config.yml` 中通过 `tool-replacement.remaining-durability-threshold` 设置换工具时的剩余耐久阈值（默认 `10`）；使用 `/fp config set replace_tools true` 为假人开启。
+
+工具替换按物品类型匹配，遵循 Carpet 的行为；附魔差异不会阻止替换，并会优先换入剩余耐久最高的同类型工具。
 
 开启 `replenish` 后，消耗奶桶、炖菜、蜂蜜瓶或可饮用药水时，如果背包里有同款补货物且能存下返回的空桶、碗或玻璃瓶，就会将容器放进背包并补回原物；否则容器会留在手上。`/fp dropinv` 仍会直接清空背包，不会自动补货。
 
