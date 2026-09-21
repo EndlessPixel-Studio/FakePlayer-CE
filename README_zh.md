@@ -204,7 +204,10 @@ curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlenc
 | `pickup_items`    | 是否开启物品拾取 |
 | `skin`            | 是否默认使用创建者皮肤 |
 | `replenish`       | 是否开启物品自动补充 |
+| `replace_tools`   | 主手工具耐久较低时，从背包换入耐久更高的同款工具 |
 | `autofish`        | 是否开启自动钓鱼 |
+
+在 `config.yml` 中通过 `tool-replacement.remaining-durability-threshold` 设置换工具时的剩余耐久阈值（默认 `10`）；使用 `/fp config set replace_tools true` 为假人开启。
 
 ## 权限分组说明
 
@@ -260,6 +263,7 @@ curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlenc
 - `fakeplayer.command.say` — 发送聊天消息
 - `fakeplayer.config.replenish` — 自动补物
 - `fakeplayer.config.replenish.chest` — 从附近箱子补货
+- `fakeplayer.config.replace-tools` — 自动替换低耐久工具
 - `fakeplayer.config.autofish` — 自动钓鱼
 
 若服务器无需严格权限管控，可直接分配 `fakeplayer.basic` 权限组，该组包含除 `/fp cmd` 高危指令外的全部安全权限。

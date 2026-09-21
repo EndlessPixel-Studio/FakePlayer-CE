@@ -188,6 +188,11 @@ public class FakeplayerConfig extends PluginConfig {
     private int replenishToolsDurabilityThreshold;
 
     /**
+     * 主手工具剩余耐久低于该值时尝试从背包替换
+     */
+    private int toolReplacementRemainingDurabilityThreshold;
+
+    /**
      * 假人生成后是否自动登录
      */
     private boolean autoLogin;
@@ -314,6 +319,7 @@ public class FakeplayerConfig extends PluginConfig {
         this.allowNonOpOpenInv = file.getBoolean("allow-non-op-open-inv", false);
         this.debug = file.getBoolean("debug", false);
         this.replenishToolsDurabilityThreshold = file.getInt("replenish.tools.durability-threshold", 0);
+        this.toolReplacementRemainingDurabilityThreshold = Math.max(0, file.getInt("tool-replacement.remaining-durability-threshold", 10));
         this.autoLogin = file.getBoolean("auto-login", false);
         this.registerCommand = file.getString("register", "/reg %password% %password%");
         this.loginCommand = file.getString("login", "/login %password%");

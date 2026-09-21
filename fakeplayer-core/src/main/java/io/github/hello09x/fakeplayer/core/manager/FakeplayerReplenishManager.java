@@ -46,6 +46,7 @@ public class FakeplayerReplenishManager implements Listener {
     private final FakeplayerManager manager;
     private final FakeplayerConfig config;
     private final Set<ReplenishRequest> pendingReplenishments = new HashSet<>();
+    private final Set<ReplenishRequest> pendingToolReplacements = new HashSet<>();
 
     @Inject
     public FakeplayerReplenishManager(FakeplayerManager manager, FakeplayerConfig config) {
@@ -75,6 +76,24 @@ public class FakeplayerReplenishManager implements Listener {
      */
     public boolean isReplenish(@NotNull Player target) {
         return target.hasMetadata(MetadataKeys.REPLENISH);
+    }
+
+    /**
+     * 设置假人是否自动替换低耐久工具
+     */
+    public void setReplaceTools(@NotNull Player target, boolean replaceTools) {
+        if (!replaceTools) {
+            target.removeMetadata(MetadataKeys.REPLACE_TOOLS, Main.getInstance());
+        } else {
+            target.setMetadata(MetadataKeys.REPLACE_TOOLS, new FixedMetadataValue(Main.getInstance(), true));
+        }
+    }
+
+    /**
+     * 判断假人是否自动替换低耐久工具
+     */
+    public boolean isReplaceTools(@NotNull Player target) {
+        return target.hasMetadata(MetadataKeys.REPLACE_TOOLS);
     }
 
     /**
@@ -123,13 +142,18 @@ public class FakeplayerReplenishManager implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onItemBreak(@NotNull PlayerItemBreakEvent event) {
         var player = event.getPlayer();
-        if (!this.isReplenish(player)) {
-            return;
-        }
-
         var item = event.getBrokenItem();
         var slot = this.getHoldingHand(player, item);
         if (slot == null) {
+            return;
+        }
+
+        if (slot == EquipmentSlot.HAND && this.isReplaceTools(player)) {
+            this.replaceToolLater(player, slot, item);
+            return;
+        }
+
+        if (!this.isReplenish(player)) {
             return;
         }
 
@@ -147,7 +171,7 @@ public class FakeplayerReplenishManager implements Listener {
     public void onItemDamage(@NotNull PlayerItemDamageEvent event) {
         var player = event.getPlayer();
         var item = event.getItem();
-        if (!this.isReplenish(player) || item == null) {
+        if (item == null) {
             return;
         }
 
@@ -162,7 +186,23 @@ public class FakeplayerReplenishManager implements Listener {
         }
 
         var maxDurability = held.getType().getMaxDurability();
-        if (maxDurability <= 0 || damageable.getDamage() + event.getDamage() < maxDurability) {
+        if (maxDurability <= 0) {
+            return;
+        }
+
+        var remainingDurability = maxDurability - damageable.getDamage() - event.getDamage();
+        if (slot == EquipmentSlot.HAND
+                && this.isReplaceTools(player)
+                && remainingDurability <= this.config.getToolReplacementRemainingDurabilityThreshold()) {
+            this.replaceToolLater(player, slot, held);
+        }
+
+        if (!this.isReplenish(player) || damageable.getDamage() + event.getDamage() < maxDurability) {
+            return;
+        }
+
+        if (slot == EquipmentSlot.HAND && this.isReplaceTools(player)) {
+            // Tool replacement handles the broken item and avoids racing the regular refill path.
             return;
         }
 
@@ -346,6 +386,127 @@ public class FakeplayerReplenishManager implements Listener {
             item.setItemMeta(damageable);
             target.getInventory().setItem(slot, item);
         }
+    }
+
+    /**
+     * Replace a worn main-hand item with the most durable similar item in the player's inventory.
+     */
+    public void replaceWornTool(@NotNull Player target) {
+        var item = target.getInventory().getItemInMainHand();
+        if (item == null || item.getType().isAir() || !(item.getItemMeta() instanceof Damageable damageable)) {
+            return;
+        }
+
+        var maxDurability = item.getType().getMaxDurability();
+        if (maxDurability <= 0) {
+            return;
+        }
+
+        var remainingDurability = maxDurability - damageable.getDamage();
+        if (remainingDurability > this.config.getToolReplacementRemainingDurabilityThreshold()) {
+            return;
+        }
+
+        this.replaceToolFromInventory(target, EquipmentSlot.HAND, item, remainingDurability);
+    }
+
+    /**
+     * Wait for the current damage event to finish before looking at the hand and swapping items.
+     */
+    private void replaceToolLater(@NotNull Player target, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {
+        var required = item.clone();
+        var request = new ReplenishRequest(target.getUniqueId(), slot);
+        if (!this.pendingToolReplacements.add(request)) {
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+            this.pendingToolReplacements.remove(request);
+            if (!target.isOnline() || !this.isReplaceTools(target)) {
+                return;
+            }
+
+            var held = target.getInventory().getItem(slot);
+            var current = held == null || held.getType().isAir() ? null : held;
+            var remainingDurability = 0;
+            if (current != null) {
+                if (!this.isReplenishmentMatch(current, required)
+                        || !(current.getItemMeta() instanceof Damageable damageable)) {
+                    return;
+                }
+                var maxDurability = current.getType().getMaxDurability();
+                if (maxDurability <= 0) {
+                    return;
+                }
+                remainingDurability = maxDurability - damageable.getDamage();
+                if (remainingDurability > this.config.getToolReplacementRemainingDurabilityThreshold()) {
+                    return;
+                }
+            }
+
+            if (!this.replaceToolFromInventory(target, slot, current == null ? required : current, remainingDurability)
+                    && current == null
+                    && this.isReplenish(target)
+                    && Optional.ofNullable(manager.getCreator(target))
+                               .filter(creator -> creator.hasPermission(Permission.replenishFromChest))
+                               .isPresent()) {
+                this.replenishFromNearbyChest(target, slot, required);
+            }
+        }, 1);
+    }
+
+    /**
+     * Find the highest-durability matching item that is better than the item currently held, then swap slots.
+     */
+    private boolean replaceToolFromInventory(
+            @NotNull Player target,
+            @NotNull EquipmentSlot slot,
+            @NotNull ItemStack required,
+            int currentRemainingDurability
+    ) {
+        if (slot != EquipmentSlot.HAND || !(required.getItemMeta() instanceof Damageable)) {
+            return false;
+        }
+
+        var inventory = target.getInventory();
+        var storage = inventory.getStorageContents();
+        var selectedSlot = inventory.getHeldItemSlot();
+        var bestSlot = -1;
+        var bestRemainingDurability = currentRemainingDurability;
+
+        for (int i = 0; i < storage.length; i++) {
+            if (i == selectedSlot) {
+                continue;
+            }
+
+            var replacement = inventory.getItem(i);
+            if (replacement == null || replacement.getType().isAir()
+                    || !this.isReplenishmentMatch(replacement, required)
+                    || !(replacement.getItemMeta() instanceof Damageable damageable)) {
+                continue;
+            }
+
+            var maxDurability = replacement.getType().getMaxDurability();
+            if (maxDurability <= 0) {
+                continue;
+            }
+
+            var remainingDurability = maxDurability - damageable.getDamage();
+            if (remainingDurability > bestRemainingDurability) {
+                bestSlot = i;
+                bestRemainingDurability = remainingDurability;
+            }
+        }
+
+        if (bestSlot < 0) {
+            return false;
+        }
+
+        var replacement = inventory.getItem(bestSlot).clone();
+        var worn = inventory.getItemInMainHand();
+        inventory.setItem(bestSlot, worn == null || worn.getType().isAir() ? null : worn.clone());
+        inventory.setItemInMainHand(replacement);
+        return true;
     }
 
     /**

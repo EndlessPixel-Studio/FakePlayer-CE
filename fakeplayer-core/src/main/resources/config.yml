@@ -293,6 +293,7 @@ default-features:
   look_at_entity: false
   invulnerable: false
   replenish: false
+  replace_tools: false
   autofish: false
   wolverine: false
 
@@ -302,6 +303,13 @@ default-features:
 replenish:
   tools:
     durability-threshold: 0
+
+# Automatically replace a worn main-hand tool with a more durable matching item from the inventory.
+# The threshold is measured in remaining durability points; 10 means replace at 10 durability or less.
+# This feature is enabled per fake player with `/fp config set replace_tools true`.
+# 手持工具剩余耐久达到此值或更低时，从背包中换入耐久更高的同款工具；旧工具放回背包原槽位。
+tool-replacement:
+  remaining-durability-threshold: 10
 
 
 # 检测更新
