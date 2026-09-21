@@ -12,6 +12,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - New permission node `fakeplayer.command.kick`; the `fakeplayer.spawn` permission group now includes `kick` instead of `kill` (the latter now controls the real kill commands).
 - Fixed `/fp say` fallback when only a message is given (e.g. `/fp say once 1234`).
 - Build: version modules consolidated under `versions/` (repository layout only, no runtime change).
+- **New: Minecraft 26.3 support.** New `fakeplayer-v26_3` bridge module — 26.3 introduces no breaking NMS changes to the plugin's API surface, so it delegates to the 26.2 implementation. The single universal jar now covers `1.20.1 ~ 26.3`.
 
 ### 中文
 
@@ -20,6 +21,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - 新增权限节点 `fakeplayer.command.kick`；`fakeplayer.spawn` 权限组现包含 `kick` 而非 `kill`（`kill` 现在对应真杀死命令）。
 - 修复 `/fp say` 仅给消息时的参数回退（如 `/fp say once 1234`）。
 - 构建：版本模块统一收纳至 `versions/` 目录（仅仓库结构变化，运行时无影响）。
+- **新增：支持 Minecraft 26.3。** 新增 `fakeplayer-v26_3` 桥接模块 —— 26.3 未对插件所依赖的 NMS API 引入破坏性变更，直接复用 26.2 完整实现。单一通用 jar 现覆盖 `1.20.1 ~ 26.3`。
 
 ## fp.build9 - 2026-09-11
 
