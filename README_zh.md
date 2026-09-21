@@ -47,7 +47,7 @@ FakePlayer 是一款受 [Carpet-Mod](https://github.com/gnembon/fabric-carpet) �
 | **Gradle Kotlin DSL 构建** | 从 Maven 迁移至现代化 Gradle 多模块工程架构 |
 | **NMS 版本隔离** | 各版本 NMS 代码独立封装，降低未来 MC 版本适配成本 |
 | **持续兼容维护** | 持续跟进 Paper/Purpur 最新版本兼容性修复 |
-| **HTTP 管理接口** | 内置轻量 HTTP 接口，可远程查询 / 生成 / 踢出假人 |
+| **HTTP 管理接口** | 内置轻量 HTTP 接口，可远程查询状态、生成 / 移除假人，并控制其动作、朝向、背包与命令 |
 
 ## 运行前置依赖
 
@@ -141,11 +141,26 @@ http-admin:
   port: 3253             # 监听端口
   token: ""              # 鉴权令牌；留空时启动会自动生成随机令牌并打印到控制台
   interface:
+    # 查询类
     list: true           # 启用 GET /list
+    status: true         # 启用 GET /status
+    info: true           # 启用 GET /info
+    # 生命周期
     spawn: true          # 启用 GET /spawn
     kick: true           # 启用 GET /kick
     kill: true           # 启用 GET /kill
+    respawn: true        # 启用 GET /respawn
+    # 行为控制
+    action: true         # 启用 GET /action
+    stop: true           # 启用 GET /stop
     say: true            # 启用 GET /say
+    teleport: true       # 启用 GET /teleport
+    look: true           # 启用 GET /look
+    hold: true           # 启用 GET /hold
+    swap: true           # 启用 GET /swap
+    # 其他
+    cmd: true            # 启用 GET /cmd
+    batch: true          # 启用 GET /kickall、/killall、/sayall
 ```
 
 所有接口均为 `GET` 请求，且必须携带正确令牌 —— 通过 URL 参数 `?token=xxx` 或请求头 `Authorization: Bearer xxx` 传递均可。
@@ -153,17 +168,45 @@ http-admin:
 | 接口 | 说明 | 成功返回 | 失败返回 |
 |---|---|---|---|
 | `GET /list` | 列出所有在线假人 | `{"fakeplayer":["name1","name2"]}` | — |
+| `GET /status[?name=<名字>]` | 查询假人的详细状态（坐标、朝向、血量、饥饿、经验、模式、创建者、手持物品、进行中的动作等）；省略 `name` 时返回全部 | `{"fakeplayer":[{...}]}` | `{"status":"failure","msg":"..."}` |
+| `GET /info` | 插件与服务端信息（插件版本、MC 版本、服务端、假人数量、在线玩家数、数量上限） | `{"plugin":"...","minecraft":"...",...}` | — |
 | `GET /spawn?name=<名字>` | 在主世界出生点生成一个假人 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /kick?name=<名字>` | 踢出（移除）一个假人 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /kill?name=<名字>` | 杀死一个假人（真实死亡，可能掉落物品） | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /respawn?name=<名字>` | 让已死亡的假人重生 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /say?name=<名字>&message=<内容>` | 以假人身份发送聊天消息（内容需 URL 编码） | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /action?name=<名字>&action=<动作>` | 触发任意动作，参数见下方 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /stop?name=<名字>` | 停止假人当前的所有动作 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /teleport?name=<名字>[&world=&x=&y=&z=&yaw=&pitch=]` | 传送假人，未给出的参数保持当前值 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /look?name=<名字>&direction=<方向>` | 让假人转向 `north`/`south`/`east`/`west`/`up`/`down` | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /look?name=<名字>&at=<x,y,z>` | 让假人看向指定坐标 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /look?name=<名字>&yaw=<角度>&pitch=<角度>` | 直接设置假人朝向 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /hold?name=<名字>&slot=<1-9>` | 切换假人主手槽位 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /swap?name=<名字>` | 交换假人主副手物品 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /cmd?name=<名字>&command=<命令>` | 以假人身份执行一条命令 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /kickall` | 移除服务器全部假人 | `{"status":"success","count":n}` | — |
+| `GET /killall` | 杀死服务器全部假人 | `{"status":"success","count":n}` | — |
+| `GET /sayall?message=<内容>` | 让全部假人发言 | `{"status":"success","count":n}` | — |
+
+`/action` 的参数：
+
+| 参数 | 默认 | 说明 |
+|---|---|---|
+| `action` | 必填 | 动作名，不区分大小写，`-` 与 `_` 等价。可选：`ATTACK` `MINE` `USE` `JUMP` `LOOK_AT_NEAREST_ENTITY` `DROP_ITEM` `DROP_STACK` `DROP_INVENTORY` `SAY` |
+| `count` | `1` | 执行次数；`-1` 表示持续执行 |
+| `interval` | `0` | 两次执行之间间隔的 tick 数；只给 `interval` 不给 `count` 时视为持续执行 |
+| `wait` | `0` | 首次执行前等待的 tick 数 |
+| `message` | — | 仅 `SAY` 动作需要 |
 
 常见失败提示：
 
 - 生成 — `The dummy's name conflicts with that of an actual player.`（与真实玩家重名）/ `The dummy is already online.`（假人已在线）
 - 踢出 — `Dummies do not exist.`（假人不存在）
 - 杀死 — `The dummy does not exist.`（假人不存在）/ `The dummy is already dead.`（假人已死亡）
+- 重生 — `The dummy does not exist.`（假人不存在）/ `The dummy is not dead.`（假人未死亡）
 - 发言 — `Name is required`（缺少假人名）/ `Message is required`（缺少消息内容）
+- 动作 — `Action is required, available actions: ...`（缺少或未知动作）/ `Message is required for the say action`（SAY 缺少内容）
+- 传送 — `Invalid number: x`（坐标不是数字）/ `Unknown world: xxx`（世界不存在）
 - 鉴权与开关 — `Unauthorized`（401，令牌缺失或错误）/ `Interface disabled`（403，对应接口已关闭）
 
 调用示例：
@@ -171,6 +214,12 @@ http-admin:
 ```bash
 # 列出所有假人
 curl "http://localhost:3253/list?token=YOUR_TOKEN"
+
+# 查看假人详细状态（省略 name 则返回全部）
+curl -G "http://localhost:3253/status" --data-urlencode "name=klmgun" --data-urlencode "token=YOUR_TOKEN"
+
+# 服务端与插件信息
+curl "http://localhost:3253/info?token=YOUR_TOKEN"
 
 # 生成假人
 curl "http://localhost:3253/spawn?name=klmgun&token=YOUR_TOKEN"
@@ -180,6 +229,21 @@ curl -H "Authorization: Bearer YOUR_TOKEN" "http://localhost:3253/kick?name=klmg
 
 # 杀死假人
 curl "http://localhost:3253/kill?name=klmgun&token=YOUR_TOKEN"
+
+# 让假人持续攻击（每 10 tick 一次）
+curl "http://localhost:3253/action?name=klmgun&action=attack&interval=10&token=YOUR_TOKEN"
+
+# 停止假人所有动作
+curl "http://localhost:3253/stop?name=klmgun&token=YOUR_TOKEN"
+
+# 把假人传送到指定坐标
+curl "http://localhost:3253/teleport?name=klmgun&world=world&x=0&y=64&z=0&token=YOUR_TOKEN"
+
+# 让假人看向东方
+curl "http://localhost:3253/look?name=klmgun&direction=east&token=YOUR_TOKEN"
+
+# 让假人执行命令
+curl -G "http://localhost:3253/cmd" --data-urlencode "name=klmgun" --data-urlencode "command=say hello" --data-urlencode "token=YOUR_TOKEN"
 
 # 让假人发言（消息内容需 URL 编码）
 curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlencode "message=你好 世界" --data-urlencode "token=YOUR_TOKEN"

@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 19
+version: 20
 
 # 多国语言配置
 # 可选项: en, zh, zh_cn, zh_tw, zh_hk
@@ -360,11 +360,26 @@ http-admin:
   # 各接口开关
   # Per-interface switches
   interface:
-    list: true
-    spawn: true
-    kick: true
-    kill: true
-    say: true
+    # 查询类
+    list: true          # GET /list         列出在线假人
+    status: true        # GET /status       假人详细状态 (坐标/血量/背包/动作等)
+    info: true          # GET /info         插件与服务端信息
+    # 生命周期
+    spawn: true         # GET /spawn        生成假人
+    kick: true          # GET /kick         移除假人
+    kill: true          # GET /kill         杀死假人
+    respawn: true       # GET /respawn      重生已死亡的假人
+    # 行为控制
+    action: true        # GET /action       触发动作 (attack/mine/use/jump/drop/say 等)
+    stop: true          # GET /stop         停止假人当前所有动作
+    say: true           # GET /say          让假人发言
+    teleport: true      # GET /teleport     传送假人
+    look: true          # GET /look         设置假人朝向
+    hold: true          # GET /hold         切换假人主手槽位
+    swap: true          # GET /swap         交换假人主副手物品
+    # 其他
+    cmd: true           # GET /cmd          以假人身份执行命令
+    batch: true         # GET /kickall /killall /sayall  批量操作
 
 # 随机密码字符集
 # 当 auto-login 开启且某个假人尚未通过 '/fp password' 设置密码时, 从以下字符集中随机生成密码并自动注册/登录
