@@ -417,6 +417,15 @@ public class FakeplayerReplenishManager implements Listener {
      * @param item   需要补货的物品
      */
     public void replenishFromNearbyChest(@NotNull Player target, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {
+        this.replenishFromNearbyChest(target, slot, item, false);
+    }
+
+    private void replenishFromNearbyChest(
+            @NotNull Player target,
+            @NotNull EquipmentSlot slot,
+            @NotNull ItemStack item,
+            boolean matchToolType
+    ) {
         var blocks = BlockUtils.getNearbyBlocks(target.getLocation(), 4, Material.CHEST);
         for (var block : blocks) {
             var openEvent = new PlayerInteractEvent(
@@ -451,7 +460,9 @@ public class FakeplayerReplenishManager implements Listener {
                 }
                 for (int i = inv.getSize() - 1; i >= 0; i--) {
                     var replacement = inv.getItem(i);
-                    if (replacement != null && this.isReplenishmentMatch(replacement, item)) {
+                    if (replacement != null && (matchToolType
+                            ? this.isToolReplacementMatch(replacement, item)
+                            : this.isReplenishmentMatch(replacement, item))) {
                         var event = new InventoryClickEvent(
                                 view,
                                 InventoryType.SlotType.CONTAINER,
@@ -516,7 +527,7 @@ public class FakeplayerReplenishManager implements Listener {
     }
 
     /**
-     * Replace a worn main-hand item with the most durable similar item in the player's inventory.
+     * Replace a worn main-hand item with the most durable matching item type in the player's inventory.
      */
     public void replaceWornTool(@NotNull Player target) {
         var item = target.getInventory().getItemInMainHand();
@@ -557,7 +568,7 @@ public class FakeplayerReplenishManager implements Listener {
             var current = held == null || held.getType().isAir() ? null : held;
             var remainingDurability = 0;
             if (current != null) {
-                if (!this.isReplenishmentMatch(current, required)
+                if (!this.isToolReplacementMatch(current, required)
                         || !(current.getItemMeta() instanceof Damageable damageable)) {
                     return;
                 }
@@ -577,7 +588,7 @@ public class FakeplayerReplenishManager implements Listener {
                     && Optional.ofNullable(manager.getCreator(target))
                                .filter(creator -> creator.hasPermission(Permission.replenishFromChest))
                                .isPresent()) {
-                this.replenishFromNearbyChest(target, slot, required);
+                this.replenishFromNearbyChest(target, slot, required, true);
             }
         }, 1);
     }
@@ -608,7 +619,7 @@ public class FakeplayerReplenishManager implements Listener {
 
             var replacement = inventory.getItem(i);
             if (replacement == null || replacement.getType().isAir()
-                    || !this.isReplenishmentMatch(replacement, required)
+                    || !this.isToolReplacementMatch(replacement, required)
                     || !(replacement.getItemMeta() instanceof Damageable damageable)) {
                 continue;
             }
@@ -684,6 +695,13 @@ public class FakeplayerReplenishManager implements Listener {
         replacementCopy.setItemMeta(replacementMeta);
         requiredCopy.setItemMeta(requiredMeta);
         return replacementCopy.isSimilar(requiredCopy);
+    }
+
+    /**
+     * Carpet-style tool matching compares the item type and ignores item components such as enchantments.
+     */
+    private boolean isToolReplacementMatch(@NotNull ItemStack replacement, @NotNull ItemStack required) {
+        return replacement.getType() == required.getType();
     }
 
     /**
