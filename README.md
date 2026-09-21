@@ -206,12 +206,12 @@ Usage examples:
 | `pickup_items`    | Enable item pickup |
 | `skin`            | Use the creator's skin by default |
 | `replenish`       | Refill consumed or used items from inventory, including the final item dropped by `/fp drop` or `/fp dropstack` |
-| `replace_tools`  | Replace a worn main-hand tool with a more durable item of the same type; enchantments do not affect matching |
+| `replace_tools`  | GCA-style replacement: replace non-Mending tools after they break and Mending tools near the durability threshold |
 | `autofish`        | Enable auto-fishing |
 
-Set `tool-replacement.remaining-durability-threshold` in `config.yml` to choose the remaining durability at which replacement starts (default `10`). Enable it per fake player with `/fp config set replace_tools true`.
+Set `tool-replacement.remaining-durability-threshold` in `config.yml` to choose the remaining durability threshold for Mending tools (default `10`). Enable it per fake player with `/fp config set replace_tools true`.
 
-Tool replacement matches by item type, following Carpet's behavior. Different enchantments do not prevent a replacement; the highest remaining durability item of that type is selected.
+Following GCA's default mode, non-Mending tools are replaced after they break. Mending tools are replaced at the threshold when a same-type non-Mending tool or a same-type Mending tool above the threshold is available. Matching uses item type, so enchantment differences do not block a replacement; the first eligible inventory item is selected.
 
 With `replenish` enabled, container-returning consumables such as milk buckets, stews, honey bottles, and drinkable potions are refilled when a matching item is available and the returned bucket, bowl, or bottle fits in inventory. Otherwise, the returned container stays in hand. `/fp dropinv` continues to empty the inventory without refilling it.
 
