@@ -203,11 +203,13 @@ curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlenc
 | `look_at_entity`  | 自动看向周边可攻击实体；搭配攻击指令可实现自动刷怪 |
 | `pickup_items`    | 是否开启物品拾取 |
 | `skin`            | 是否默认使用创建者皮肤 |
-| `replenish`       | 是否开启物品自动补充 |
+| `replenish`       | 自动补充消耗或使用完的物品；`/fp drop` 或 `/fp dropstack` 丢掉主手最后一个物品后也会补货 |
 | `replace_tools`   | 主手工具耐久较低时，从背包换入耐久更高的同款工具 |
 | `autofish`        | 是否开启自动钓鱼 |
 
 在 `config.yml` 中通过 `tool-replacement.remaining-durability-threshold` 设置换工具时的剩余耐久阈值（默认 `10`）；使用 `/fp config set replace_tools true` 为假人开启。
+
+开启 `replenish` 后，消耗奶桶、炖菜、蜂蜜瓶或可饮用药水时，如果背包里有同款补货物且能存下返回的空桶、碗或玻璃瓶，就会将容器放进背包并补回原物；否则容器会留在手上。`/fp dropinv` 仍会直接清空背包，不会自动补货。
 
 ## 权限分组说明
 

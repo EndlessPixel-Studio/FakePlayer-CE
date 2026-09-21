@@ -28,8 +28,8 @@ public abstract class BaseActionTicker implements ActionTicker {
         this.action = switch (action) {
             case JUMP -> new JumpAction(nms.fromPlayer(player));
             case LOOK_AT_NEAREST_ENTITY -> new LookAtEntityAction(nms.fromPlayer(player));
-            case DROP_ITEM -> new DropItemAction(nms.fromPlayer(player));
-            case DROP_STACK -> new DropStackAction(nms.fromPlayer(player));
+            case DROP_ITEM -> new DropItemAction(nms.fromPlayer(player), player);
+            case DROP_STACK -> new DropStackAction(nms.fromPlayer(player), player);
             case DROP_INVENTORY -> new DropInventoryAction(nms.fromPlayer(player));
             case SAY -> new SayAction(nms.fromPlayer(player), setting.message);
             default -> null;    // 子类需要实现其他 Action

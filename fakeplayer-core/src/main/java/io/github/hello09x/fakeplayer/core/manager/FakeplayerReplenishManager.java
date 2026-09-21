@@ -46,6 +46,7 @@ public class FakeplayerReplenishManager implements Listener {
     private final FakeplayerManager manager;
     private final FakeplayerConfig config;
     private final Set<ReplenishRequest> pendingReplenishments = new HashSet<>();
+    private final Set<ReplenishRequest> pendingContainerReturns = new HashSet<>();
     private final Set<ReplenishRequest> pendingToolReplacements = new HashSet<>();
 
     @Inject
@@ -102,7 +103,7 @@ public class FakeplayerReplenishManager implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onItemUse(@NotNull PlayerItemConsumeEvent event) {
         var player = event.getPlayer();
-        this.replenishIfSingleItem(player, event.getHand(), event.getItem());
+        this.replenishIfSingleItem(player, event.getHand(), event.getItem(), true);
     }
 
     /**
@@ -232,20 +233,38 @@ public class FakeplayerReplenishManager implements Listener {
      * @param item   要填充的物品
      */
     public void replenishLater(@NotNull Player target, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {
+        this.replenishLater(target, slot, item, false);
+    }
+
+    private void replenishLater(
+            @NotNull Player target,
+            @NotNull EquipmentSlot slot,
+            @NotNull ItemStack item,
+            boolean allowContainerReturn
+    ) {
         var requires = item.clone();
         item = null;    // 以防下面的代码用到了这个值
         var request = new ReplenishRequest(target.getUniqueId(), slot);
+        if (allowContainerReturn) {
+            // PlayerInteractEvent may have queued the same request earlier in this tick.
+            // Keep the stronger consume-event information even when the request is already pending.
+            this.pendingContainerReturns.add(request);
+        }
         if (!this.pendingReplenishments.add(request)) {
             return;
         }
 
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
             this.pendingReplenishments.remove(request);
+            var allowRemainderStorage = this.pendingContainerReturns.remove(request);
             if (!target.isOnline()) {
                 return;
             }
             var held = target.getInventory().getItem(slot);
             if (held != null && !held.getType().isAir() && held.getAmount() != 0) {
+                if (allowRemainderStorage) {
+                    this.replenishAfterContainerReturn(target, slot, requires, held);
+                }
                 return;
             }
 
@@ -259,6 +278,114 @@ public class FakeplayerReplenishManager implements Listener {
             }
 
         }, 1);  // delay 1 是因为要等手上的物品在此 tick 消耗完
+    }
+
+    /**
+     * If consuming an item leaves its vanilla container remainder in hand, store that remainder
+     * in the inventory and move a matching replacement item into the hand.
+     */
+    private boolean replenishAfterContainerReturn(
+            @NotNull Player target,
+            @NotNull EquipmentSlot slot,
+            @NotNull ItemStack required,
+            @NotNull ItemStack remainder
+    ) {
+        var expectedRemainder = this.getContainerRemainder(required.getType());
+        if (expectedRemainder == null || remainder.getType() != expectedRemainder) {
+            return false;
+        }
+
+        var inventory = target.getInventory();
+        var storage = inventory.getStorageContents();
+        var handIndex = inventory.getHeldItemSlot();
+        var replacementSlot = -1;
+        for (int i = storage.length - 1; i >= 0; i--) {
+            if (i == handIndex) {
+                continue;
+            }
+            var candidate = storage[i];
+            if (candidate != null && this.isReplenishmentMatch(candidate, required)) {
+                replacementSlot = i;
+                break;
+            }
+        }
+        if (replacementSlot < 0) {
+            return false;
+        }
+
+        // Plan the container insertion first. If inventory storage cannot hold it, leave it in hand.
+        var remainderToStore = remainder.clone();
+        var plannedStorage = storage.clone();
+        for (int i = 0; i < plannedStorage.length && remainderToStore.getAmount() > 0; i++) {
+            if (i == handIndex || i == replacementSlot) {
+                continue;
+            }
+            var existing = plannedStorage[i];
+            if (existing == null || existing.getType().isAir() || !existing.isSimilar(remainderToStore)) {
+                continue;
+            }
+            var movable = Math.min(remainderToStore.getAmount(), existing.getMaxStackSize() - existing.getAmount());
+            if (movable > 0) {
+                existing = existing.clone();
+                existing.setAmount(existing.getAmount() + movable);
+                plannedStorage[i] = existing;
+                remainderToStore.setAmount(remainderToStore.getAmount() - movable);
+            }
+        }
+        for (int i = 0; i < plannedStorage.length && remainderToStore.getAmount() > 0; i++) {
+            if (i == handIndex || i == replacementSlot) {
+                continue;
+            }
+            var existing = plannedStorage[i];
+            if (existing != null && !existing.getType().isAir()) {
+                continue;
+            }
+            var movable = Math.min(remainderToStore.getAmount(), remainderToStore.getMaxStackSize());
+            var placed = remainderToStore.clone();
+            placed.setAmount(movable);
+            plannedStorage[i] = placed;
+            remainderToStore.setAmount(remainderToStore.getAmount() - movable);
+        }
+        if (remainderToStore.getAmount() > 0) {
+            return false;
+        }
+
+        var replacement = inventory.getItem(replacementSlot);
+        if (replacement == null || !this.isReplenishmentMatch(replacement, required)) {
+            return false;
+        }
+        for (int i = 0; i < plannedStorage.length; i++) {
+            if (i != handIndex && i != replacementSlot && !java.util.Objects.equals(storage[i], plannedStorage[i])) {
+                inventory.setItem(i, plannedStorage[i]);
+            }
+        }
+        inventory.setItem(slot, replacement.clone());
+        inventory.setItem(replacementSlot, null);
+        return true;
+    }
+
+    @Nullable
+    private Material getContainerRemainder(@NotNull Material consumedItem) {
+        return switch (consumedItem) {
+            case MILK_BUCKET -> Material.BUCKET;
+            case MUSHROOM_STEW, RABBIT_STEW, BEETROOT_SOUP, SUSPICIOUS_STEW -> Material.BOWL;
+            case HONEY_BOTTLE, POTION -> Material.GLASS_BOTTLE;
+            default -> null;
+        };
+    }
+
+    /**
+     * Replenish a stack after a /fp drop action empties the main hand.
+     */
+    public void replenishAfterDrop(@NotNull Player target, @NotNull ItemStack droppedItem) {
+        if (!this.isReplenish(target) || droppedItem.getType().isAir() || droppedItem.getAmount() <= 0) {
+            return;
+        }
+        var held = target.getInventory().getItemInMainHand();
+        if (held != null && !held.getType().isAir() && held.getAmount() > 0) {
+            return;
+        }
+        this.replenishLater(target, EquipmentSlot.HAND, droppedItem);
     }
 
     /**
@@ -517,11 +644,20 @@ public class FakeplayerReplenishManager implements Listener {
             @Nullable EquipmentSlot slot,
             @Nullable ItemStack item
     ) {
+        this.replenishIfSingleItem(target, slot, item, false);
+    }
+
+    private void replenishIfSingleItem(
+            @NotNull Player target,
+            @Nullable EquipmentSlot slot,
+            @Nullable ItemStack item,
+            boolean allowContainerReturn
+    ) {
         if (!this.isReplenish(target) || slot == null || item == null || item.getAmount() != 1) {
             return;
         }
 
-        this.replenishLater(target, slot, item);
+        this.replenishLater(target, slot, item, allowContainerReturn);
     }
 
     /**
