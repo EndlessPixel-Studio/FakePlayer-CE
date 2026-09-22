@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter xmlns="https://github.com/spotbugs/filter/3.0.0">
+
+    <!-- 插件入口按 Bukkit 惯例持有自身静态实例 -->
+    <Match>
+        <Class name="io.github.hello09x.fakeplayer.core.Main"/>
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
+    </Match>
+
+    <!-- 反射调用 Bukkit / NMS 时无法避免暴露内部表示 -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2,MS_EXPOSE_REP"/>
+    </Match>
+
+    <!-- 序列化无关: 插件实体不参与 Java 序列化 -->
+    <Match>
+        <Bug pattern="SE_BAD_FIELD,SE_NO_SERIALVERSIONID,SE_TRANSIENT_FIELD_NOT_RESTORED,SE_NO_SUITE_FOR_JUNIT_TEST"/>
+    </Match>
+
+    <!-- 日志与本地化文本里拼接字符串是可接受的 -->
+    <Match>
+        <Bug pattern="VA_FORMAT_STRING_USES_NEWLINE"/>
+    </Match>
+
+    <!-- 数据库 / 配置文件路径由插件自身决定 -->
+    <Match>
+        <Bug pattern="PATH_TRAVERSAL_IN,PATH_TRAVERSAL_OUT"/>
+    </Match>
+</FindBugsFilter>

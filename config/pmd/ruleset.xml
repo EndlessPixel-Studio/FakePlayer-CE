@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<ruleset name="fakeplayer-ce"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>
+        FakePlayer CE 的静态检查规则集（初始版本）。
+
+        采用白名单策略：只启用在 Minecraft / Bukkit 代码库中误报率低、且确实
+        能发现真实缺陷的高信噪比规则。其余规则（尤其是风格类，或在本项目里
+        大量误报的规则）暂不纳入门禁，避免噪音淹没真正的问题：
+          - UseExplicitTypes：项目大量使用 var，属有意风格
+          - ConstantsInInterface：配置键接口集中放常量，属有意设计
+          - CompareObjectsWithEquals：实体 / 插件实例的同一性比较本就该用 ==，
+            在本项目里几乎全部是误报
+          - CallSuperInConstructor / ConstructorCallsOverridableMethod：命令与
+            Repository 构造器延用 CommandAPI / Guice 框架约定，非缺陷
+          - GuardLogStatement / 各类复杂度与命名规则：纯风格，噪音大
+
+        后续可按需在下方逐项追加具体规则。
+    </description>
+
+    <!-- 字符串大小写转换未指定 Locale，在 tr_TR 等区域下会产生错误结果 -->
+    <rule ref="category/java/errorprone.xml/UseLocaleWithCaseConversions"/>
+</ruleset>
