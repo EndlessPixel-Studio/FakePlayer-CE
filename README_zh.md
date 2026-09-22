@@ -140,7 +140,7 @@ http-admin:
   host: 0.0.0.0          # 监听地址
   port: 3253             # 监听端口
   token: ""              # 鉴权令牌；留空时启动会自动生成随机令牌并打印到控制台
-  allow-get: true        # 是否允许 GET；设为 false 后仅接受 POST（推荐，token 走请求头）
+  allow-get: true        # 是否允许 GET；设为 false 后仅接受 POST
   allowed-hosts: []      # Host / Origin 白名单，留空不校验；配置后可缓解 DNS rebinding
   rate-limit:
     requests-per-minute: 120   # 每个来源 IP 每分钟请求上限
@@ -169,7 +169,7 @@ http-admin:
     batch: true          # 启用 GET /kickall、/killall、/sayall
 ```
 
-所有接口默认接受 `GET`，同时也接受 `POST`（参数仍走 query）。必须携带正确令牌 —— 通过 URL 参数 `?token=xxx` 或请求头 `Authorization: Bearer xxx` 传递均可；**推荐用 POST + 请求头**，这样 token 不会出现在 URL、代理日志与浏览器历史中，也不会被浏览器预取或爬虫意外触发（所有接口都有副作用）。
+所有接口默认接受 `GET`，同时也接受 `POST`（参数一律走 query）。**令牌统一通过 `Authorization: Bearer <token>` 请求头传递，不支持 `?token=` 查询参数** —— 令牌出现在 URL 里会进入代理日志、浏览器历史与 `Referer`，而且每个接口都要重复拼一遍参数。
 
 路径为**精确匹配**：只有上表中的路径会被处理，`/listfoo` 之类的路径返回 `404`，不会落到 `/list` 上。
 
@@ -215,7 +215,7 @@ http-admin:
 - 发言 — `Name is required`（缺少假人名）/ `Message is required`（缺少消息内容）
 - 动作 — `Action is required, available actions: ...`（缺少或未知动作）/ `Message is required for the say action`（SAY 缺少内容）
 - 传送 — `Invalid number: x`（坐标不是数字）/ `Unknown world: xxx`（世界不存在）
-- 鉴权与开关 — `Unauthorized`（401，令牌缺失或错误）/ `Interface disabled`（403，对应接口已关闭）
+- 鉴权与开关 — `Unauthorized: pass the token via the Authorization: Bearer header`（401，令牌缺失或错误）/ `Interface disabled`（403，对应接口已关闭）
 - 限流与锁定 — `Too many requests`（429，超过每 IP 每分钟上限）/ `Too many failed attempts, try again later`（429，连续鉴权失败被锁定）
 - 主机与来源 — `Host not allowed`（403，Host 或跨源 Origin 不在白名单内）
 - 其他 — `Not found`（404，路径不存在或不是精确路径）/ `Request URI too long`（414）/ `Method not allowed`（405）
@@ -223,41 +223,45 @@ http-admin:
 调用示例：
 
 ```bash
+# 令牌统一走请求头，URL 里只放业务参数
+TOKEN="YOUR_TOKEN"
+API="http://localhost:3253"
+
 # 列出所有假人
-curl "http://localhost:3253/list?token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/list"
 
 # 查看假人详细状态（省略 name 则返回全部）
-curl -G "http://localhost:3253/status" --data-urlencode "name=klmgun" --data-urlencode "token=YOUR_TOKEN"
+curl -G -H "Authorization: Bearer $TOKEN" "$API/status" --data-urlencode "name=klmgun"
 
 # 服务端与插件信息
-curl "http://localhost:3253/info?token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/info"
 
 # 生成假人
-curl "http://localhost:3253/spawn?name=klmgun&token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/spawn?name=klmgun"
 
-# 踢出假人（令牌走请求头）
-curl -H "Authorization: Bearer YOUR_TOKEN" "http://localhost:3253/kick?name=klmgun"
+# 踢出假人
+curl -H "Authorization: Bearer $TOKEN" "$API/kick?name=klmgun"
 
 # 杀死假人
-curl "http://localhost:3253/kill?name=klmgun&token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/kill?name=klmgun"
 
 # 让假人持续攻击（每 10 tick 一次）
-curl "http://localhost:3253/action?name=klmgun&action=attack&interval=10&token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/action?name=klmgun&action=attack&interval=10"
 
 # 停止假人所有动作
-curl "http://localhost:3253/stop?name=klmgun&token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/stop?name=klmgun"
 
 # 把假人传送到指定坐标
-curl "http://localhost:3253/teleport?name=klmgun&world=world&x=0&y=64&z=0&token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/teleport?name=klmgun&world=world&x=0&y=64&z=0"
 
 # 让假人看向东方
-curl "http://localhost:3253/look?name=klmgun&direction=east&token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/look?name=klmgun&direction=east"
 
 # 让假人执行命令
-curl -G "http://localhost:3253/cmd" --data-urlencode "name=klmgun" --data-urlencode "command=say hello" --data-urlencode "token=YOUR_TOKEN"
+curl -G -H "Authorization: Bearer $TOKEN" "$API/cmd" --data-urlencode "name=klmgun" --data-urlencode "command=say hello"
 
 # 让假人发言（消息内容需 URL 编码）
-curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlencode "message=你好 世界" --data-urlencode "token=YOUR_TOKEN"
+curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmgun" --data-urlencode "message=你好 世界"
 ```
 
 ### 安全说明
@@ -274,7 +278,7 @@ curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlenc
 
 仍需管理员注意：
 
-- 接口**没有 TLS**，token 若走 URL 会以明文经过网络与代理日志。请务必使用足够长的随机 token，并优先使用 POST + `Authorization` 头。
+- 接口**没有 TLS**，令牌以明文经过网络。请务必使用足够长的随机令牌，并且只在可信网络（或置于反向代理之后）暴露该接口。
 - `/cmd` 会让假人执行命令，其权限等同于该假人在服务端的权限；不要把假人设为 OP。
 - 建议把 `host` 改为 `127.0.0.1`（或只在内网地址上监听），并在防火墙层面限制来源，避免直接暴露到公网。
 

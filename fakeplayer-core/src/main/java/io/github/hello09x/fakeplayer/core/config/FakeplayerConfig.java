@@ -329,7 +329,7 @@ public class FakeplayerConfig extends PluginConfig {
     private boolean httpAdminBatch;
 
     /**
-     * 是否允许 GET 请求。关闭后仅接受 POST, 便于把 token 放在请求头里
+     * 是否允许 GET 请求。关闭后仅接受 POST
      */
     private boolean httpAdminAllowGet;
 

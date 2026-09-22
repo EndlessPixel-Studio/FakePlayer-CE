@@ -360,12 +360,11 @@ http-admin:
   # Auth token; if empty, a random token is generated at startup and printed to console
   token: ""
   # 是否允许 GET 请求
-  # 关闭后仅接受 POST —— POST 可把 token 放在请求头里, 避免 token 出现在 URL、代理日志与浏览器历史中,
-  # 也能避免 GET 被浏览器预取 / 爬虫 / 图片标签意外触发 (所有接口都会产生副作用)
-  # 参数传递方式不变, 依旧使用 query
-  # Allow GET requests. When disabled, only POST is accepted; POST lets you pass the token
-  # via the Authorization header instead of the URL, and avoids GET requests being triggered
-  # by browser prefetch, crawlers or image tags (every endpoint has side effects).
+  # 关闭后仅接受 POST。令牌无论如何都通过 Authorization 请求头传递, 参数仍走 query;
+  # 关闭 GET 主要是为了不让接口被浏览器预取 / 爬虫 / 图片标签意外触发 (所有接口都会产生副作用)
+  # Allow GET requests. When disabled, only POST is accepted. The token always travels in the
+  # Authorization header and parameters stay in the query string; disabling GET keeps the
+  # endpoints from being triggered by browser prefetch, crawlers or image tags.
   allow-get: true
   # Host / Origin 白名单, 留空表示不校验
   # 配置后 Host 以及浏览器跨源请求的 Origin 必须命中白名单, 可缓解 DNS rebinding
