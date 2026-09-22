@@ -1,5 +1,7 @@
 # Build Guide
 
+English | [简体中文](BUILD_zh.md) | [繁體中文](BUILD_zh_TW.md)
+
 This project uses **paperweight-userdev** Gradle plugin to handle NMS dependencies automatically.
 No manual BuildTools setup is required.
 
@@ -17,7 +19,7 @@ No manual BuildTools setup is required.
 The output jar will be at:
 
 ```
-fakeplayer-dist/build/libs/fakeplayer-fp.build6.jar
+fakeplayer-dist/build/libs/fakeplayer-fp.buildX.jar
 ```
 
 ## How It Works

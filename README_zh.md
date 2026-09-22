@@ -10,7 +10,7 @@
 
 </div>
 
-[English](README.md) | 简体中文
+[English](README.md) | 简体中文 | [繁體中文](README_zh_TW.md)
 
 ---
 
@@ -431,6 +431,6 @@ self-commands:
 
 ## 项目构建
 
-详细步骤请参阅 [BUILD.md](./BUILD.md)。
+详细步骤请参阅 [BUILD_zh.md](./BUILD_zh.md)。
 
 > 该构建文档仅适用于 **FakePlayer CE Gradle 多模块编译流程**，无法用于原 Maven 架构官方项目的构建。
