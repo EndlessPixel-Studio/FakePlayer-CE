@@ -142,6 +142,12 @@ http-admin:
   host: 0.0.0.0          # Listen address
   port: 3253             # Listen port
   token: ""              # Auth token; if left empty, a random token is generated at startup and printed to the console
+  allow-get: true        # Allow GET; when false only POST is accepted (recommended — the token goes in a header)
+  allowed-hosts: []      # Host / Origin allowlist; empty disables the check (setting it mitigates DNS rebinding)
+  rate-limit:
+    requests-per-minute: 120   # Requests allowed per source IP per minute
+    auth-failures: 10          # Lock the IP after this many consecutive auth failures (0 disables)
+    lockout-seconds: 60        # Lockout duration in seconds
   interface:
     # Queries
     list: true           # Enable GET /list
@@ -165,7 +171,9 @@ http-admin:
     batch: true          # Enable GET /kickall, /killall and /sayall
 ```
 
-All endpoints are `GET` requests and require a valid token — pass it either as a query parameter (`?token=xxx`) or via the `Authorization: Bearer xxx` header.
+All endpoints accept `GET` by default and also accept `POST` (parameters still travel in the query string). A valid token is always required — pass it either as a query parameter (`?token=xxx`) or via the `Authorization: Bearer xxx` header; **POST with the header is recommended**, so the token never ends up in URLs, proxy logs or browser history, and so a GET request can't be triggered by browser prefetch, a crawler or an image tag (every endpoint has side effects).
+
+Paths are matched **exactly**: only the paths listed below are handled, and `/listfoo` returns `404` instead of falling through to `/list`.
 
 | Endpoint | Description | Success | Failure |
 |---|---|---|---|
@@ -210,6 +218,9 @@ Common failure messages:
 - Action — `Action is required, available actions: ...` / `Message is required for the say action`
 - Teleport — `Invalid number: x` / `Unknown world: xxx`
 - Auth & switches — `Unauthorized` (401, missing or wrong token) / `Interface disabled` (403, endpoint turned off)
+- Rate limiting — `Too many requests` (429, per-IP per-minute limit exceeded) / `Too many failed attempts, try again later` (429, locked out after consecutive auth failures)
+- Host & origin — `Host not allowed` (403, the Host header or the cross-origin `Origin` is not allowlisted)
+- Other — `Not found` (404, unknown or non-exact path) / `Request URI too long` (414) / `Method not allowed` (405)
 
 Examples:
 
@@ -251,7 +262,23 @@ curl -G "http://localhost:3253/cmd" --data-urlencode "name=klmgun" --data-urlenc
 curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlencode "message=hello world" --data-urlencode "token=YOUR_TOKEN"
 ```
 
-> **Security tip:** Keep the token secret and restrict access at the firewall level — avoid exposing this API to the public internet.
+### Security
+
+Built-in protections (no configuration required):
+
+- The token is compared in constant time, so it can't be recovered byte by byte from response timing; `Authorization: Bearer` is accepted case-insensitively.
+- **Authentication happens before the per-endpoint switch**, so an unauthenticated caller always gets `401` and cannot enumerate which endpoints are enabled.
+- **Exact path matching**: only the documented paths are handled, and `/listfoo` returns `404`, so an external ACL/WAF that filters by exact path cannot be bypassed.
+- **Log safety**: any parameter whose name contains `token` is redacted, control characters are replaced and length is capped, and unauthenticated requests are logged without their query string — the server log can't be forged or flooded.
+- **Rate limiting and lockout**: 120 requests per IP per minute by default, and an IP is locked for 60 seconds after 10 consecutive auth failures.
+- **Host / origin checks**: `allowed-hosts` validates the Host header, and cross-origin browser requests (those carrying `Origin`) are rejected unless they match — this mitigates DNS rebinding.
+- Request URIs longer than 4096 characters are rejected with `414`, and responses carry `Cache-Control: no-store` so nothing is cached by browsers or proxies.
+
+Still up to the administrator:
+
+- The API has **no TLS**, so a token passed in the URL travels in cleartext through the network and proxy logs. Use a long random token, and prefer POST with the `Authorization` header.
+- `/cmd` makes a fake player run a command, and its power equals that fake player's permissions — never OP a fake player.
+- Prefer `host: 127.0.0.1` (or an internal address) and restrict access at the firewall; never expose this API to the public internet.
 
 ## Personal Configuration
 
