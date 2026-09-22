@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +37,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -73,12 +76,18 @@ public class HttpAdminService {
 
     private final static List<String> LOOK_DIRECTIONS = List.of("NORTH", "SOUTH", "EAST", "WEST", "UP", "DOWN");
 
+    /**
+     * 日志中路径与 query 的最大长度, 超出部分截断, 避免被超长请求撑爆日志
+     */
+    private final static int MAX_LOG_LENGTH = 512;
+
     private final FakeplayerManager manager;
     private final FakeplayerConfig config;
     private final ActionManager actionManager;
     private final NMSBridge bridge;
 
     private HttpServer server;
+    private ExecutorService executor;
     private String token;
 
     @Inject
@@ -125,7 +134,14 @@ public class HttpAdminService {
         server.createContext("/kickall", this::handleKickAll);
         server.createContext("/killall", this::handleKillAll);
         server.createContext("/sayall", this::handleSayAll);
-        server.setExecutor(null);
+        // 固定线程池: 默认的单线程 dispatcher 会让一个慢请求 (如等待主线程的 /spawn)
+        // 阻塞其余所有请求; 线程设为 daemon, 避免影响服务端退出
+        this.executor = Executors.newFixedThreadPool(4, r -> {
+            var thread = new Thread(r, "fakeplayer-http");
+            thread.setDaemon(true);
+            return thread;
+        });
+        server.setExecutor(this.executor);
         server.start();
         log.info("HTTP admin server started on " + config.getHttpAdminHost() + ":" + config.getHttpAdminPort());
     }
@@ -135,6 +151,10 @@ public class HttpAdminService {
             server.stop(0);
             server = null;
             log.info("HTTP admin server stopped");
+        }
+        if (executor != null) {
+            executor.shutdownNow();
+            executor = null;
         }
     }
 
@@ -891,11 +911,19 @@ public class HttpAdminService {
         var provided = query(ex, "token");
         if (provided == null) {
             var auth = ex.getRequestHeaders().getFirst("Authorization");
-            if (auth != null && auth.startsWith("Bearer ")) {
-                provided = auth.substring(7);
+            // Bearer 认证方案大小写不敏感 (RFC 7235)
+            if (auth != null && auth.regionMatches(true, 0, "Bearer ", 0, 7)) {
+                provided = auth.substring(7).trim();
             }
         }
-        return token != null && token.equals(provided);
+        if (token == null || provided == null) {
+            return false;
+        }
+        // 定长比较, 避免通过响应时间逐字节推断 token
+        return MessageDigest.isEqual(
+                token.getBytes(StandardCharsets.UTF_8),
+                provided.getBytes(StandardCharsets.UTF_8)
+        );
     }
 
     private void sendUnauthorized(HttpExchange ex) throws IOException {
@@ -903,7 +931,9 @@ public class HttpAdminService {
     }
 
     /**
-     * 打印 HTTP 调用日志, query 中的 token 已脱敏
+     * 打印 HTTP 调用日志。
+     * <p>query 中的 token 会被脱敏; 路径与 query 中的控制字符会被替换并截断长度,
+     * 避免未授权请求通过换行等内容伪造日志或撑爆日志文件。</p>
      */
     private static void logCall(HttpExchange ex, int code, String status, String detail) {
         var uri = ex.getRequestURI();
@@ -911,19 +941,44 @@ public class HttpAdminService {
         var q = uri.getQuery();
         if (q != null && !q.isEmpty()) {
             sb.append('?').append(Arrays.stream(q.split("&"))
-                    .map(p -> p.startsWith("token=") ? "token=***" : p)
+                    .map(HttpAdminService::redactParam)
                     .collect(Collectors.joining("&")));
         }
         var remote = ex.getRemoteAddress();
         var ip = remote == null ? "unknown" : remote.getAddress().getHostAddress();
         log.info("[HTTP] %s %s from %s -> %d %s%s".formatted(
                 ex.getRequestMethod(),
-                sb,
+                sanitize(sb.toString()),
                 ip,
                 code,
                 status,
-                detail == null ? "" : " (" + detail + ")"
+                detail == null ? "" : " (" + sanitize(detail) + ")"
         ));
+    }
+
+    /**
+     * 参数名中包含 token 的一律打码 (不区分大小写与参数名写法)
+     */
+    private static String redactParam(String param) {
+        var eq = param.indexOf('=');
+        if (eq >= 0 && param.substring(0, eq).toLowerCase(Locale.ROOT).contains("token")) {
+            return param.substring(0, eq) + "=***";
+        }
+        return param;
+    }
+
+    /**
+     * 去掉会破坏单行日志的控制字符, 并限制长度
+     */
+    private static String sanitize(String s) {
+        var truncated = s.length() > MAX_LOG_LENGTH;
+        var end = truncated ? MAX_LOG_LENGTH : s.length();
+        var sb = new StringBuilder(end + 3);
+        for (int i = 0; i < end; i++) {
+            var c = s.charAt(i);
+            sb.append(c < 0x20 || c == 0x7f ? '?' : c);
+        }
+        return truncated ? sb.append("...").toString() : sb.toString();
     }
 
     private void sendJson(HttpExchange ex, int code, String status, String msg) throws IOException {
@@ -1024,7 +1079,7 @@ public class HttpAdminService {
     }
 
     private static String escape(String s) {
-        var sb = new StringBuilder();
+        var sb = new StringBuilder(s.length() + 16);
         for (var c : s.toCharArray()) {
             switch (c) {
                 case '"' -> sb.append("\\\"");
@@ -1032,7 +1087,16 @@ public class HttpAdminService {
                 case '\n' -> sb.append("\\n");
                 case '\r' -> sb.append("\\r");
                 case '\t' -> sb.append("\\t");
-                default -> sb.append(c);
+                case '\b' -> sb.append("\\b");
+                case '\f' -> sb.append("\\f");
+                // 其余控制字符一律转义, 保证输出始终是合法 JSON
+                default -> {
+                    if (c < 0x20 || c == 0x7f) {
+                        sb.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        sb.append(c);
+                    }
+                }
             }
         }
         return sb.toString();
