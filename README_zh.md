@@ -373,11 +373,25 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 
 ## 占位符变量
 
-| 占位符 | 说明 |
-|---|---|
-| `%fakeplayer_total%` | 当前服务器假人总数 |
-| `%fakeplayer_creator%` | 假人创建者名称 |
-| `%fakeplayer_actions%` | 假人当前活跃动作，如 `USE\|ATTACK` |
+| 占位符 | 作用域 | 说明 |
+|---|---|---|
+| `%fakeplayer_total%` | 全局 | 当前服务器假人总数 |
+| `%fakeplayer_list%` | 全局 | 所有在线假人的名称，分隔符取自 `fakeplayer.placeholder.separator`（默认 `, `） |
+| `%fakeplayer_list_<序号>%` | 全局 | 指定序号（从 0 开始）假人的名称，越界时为空 |
+| `%fakeplayer_list_<序号>_<属性>%` | 全局 | 指定序号假人的任意属性，如 `%fakeplayer_list_0_uuid%` |
+| `%fakeplayer_isfake%` | 任意玩家 | `true` / `false` —— 该玩家是否为假人 |
+| `%fakeplayer_name%` | 假人 | 假人名称 |
+| `%fakeplayer_uuid%` | 假人 | 假人 UUID |
+| `%fakeplayer_creator%` | 假人 | 假人创建者名称（`%fakeplayer_spawner%` 为别名） |
+| `%fakeplayer_spawntime%` | 假人 | 生成时间，格式取自 `fakeplayer.placeholder.time-format`（默认 `yyyy-MM-dd HH:mm:ss`） |
+| `%fakeplayer_world%` | 假人 | 假人所在世界名 |
+| `%fakeplayer_x%` / `%fakeplayer_y%` / `%fakeplayer_z%` | 假人 | 假人所在方块坐标 |
+| `%fakeplayer_health%` | 假人 | 当前生命值 |
+| `%fakeplayer_food%` | 假人 | 当前饥饿值 |
+| `%fakeplayer_level%` | 假人 | 当前经验等级 |
+| `%fakeplayer_gamemode%` | 假人 | 当前游戏模式 |
+| `%fakeplayer_actions%` | 假人 | 当前活跃动作，如 `USE\|ATTACK` |
+| `%fakeplayer_actions_translated%` | 假人 | 同上，但输出为本地化文本 |
 
 ## 自定义本地化翻译
 
