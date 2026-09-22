@@ -23,4 +23,23 @@
 
     <!-- 字符串大小写转换未指定 Locale，在 tr_TR 等区域下会产生错误结果 -->
     <rule ref="category/java/errorprone.xml/UseLocaleWithCaseConversions"/>
+
+    <!-- ===== 废弃代码 / 未使用成员检测 ===== -->
+    <!-- 以下规则专门用于发现真正的死代码，误报率可控，纳入门禁。 -->
+    <!-- 未使用的私有方法：典型的死代码。
+         Guice @Provides 方法由 injector 反射调用, 静态分析视为"未使用"属误报,
+         已在 FakeplayerModule 对应方法上用 @SuppressWarnings("PMD.UnusedPrivateMethod") 抑制 -->
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>
+    <!-- 未使用的私有字段：死字段（注意 Lombok @Getter/@Data 生成的访问器可能被
+         PMD 漏判，出现的误报会在下方按类排除） -->
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateField"/>
+    <!-- 未使用的局部变量 -->
+    <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"/>
+    <!-- 对变量赋值后从未读取（死赋值） -->
+    <rule ref="category/java/bestpractices.xml/UnusedAssignment"/>
+    <!-- 未使用的 import -->
+    <rule ref="category/java/codestyle.xml/UnnecessaryImport"/>
+    <!-- 空覆写（只调用 super 且参数一致）：多数属冗余，少数有意保留可见性，
+         列为候选人工复核 -->
+    <rule ref="category/java/design.xml/UselessOverridingMethod"/>
 </ruleset>

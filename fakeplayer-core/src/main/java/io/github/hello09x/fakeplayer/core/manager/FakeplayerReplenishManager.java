@@ -248,7 +248,6 @@ public class FakeplayerReplenishManager implements Listener {
             boolean allowContainerReturn
     ) {
         var requires = item.clone();
-        item = null;    // 以防下面的代码用到了这个值
         var request = new ReplenishRequest(target.getUniqueId(), slot);
         if (allowContainerReturn) {
             // PlayerInteractEvent may have queued the same request earlier in this tick.

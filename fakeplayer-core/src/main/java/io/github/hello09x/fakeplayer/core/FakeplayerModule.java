@@ -48,6 +48,7 @@ public class FakeplayerModule extends AbstractModule {
         };
     }
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     @Provides
     @Singleton
     private @NotNull NMSBridge nmsBridge(FakeplayerConfig config) {
@@ -72,6 +73,7 @@ public class FakeplayerModule extends AbstractModule {
         return bridge;
     }
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     @Singleton
     @Provides
     private @Nullable FakeplayerPlaceholderExpansion fakeplayerPlaceholderExpansion(FakeplayerManager fakeplayerManager, ActionManager actionManager, PluginTranslator translator) {
