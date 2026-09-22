@@ -69,8 +69,8 @@ import java.util.stream.Collectors;
  *     <li>GET /killall -> {"status":"success","count":n}</li>
  *     <li>GET /sayall?message=yyy -> {"status":"success","count":n}</li>
  * </ul>
- * 所有接口需携带正确 token (?token= 或 Authorization: Bearer), token 为空时启动时随机生成。
- * 每个接口可通过 config.yml 中的 http-admin.interface.&lt;名字&gt; 单独关闭。
+ * 所有接口都需要通过 {@code Authorization: Bearer <token>} 请求头携带令牌 (不支持 ?token=),
+ * token 为空时启动时随机生成。每个接口可通过 config.yml 中的 http-admin.interface.&lt;名字&gt; 单独关闭。
  */
 @Singleton
 public class HttpAdminService {
@@ -313,8 +313,9 @@ public class HttpAdminService {
     }
 
     /**
-     * GET 允许的前提是 {@code http-admin.allow-get} 为 true (默认);
-     * POST 始终允许, 便于把 token 放进请求头, 避免出现在 URL 与日志里。
+     * GET 允许的前提是 {@code http-admin.allow-get} 为 true (默认), POST 始终允许。
+     * <p>令牌统一走请求头后, GET 已不会被浏览器预取或爬虫意外触发,
+     * 对公网可达的实例仍建议关闭 GET (所有接口都有副作用)。</p>
      */
     private boolean isMethodAllowed(HttpExchange ex) {
         var method = ex.getRequestMethod();
@@ -1140,16 +1141,20 @@ public class HttpAdminService {
         return Bukkit.getScheduler().callSyncMethod(Main.getInstance(), callable).get(10, TimeUnit.SECONDS);
     }
 
+    /**
+     * 鉴权: 令牌统一通过 {@code Authorization: Bearer <token>} 请求头传递。
+     *
+     * <p>不再支持 {@code ?token=} 查询参数: 令牌出现在 URL 里会进入代理日志、浏览器历史与
+     * Referer, 且每个接口都要重复拼一遍参数, 因此统一为请求头这一种方式。</p>
+     */
     private boolean authorize(HttpExchange ex) {
-        var provided = query(ex, "token");
-        if (provided == null) {
-            var auth = ex.getRequestHeaders().getFirst("Authorization");
-            // Bearer 认证方案大小写不敏感 (RFC 7235)
-            if (auth != null && auth.regionMatches(true, 0, "Bearer ", 0, 7)) {
-                provided = auth.substring(7).trim();
-            }
+        var auth = ex.getRequestHeaders().getFirst("Authorization");
+        // Bearer 认证方案大小写不敏感 (RFC 7235)
+        if (auth == null || !auth.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            return false;
         }
-        if (token == null || provided == null) {
+        var provided = auth.substring(7).trim();
+        if (token == null || provided.isEmpty()) {
             return false;
         }
         // 定长比较, 避免通过响应时间逐字节推断 token
@@ -1161,7 +1166,7 @@ public class HttpAdminService {
 
     private void sendUnauthorized(HttpExchange ex) throws IOException {
         // 未授权的请求不把 query 写进日志
-        sendJsonNoQuery(ex, 401, "failure", "Unauthorized");
+        sendJsonNoQuery(ex, 401, "failure", "Unauthorized: pass the token via the Authorization: Bearer header");
     }
 
     /**

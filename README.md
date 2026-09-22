@@ -142,7 +142,7 @@ http-admin:
   host: 0.0.0.0          # Listen address
   port: 3253             # Listen port
   token: ""              # Auth token; if left empty, a random token is generated at startup and printed to the console
-  allow-get: true        # Allow GET; when false only POST is accepted (recommended — the token goes in a header)
+  allow-get: true        # Allow GET; when false only POST is accepted
   allowed-hosts: []      # Host / Origin allowlist; empty disables the check (setting it mitigates DNS rebinding)
   rate-limit:
     requests-per-minute: 120   # Requests allowed per source IP per minute
@@ -171,7 +171,7 @@ http-admin:
     batch: true          # Enable GET /kickall, /killall and /sayall
 ```
 
-All endpoints accept `GET` by default and also accept `POST` (parameters still travel in the query string). A valid token is always required — pass it either as a query parameter (`?token=xxx`) or via the `Authorization: Bearer xxx` header; **POST with the header is recommended**, so the token never ends up in URLs, proxy logs or browser history, and so a GET request can't be triggered by browser prefetch, a crawler or an image tag (every endpoint has side effects).
+All endpoints accept `GET` by default and also accept `POST` (parameters always travel in the query string). **The token is always passed via the `Authorization: Bearer <token>` header — the `?token=` query parameter is no longer supported**, because a token in a URL ends up in proxy logs, browser history and `Referer` headers, and would have to be repeated in every endpoint's documentation.
 
 Paths are matched **exactly**: only the paths listed below are handled, and `/listfoo` returns `404` instead of falling through to `/list`.
 
@@ -217,7 +217,7 @@ Common failure messages:
 - Say — `Name is required` / `Message is required`
 - Action — `Action is required, available actions: ...` / `Message is required for the say action`
 - Teleport — `Invalid number: x` / `Unknown world: xxx`
-- Auth & switches — `Unauthorized` (401, missing or wrong token) / `Interface disabled` (403, endpoint turned off)
+- Auth & switches — `Unauthorized: pass the token via the Authorization: Bearer header` (401, missing or wrong token) / `Interface disabled` (403, endpoint turned off)
 - Rate limiting — `Too many requests` (429, per-IP per-minute limit exceeded) / `Too many failed attempts, try again later` (429, locked out after consecutive auth failures)
 - Host & origin — `Host not allowed` (403, the Host header or the cross-origin `Origin` is not allowlisted)
 - Other — `Not found` (404, unknown or non-exact path) / `Request URI too long` (414) / `Method not allowed` (405)
@@ -225,41 +225,45 @@ Common failure messages:
 Examples:
 
 ```bash
+# The token always goes in the request header; the URL only carries endpoint parameters
+TOKEN="YOUR_TOKEN"
+API="http://localhost:3253"
+
 # List fake players
-curl "http://localhost:3253/list?token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/list"
 
 # Detailed state (omitting name returns every fake player)
-curl -G "http://localhost:3253/status" --data-urlencode "name=klmgun" --data-urlencode "token=YOUR_TOKEN"
+curl -G -H "Authorization: Bearer $TOKEN" "$API/status" --data-urlencode "name=klmgun"
 
 # Plugin and server information
-curl "http://localhost:3253/info?token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/info"
 
 # Spawn a fake player
-curl "http://localhost:3253/spawn?name=klmgun&token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/spawn?name=klmgun"
 
-# Kick a fake player (token via header)
-curl -H "Authorization: Bearer YOUR_TOKEN" "http://localhost:3253/kick?name=klmgun"
+# Kick a fake player
+curl -H "Authorization: Bearer $TOKEN" "$API/kick?name=klmgun"
 
 # Kill a fake player
-curl "http://localhost:3253/kill?name=klmgun&token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/kill?name=klmgun"
 
 # Keep attacking every 10 ticks
-curl "http://localhost:3253/action?name=klmgun&action=attack&interval=10&token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/action?name=klmgun&action=attack&interval=10"
 
 # Stop every running action
-curl "http://localhost:3253/stop?name=klmgun&token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/stop?name=klmgun"
 
 # Teleport a fake player
-curl "http://localhost:3253/teleport?name=klmgun&world=world&x=0&y=64&z=0&token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/teleport?name=klmgun&world=world&x=0&y=64&z=0"
 
 # Make a fake player face east
-curl "http://localhost:3253/look?name=klmgun&direction=east&token=YOUR_TOKEN"
+curl -H "Authorization: Bearer $TOKEN" "$API/look?name=klmgun&direction=east"
 
 # Run a command as a fake player
-curl -G "http://localhost:3253/cmd" --data-urlencode "name=klmgun" --data-urlencode "command=say hello" --data-urlencode "token=YOUR_TOKEN"
+curl -G -H "Authorization: Bearer $TOKEN" "$API/cmd" --data-urlencode "name=klmgun" --data-urlencode "command=say hello"
 
 # Make a fake player say something (URL-encode the message)
-curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlencode "message=hello world" --data-urlencode "token=YOUR_TOKEN"
+curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmgun" --data-urlencode "message=hello world"
 ```
 
 ### Security
@@ -276,7 +280,7 @@ Built-in protections (no configuration required):
 
 Still up to the administrator:
 
-- The API has **no TLS**, so a token passed in the URL travels in cleartext through the network and proxy logs. Use a long random token, and prefer POST with the `Authorization` header.
+- The API has **no TLS**, so the token travels over the network in cleartext. Use a long random token, and only expose the API on a trusted network (or behind a reverse proxy).
 - `/cmd` makes a fake player run a command, and its power equals that fake player's permissions — never OP a fake player.
 - Prefer `host: 127.0.0.1` (or an internal address) and restrict access at the firewall; never expose this API to the public internet.
 
