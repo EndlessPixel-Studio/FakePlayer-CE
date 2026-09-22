@@ -3,6 +3,11 @@
 FakePlayer CE 版本更新日志。版本号 `fp.buildN` 与 git tag / GitHub Release 一一对应。
 Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Release.
 
+## 编写规范 (Writing rules)
+
+- 只记录影响用户 / 运行时行为的变更（新功能、修复、破坏性变更、配置或权限变化）。不写构建工具链、静态分析、死代码清理、重构等内部维护（顺带修复的功能缺陷只写修复本身）。
+- 版本号 `fp.buildN` 仅在发布时提升。
+
 ## fp.build11 - Not Published
 
 ### English
