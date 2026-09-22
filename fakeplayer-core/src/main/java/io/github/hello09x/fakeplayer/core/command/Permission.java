@@ -19,6 +19,7 @@ public interface Permission {
     String dropinv = "fakeplayer.command.dropinv";
     String skin = "fakeplayer.command.skin";
     String invsee = "fakeplayer.command.invsee";
+    String enderchest = "fakeplayer.command.enderchest";
     String hold = "fakeplayer.command.hold";
     String status = "fakeplayer.command.status";
     String respawn = "fakeplayer.command.respawn";

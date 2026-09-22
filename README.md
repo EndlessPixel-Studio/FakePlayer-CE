@@ -101,6 +101,7 @@ On first launch, FakePlayer generates a template file `config.tmpl.yml`. Rename 
 | /fp dropinv   | Drop all items in the inventory           | fakeplayer.command.dropinv   |                                                                 |
 | /fp skin      | Copy skin from another player             | fakeplayer.command.skin      | 60 seconds cooldown if copy from a offline player               |
 | /fp invsee    | Open an inventory of a fake player        | fakeplayer.command.invsee    | Right-clicking on fake players has the same effect              |
+| /fp enderchest | Open the ender chest of a fake player    | fakeplayer.command.enderchest | Alias: `/fp ec`; must be in the same world as the fake player   |
 | /fp sleep     | Sleep                                     | fakeplayer.command.sleep     |                                                                 |
 | /fp wakeup    | Wake up                                   | fakeplayer.command.wakeup    |                                                                 |
 | /fp status    | Show status                               | fakeplayer.command.status    |                                                                 |
@@ -331,6 +332,7 @@ Includes basic spawn management permissions:
 - `fakeplayer.command.dropinv` — Drop all inventory items
 - `fakeplayer.command.skin` — Copy skin
 - `fakeplayer.command.invsee` — View inventory
+- `fakeplayer.command.enderchest` — View ender chest
 - `fakeplayer.command.status` — View status
 - `fakeplayer.command.respawn` — Respawn fake player
 - `fakeplayer.command.config` — Set default options
