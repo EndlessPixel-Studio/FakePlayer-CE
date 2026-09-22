@@ -99,7 +99,7 @@ FakePlayer CE 以**单一通用 jar**（`fakeplayer-fp.buildX.jar`）形式发�
 | /fp dropinv | 假人清空全部背包物品 | fakeplayer.command.dropinv | |
 | /fp skin | 复制其他玩家皮肤 | fakeplayer.command.skin | 离线玩家复制存在60秒冷却 |
 | /fp invsee | 打开假人背包界面 | fakeplayer.command.invsee | 右键假人可触发同等效果 |
-| /fp enderchest | 打开假人末影箱 | fakeplayer.command.enderchest | 别名 `/fp ec`，需与假人处于同一世界 |
+| /fp enderchest | 打开假人末影箱 | fakeplayer.command.enderchest | 别名 `/fp ec`；潜行右键假人可触发同等效果，需与假人处于同一世界 |
 | /fp sleep | 假人进入睡觉状态 | fakeplayer.command.sleep | |
 | /fp wakeup | 唤醒睡觉假人 | fakeplayer.command.wakeup | |
 | /fp status | 查看假人当前状态 | fakeplayer.command.status | |

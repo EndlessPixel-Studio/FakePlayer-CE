@@ -111,6 +111,12 @@ public abstract class AbstractInvseeManager implements InvseeManager {
             return;
         }
 
+        // 潜行右键打开末影箱, 直接右键打开背包
+        if (event.getPlayer().isSneaking()) {
+            this.enderchest(event.getPlayer(), whom);   // fakeplayer check here
+            return;
+        }
+
         this.invsee(event.getPlayer(), whom);   // fakeplayer check here
     }
 
