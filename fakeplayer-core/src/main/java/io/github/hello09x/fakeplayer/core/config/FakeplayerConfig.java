@@ -328,6 +328,31 @@ public class FakeplayerConfig extends PluginConfig {
      */
     private boolean httpAdminBatch;
 
+    /**
+     * 是否允许 GET 请求。关闭后仅接受 POST, 便于把 token 放在请求头里
+     */
+    private boolean httpAdminAllowGet;
+
+    /**
+     * Host / Origin 白名单, 为空时不校验。用于缓解 DNS rebinding
+     */
+    private List<String> httpAdminAllowedHosts;
+
+    /**
+     * 每个来源 IP 每分钟允许的请求数
+     */
+    private int httpAdminRequestsPerMinute;
+
+    /**
+     * 连续鉴权失败多少次后锁定来源 IP, 0 表示不锁定
+     */
+    private int httpAdminAuthFailures;
+
+    /**
+     * 鉴权失败锁定时长 (秒)
+     */
+    private int httpAdminLockoutSeconds;
+
     @Inject
     public FakeplayerConfig() {
         super(Main.getInstance());
@@ -404,6 +429,14 @@ public class FakeplayerConfig extends PluginConfig {
         this.httpAdminRespawn = file.getBoolean("http-admin.interface.respawn", true);
         this.httpAdminCmd = file.getBoolean("http-admin.interface.cmd", true);
         this.httpAdminBatch = file.getBoolean("http-admin.interface.batch", true);
+        this.httpAdminAllowGet = file.getBoolean("http-admin.allow-get", true);
+        this.httpAdminAllowedHosts = file.getStringList("http-admin.allowed-hosts")
+                                         .stream()
+                                         .filter(host -> host != null && !host.isBlank())
+                                         .toList();
+        this.httpAdminRequestsPerMinute = Math.max(1, file.getInt("http-admin.rate-limit.requests-per-minute", 120));
+        this.httpAdminAuthFailures = Math.max(0, file.getInt("http-admin.rate-limit.auth-failures", 10));
+        this.httpAdminLockoutSeconds = Math.max(1, file.getInt("http-admin.rate-limit.lockout-seconds", 60));
         this.nameStyleColor = this.getNameStyleColor(file);
         this.nameStyleDecorations = this.getNameStyleDecorations(file);
 

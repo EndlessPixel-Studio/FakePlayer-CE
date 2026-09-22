@@ -140,6 +140,12 @@ http-admin:
   host: 0.0.0.0          # 监听地址
   port: 3253             # 监听端口
   token: ""              # 鉴权令牌；留空时启动会自动生成随机令牌并打印到控制台
+  allow-get: true        # 是否允许 GET；设为 false 后仅接受 POST（推荐，token 走请求头）
+  allowed-hosts: []      # Host / Origin 白名单，留空不校验；配置后可缓解 DNS rebinding
+  rate-limit:
+    requests-per-minute: 120   # 每个来源 IP 每分钟请求上限
+    auth-failures: 10          # 连续鉴权失败多少次后锁定来源 IP（0 = 不锁定）
+    lockout-seconds: 60        # 锁定时长（秒）
   interface:
     # 查询类
     list: true           # 启用 GET /list
@@ -163,7 +169,9 @@ http-admin:
     batch: true          # 启用 GET /kickall、/killall、/sayall
 ```
 
-所有接口均为 `GET` 请求，且必须携带正确令牌 —— 通过 URL 参数 `?token=xxx` 或请求头 `Authorization: Bearer xxx` 传递均可。
+所有接口默认接受 `GET`，同时也接受 `POST`（参数仍走 query）。必须携带正确令牌 —— 通过 URL 参数 `?token=xxx` 或请求头 `Authorization: Bearer xxx` 传递均可；**推荐用 POST + 请求头**，这样 token 不会出现在 URL、代理日志与浏览器历史中，也不会被浏览器预取或爬虫意外触发（所有接口都有副作用）。
+
+路径为**精确匹配**：只有上表中的路径会被处理，`/listfoo` 之类的路径返回 `404`，不会落到 `/list` 上。
 
 | 接口 | 说明 | 成功返回 | 失败返回 |
 |---|---|---|---|
@@ -208,6 +216,9 @@ http-admin:
 - 动作 — `Action is required, available actions: ...`（缺少或未知动作）/ `Message is required for the say action`（SAY 缺少内容）
 - 传送 — `Invalid number: x`（坐标不是数字）/ `Unknown world: xxx`（世界不存在）
 - 鉴权与开关 — `Unauthorized`（401，令牌缺失或错误）/ `Interface disabled`（403，对应接口已关闭）
+- 限流与锁定 — `Too many requests`（429，超过每 IP 每分钟上限）/ `Too many failed attempts, try again later`（429，连续鉴权失败被锁定）
+- 主机与来源 — `Host not allowed`（403，Host 或跨源 Origin 不在白名单内）
+- 其他 — `Not found`（404，路径不存在或不是精确路径）/ `Request URI too long`（414）/ `Method not allowed`（405）
 
 调用示例：
 
@@ -249,7 +260,23 @@ curl -G "http://localhost:3253/cmd" --data-urlencode "name=klmgun" --data-urlenc
 curl -G "http://localhost:3253/say" --data-urlencode "name=klmgun" --data-urlencode "message=你好 世界" --data-urlencode "token=YOUR_TOKEN"
 ```
 
-> **安全提示：** 请妥善保管令牌，并建议在防火墙层面限制访问来源，避免将接口直接暴露到公网。
+### 安全说明
+
+内置的防护（无需额外配置）：
+
+- 令牌使用定长比较，避免通过响应时间逐字节推断；`Authorization: Bearer` 不区分大小写。
+- **鉴权先于接口开关**：未携带正确令牌时一律返回 `401`，无法通过 `401` / `403` 的差异枚举哪些接口被启用。
+- **精确路径匹配**：只有文档中的路径会被处理，`/listfoo` 返回 `404`，避免绕过按精确路径放行的外部 ACL / WAF。
+- **日志安全**：名称含 `token` 的参数一律脱敏；控制字符会被替换、长度会被截断；未授权请求不记录 query。避免日志被伪造或撑爆。
+- **限流与失败锁定**：默认每个 IP 每分钟 120 次，连续 10 次鉴权失败锁定 60 秒。
+- **主机 / 同源校验**：配置 `allowed-hosts` 后校验 Host；浏览器发起的跨源请求（带 `Origin`）主机不符会被拒绝（默认开启），可缓解 DNS rebinding。
+- 请求 URI 超过 4096 字符直接返回 `414`；响应带 `Cache-Control: no-store`，不会被浏览器或中间层缓存。
+
+仍需管理员注意：
+
+- 接口**没有 TLS**，token 若走 URL 会以明文经过网络与代理日志。请务必使用足够长的随机 token，并优先使用 POST + `Authorization` 头。
+- `/cmd` 会让假人执行命令，其权限等同于该假人在服务端的权限；不要把假人设为 OP。
+- 建议把 `host` 改为 `127.0.0.1`（或只在内网地址上监听），并在防火墙层面限制来源，避免直接暴露到公网。
 
 ## 个人个性化配置
 

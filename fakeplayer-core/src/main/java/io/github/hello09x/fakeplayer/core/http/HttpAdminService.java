@@ -28,6 +28,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Duration;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -36,9 +37,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -81,10 +84,46 @@ public class HttpAdminService {
      */
     private final static int MAX_LOG_LENGTH = 512;
 
+    /**
+     * 请求 URI 的最大长度, 超出直接拒绝, 避免解析超长 query 消耗资源
+     */
+    private final static int MAX_REQUEST_URI_LENGTH = 4096;
+
+    /**
+     * 被跟踪的客户端数量上限, 防止限流状态无界增长
+     */
+    private final static int MAX_TRACKED_CLIENTS = 1024;
+
+    /**
+     * 处理线程数 / 排队上限, 队列满时由调用线程直接执行形成反压
+     */
+    private final static int WORKER_THREADS = 4;
+
+    private final static int WORKER_QUEUE_SIZE = 64;
+
+    /**
+     * 一个接口: 精确路径 + 处理逻辑
+     */
+    @FunctionalInterface
+    private interface Endpoint {
+        void handle(HttpExchange ex) throws IOException;
+    }
+
     private final FakeplayerManager manager;
     private final FakeplayerConfig config;
     private final ActionManager actionManager;
     private final NMSBridge bridge;
+
+    /**
+     * 精确路径 -> 处理逻辑。使用精确匹配而非 createContext 的前缀匹配,
+     * 避免 /listfoo 之类路径被 /list 命中, 绕过外部基于精确路径的 ACL / WAF
+     */
+    private final Map<String, Endpoint> routes = new LinkedHashMap<>();
+
+    /**
+     * 按来源 IP 记录的限流与失败计数状态
+     */
+    private final Map<String, ClientState> clients = new ConcurrentHashMap<>();
 
     private HttpServer server;
     private ExecutorService executor;
@@ -116,31 +155,43 @@ public class HttpAdminService {
             return;
         }
 
-        server.createContext("/list", this::handleList);
-        server.createContext("/status", this::handleStatus);
-        server.createContext("/info", this::handleInfo);
-        server.createContext("/spawn", this::handleSpawn);
-        server.createContext("/kick", this::handleKick);
-        server.createContext("/kill", this::handleKill);
-        server.createContext("/respawn", this::handleRespawn);
-        server.createContext("/say", this::handleSay);
-        server.createContext("/action", this::handleAction);
-        server.createContext("/stop", this::handleStop);
-        server.createContext("/teleport", this::handleTeleport);
-        server.createContext("/look", this::handleLook);
-        server.createContext("/hold", this::handleHold);
-        server.createContext("/swap", this::handleSwap);
-        server.createContext("/cmd", this::handleCmd);
-        server.createContext("/kickall", this::handleKickAll);
-        server.createContext("/killall", this::handleKillAll);
-        server.createContext("/sayall", this::handleSayAll);
-        // 固定线程池: 默认的单线程 dispatcher 会让一个慢请求 (如等待主线程的 /spawn)
-        // 阻塞其余所有请求; 线程设为 daemon, 避免影响服务端退出
-        this.executor = Executors.newFixedThreadPool(4, r -> {
-            var thread = new Thread(r, "fakeplayer-http");
-            thread.setDaemon(true);
-            return thread;
-        });
+        routes.clear();
+        routes.put("/list", this::handleList);
+        routes.put("/status", this::handleStatus);
+        routes.put("/info", this::handleInfo);
+        routes.put("/spawn", this::handleSpawn);
+        routes.put("/kick", this::handleKick);
+        routes.put("/kill", this::handleKill);
+        routes.put("/respawn", this::handleRespawn);
+        routes.put("/say", this::handleSay);
+        routes.put("/action", this::handleAction);
+        routes.put("/stop", this::handleStop);
+        routes.put("/teleport", this::handleTeleport);
+        routes.put("/look", this::handleLook);
+        routes.put("/hold", this::handleHold);
+        routes.put("/swap", this::handleSwap);
+        routes.put("/cmd", this::handleCmd);
+        routes.put("/kickall", this::handleKickAll);
+        routes.put("/killall", this::handleKillAll);
+        routes.put("/sayall", this::handleSayAll);
+
+        // 所有请求统一走 "/" 上下文, 再按精确路径分发 (见 routes 的说明)
+        server.createContext("/", this::handleRequest);
+        // 有界队列 + 反压: 队列满时由 dispatcher 线程直接执行, 避免任务无限堆积吃内存;
+        // 线程设为 daemon, 避免影响服务端退出
+        this.executor = new ThreadPoolExecutor(
+                WORKER_THREADS,
+                WORKER_THREADS,
+                60L,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(WORKER_QUEUE_SIZE),
+                r -> {
+                    var thread = new Thread(r, "fakeplayer-http");
+                    thread.setDaemon(true);
+                    return thread;
+                },
+                new ThreadPoolExecutor.CallerRunsPolicy()
+        );
         server.setExecutor(this.executor);
         server.start();
         log.info("HTTP admin server started on " + config.getHttpAdminHost() + ":" + config.getHttpAdminPort());
@@ -156,19 +207,238 @@ public class HttpAdminService {
             executor.shutdownNow();
             executor = null;
         }
+        clients.clear();
     }
 
-    private void handleList(HttpExchange ex) throws IOException {
-        if (!"GET".equals(ex.getRequestMethod())) {
-            sendJson(ex, 405, "failure", "Method not allowed");
+    /**
+     * 统一入口: 精确路由 -&gt; 限流 -&gt; 主机/同源校验 -&gt; 方法校验 -&gt; 鉴权 -&gt; 交给具体接口。
+     *
+     * <p>鉴权刻意排在接口开关之前: 未授权的调用方一律得到 401,
+     * 无法通过 401 / 403 的差异枚举出哪些接口被启用。</p>
+     */
+    private void handleRequest(HttpExchange ex) throws IOException {
+        var endpoint = routes.get(ex.getRequestURI().getPath());
+        if (endpoint == null) {
+            sendJsonNoQuery(ex, 404, "failure", "Not found");
             return;
         }
-        if (!config.isHttpAdminList()) {
-            sendJson(ex, 403, "failure", "Interface disabled");
+        if (ex.getRequestURI().toString().length() > MAX_REQUEST_URI_LENGTH) {
+            sendJsonNoQuery(ex, 414, "failure", "Request URI too long");
+            return;
+        }
+
+        var ip = remoteAddress(ex);
+        var state = client(ip);
+        var now = System.currentTimeMillis();
+        if (state.isLocked(now)) {
+            sendJsonNoQuery(ex, 429, "failure", "Too many failed attempts, try again later");
+            return;
+        }
+        if (!state.allowRequest(now, config.getHttpAdminRequestsPerMinute())) {
+            sendJsonNoQuery(ex, 429, "failure", "Too many requests");
+            return;
+        }
+        if (!checkHost(ex) || !checkOrigin(ex)) {
+            sendJsonNoQuery(ex, 403, "failure", "Host not allowed");
+            return;
+        }
+        if (!isMethodAllowed(ex)) {
+            sendJsonNoQuery(ex, 405, "failure", "Method not allowed");
             return;
         }
         if (!authorize(ex)) {
+            if (state.recordFailure(now, config.getHttpAdminAuthFailures(), config.getHttpAdminLockoutSeconds() * 1000L)) {
+                log.warning("HTTP admin: too many failed attempts from " + ip
+                        + ", locked for " + config.getHttpAdminLockoutSeconds() + "s");
+            }
             sendUnauthorized(ex);
+            return;
+        }
+        state.recordSuccess();
+        endpoint.handle(ex);
+    }
+
+    private static String remoteAddress(HttpExchange ex) {
+        var remote = ex.getRemoteAddress();
+        return remote == null ? "unknown" : remote.getAddress().getHostAddress();
+    }
+
+    private ClientState client(String ip) {
+        var state = clients.get(ip);
+        if (state != null) {
+            return state;
+        }
+        if (clients.size() >= MAX_TRACKED_CLIENTS) {
+            var now = System.currentTimeMillis();
+            clients.entrySet().removeIf(entry -> entry.getValue().isExpired(now));
+        }
+        return clients.computeIfAbsent(ip, key -> new ClientState());
+    }
+
+    /**
+     * Host 校验: 配置了 {@code http-admin.allowed-hosts} 时, Host 必须命中白名单。
+     * <p>用于缓解 DNS rebinding —— 恶意网页把自己的域名解析到本机时, Host 会是那个域名。</p>
+     */
+    private boolean checkHost(HttpExchange ex) {
+        var allowed = config.getHttpAdminAllowedHosts();
+        if (allowed == null || allowed.isEmpty()) {
+            return true;
+        }
+        var host = ex.getRequestHeaders().getFirst("Host");
+        return host != null && isAllowedHost(allowed, host);
+    }
+
+    /**
+     * 同源校验: 浏览器发起的跨源请求一定带 Origin, 其主机必须与 Host 相同或在白名单内。
+     * <p>这样即使恶意网页能连到本机端口, 也无法驱动接口执行操作。</p>
+     */
+    private boolean checkOrigin(HttpExchange ex) {
+        var origin = ex.getRequestHeaders().getFirst("Origin");
+        if (origin == null || origin.isBlank()) {
+            return true;
+        }
+        var host = ex.getRequestHeaders().getFirst("Host");
+        if (host == null) {
+            return false;
+        }
+        var originHost = hostOf(origin);
+        if (originHost == null) {
+            return false;
+        }
+        if (originHost.equals(hostOf(host))) {
+            return true;
+        }
+        var allowed = config.getHttpAdminAllowedHosts();
+        return allowed != null && isAllowedHost(allowed, originHost);
+    }
+
+    /**
+     * GET 允许的前提是 {@code http-admin.allow-get} 为 true (默认);
+     * POST 始终允许, 便于把 token 放进请求头, 避免出现在 URL 与日志里。
+     */
+    private boolean isMethodAllowed(HttpExchange ex) {
+        var method = ex.getRequestMethod();
+        if ("POST".equalsIgnoreCase(method)) {
+            return true;
+        }
+        return "GET".equalsIgnoreCase(method) && config.isHttpAdminAllowGet();
+    }
+
+    private static boolean isAllowedHost(List<String> allowed, String host) {
+        var hostName = hostOf(host);
+        if (hostName == null) {
+            return false;
+        }
+        var rawHost = host.trim().toLowerCase(Locale.ROOT);
+        for (var entry : allowed) {
+            if (entry == null || entry.isBlank()) {
+                continue;
+            }
+            var value = entry.trim().toLowerCase(Locale.ROOT);
+            if (value.equals(rawHost) || value.equals(hostName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 从 {@code scheme://host[:port]} 或 {@code host[:port]} 中取出小写主机名 (去掉端口)
+     */
+    private static @Nullable String hostOf(@Nullable String value) {
+        if (value == null) {
+            return null;
+        }
+        var host = value.trim();
+        var schemeEnd = host.indexOf("://");
+        if (schemeEnd >= 0) {
+            host = host.substring(schemeEnd + 3);
+        }
+        var end = host.length();
+        for (int i = 0; i < host.length(); i++) {
+            var c = host.charAt(i);
+            if (c == '/' || c == '?' || c == '#') {
+                end = i;
+                break;
+            }
+        }
+        host = host.substring(0, end);
+        if (host.isBlank()) {
+            return null;
+        }
+        if (host.startsWith("[")) {
+            var close = host.indexOf(']');
+            return (close < 0 ? host : host.substring(0, close + 1)).toLowerCase(Locale.ROOT);
+        }
+        var colon = host.indexOf(':');
+        return (colon < 0 ? host : host.substring(0, colon)).toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * 单个来源 IP 的限流与鉴权失败状态
+     */
+    private static final class ClientState {
+
+        /**
+         * 最近一分钟内的请求时间戳
+         */
+        private final ArrayDeque<Long> requests = new ArrayDeque<>();
+
+        private int failures;
+
+        private long lastFailureAt;
+
+        private long lockedUntil;
+
+        synchronized boolean isLocked(long now) {
+            return now < lockedUntil;
+        }
+
+        synchronized boolean isExpired(long now) {
+            return requests.isEmpty()
+                    && failures == 0
+                    && now - lastFailureAt > 300_000L
+                    && now >= lockedUntil;
+        }
+
+        synchronized boolean allowRequest(long now, int maxPerMinute) {
+            var cutoff = now - 60_000L;
+            while (!requests.isEmpty() && requests.peekFirst() < cutoff) {
+                requests.pollFirst();
+            }
+            if (requests.size() >= maxPerMinute) {
+                return false;
+            }
+            requests.addLast(now);
+            return true;
+        }
+
+        /**
+         * @return 本次失败是否触发了锁定
+         */
+        synchronized boolean recordFailure(long now, int maxFailures, long lockMillis) {
+            if (maxFailures <= 0) {
+                return false;
+            }
+            if (now - lastFailureAt > 60_000L) {
+                failures = 0;
+            }
+            lastFailureAt = now;
+            if (++failures < maxFailures) {
+                return false;
+            }
+            failures = 0;
+            lockedUntil = now + lockMillis;
+            return true;
+        }
+
+        synchronized void recordSuccess() {
+            failures = 0;
+        }
+    }
+
+    private void handleList(HttpExchange ex) throws IOException {
+        if (!preflight(ex, config.isHttpAdminList())) {
             return;
         }
         var names = manager.getAll().stream().map(Player::getName).collect(Collectors.toList());
@@ -177,16 +447,7 @@ public class HttpAdminService {
     }
 
     private void handleSpawn(HttpExchange ex) throws IOException {
-        if (!"GET".equals(ex.getRequestMethod())) {
-            sendJson(ex, 405, "failure", "Method not allowed");
-            return;
-        }
-        if (!config.isHttpAdminSpawn()) {
-            sendJson(ex, 403, "failure", "Interface disabled");
-            return;
-        }
-        if (!authorize(ex)) {
-            sendUnauthorized(ex);
+        if (!preflight(ex, config.isHttpAdminSpawn())) {
             return;
         }
         var name = query(ex, "name");
@@ -222,16 +483,7 @@ public class HttpAdminService {
     }
 
     private void handleKick(HttpExchange ex) throws IOException {
-        if (!"GET".equals(ex.getRequestMethod())) {
-            sendJson(ex, 405, "failure", "Method not allowed");
-            return;
-        }
-        if (!config.isHttpAdminKick()) {
-            sendJson(ex, 403, "failure", "Interface disabled");
-            return;
-        }
-        if (!authorize(ex)) {
-            sendUnauthorized(ex);
+        if (!preflight(ex, config.isHttpAdminKick())) {
             return;
         }
         var name = query(ex, "name");
@@ -248,16 +500,7 @@ public class HttpAdminService {
     }
 
     private void handleKill(HttpExchange ex) throws IOException {
-        if (!"GET".equals(ex.getRequestMethod())) {
-            sendJson(ex, 405, "failure", "Method not allowed");
-            return;
-        }
-        if (!config.isHttpAdminKill()) {
-            sendJson(ex, 403, "failure", "Interface disabled");
-            return;
-        }
-        if (!authorize(ex)) {
-            sendUnauthorized(ex);
+        if (!preflight(ex, config.isHttpAdminKill())) {
             return;
         }
         var name = query(ex, "name");
@@ -286,16 +529,7 @@ public class HttpAdminService {
     }
 
     private void handleSay(HttpExchange ex) throws IOException {
-        if (!"GET".equals(ex.getRequestMethod())) {
-            sendJson(ex, 405, "failure", "Method not allowed");
-            return;
-        }
-        if (!config.isHttpAdminSay()) {
-            sendJson(ex, 403, "failure", "Interface disabled");
-            return;
-        }
-        if (!authorize(ex)) {
-            sendUnauthorized(ex);
+        if (!preflight(ex, config.isHttpAdminSay())) {
             return;
         }
         var name = query(ex, "name");
@@ -824,21 +1058,20 @@ public class HttpAdminService {
     }
 
     /**
-     * 统一处理请求方法、接口开关与鉴权
+     * 接口自身的校验: 请求方法与接口开关。
+     *
+     * <p>鉴权、限流、路由与主机校验都已在 {@link #handleRequest(HttpExchange)} 中完成,
+     * 这里不再重复鉴权 —— 正因为鉴权在前, 未授权调用方才无法通过 401 / 403 枚举接口开关。</p>
      *
      * @return 校验通过返回 true; 否则已输出错误响应并返回 false
      */
     private boolean preflight(HttpExchange ex, boolean enabled) throws IOException {
-        if (!"GET".equals(ex.getRequestMethod())) {
+        if (!isMethodAllowed(ex)) {
             sendJson(ex, 405, "failure", "Method not allowed");
             return false;
         }
         if (!enabled) {
             sendJson(ex, 403, "failure", "Interface disabled");
-            return false;
-        }
-        if (!authorize(ex)) {
-            sendUnauthorized(ex);
             return false;
         }
         return true;
@@ -927,29 +1160,36 @@ public class HttpAdminService {
     }
 
     private void sendUnauthorized(HttpExchange ex) throws IOException {
-        sendJson(ex, 401, "failure", "Unauthorized");
+        // 未授权的请求不把 query 写进日志
+        sendJsonNoQuery(ex, 401, "failure", "Unauthorized");
+    }
+
+    /**
+     * 打印 HTTP 调用日志, 记录 query (其中的 token 已脱敏)
+     */
+    private static void logCall(HttpExchange ex, int code, String status, String detail) {
+        logCall(ex, code, status, detail, true);
     }
 
     /**
      * 打印 HTTP 调用日志。
-     * <p>query 中的 token 会被脱敏; 路径与 query 中的控制字符会被替换并截断长度,
-     * 避免未授权请求通过换行等内容伪造日志或撑爆日志文件。</p>
+     * <p>记录 query 时: token 会被脱敏, 控制字符会被替换并截断长度,
+     * 避免调用方通过换行等内容伪造日志或撑爆日志文件。
+     * 未授权请求不应把 query 持久化, 此时传 {@code withQuery = false}。</p>
      */
-    private static void logCall(HttpExchange ex, int code, String status, String detail) {
+    private static void logCall(HttpExchange ex, int code, String status, String detail, boolean withQuery) {
         var uri = ex.getRequestURI();
         var sb = new StringBuilder(uri.getPath());
         var q = uri.getQuery();
-        if (q != null && !q.isEmpty()) {
+        if (withQuery && q != null && !q.isEmpty()) {
             sb.append('?').append(Arrays.stream(q.split("&"))
                     .map(HttpAdminService::redactParam)
                     .collect(Collectors.joining("&")));
         }
-        var remote = ex.getRemoteAddress();
-        var ip = remote == null ? "unknown" : remote.getAddress().getHostAddress();
         log.info("[HTTP] %s %s from %s -> %d %s%s".formatted(
                 ex.getRequestMethod(),
                 sanitize(sb.toString()),
-                ip,
+                remoteAddress(ex),
                 code,
                 status,
                 detail == null ? "" : " (" + sanitize(detail) + ")"
@@ -983,6 +1223,18 @@ public class HttpAdminService {
 
     private void sendJson(HttpExchange ex, int code, String status, String msg) throws IOException {
         logCall(ex, code, status, msg);
+        writeJson(ex, code, status, msg);
+    }
+
+    /**
+     * 输出错误响应, 且日志中不记录 query
+     */
+    private void sendJsonNoQuery(HttpExchange ex, int code, String status, String msg) throws IOException {
+        logCall(ex, code, status, msg, false);
+        writeJson(ex, code, status, msg);
+    }
+
+    private void writeJson(HttpExchange ex, int code, String status, String msg) throws IOException {
         var body = msg == null
                 ? "{\"status\":\"" + status + "\"}"
                 : "{\"status\":\"" + status + "\",\"msg\":\"" + escape(msg) + "\"}";
@@ -999,7 +1251,11 @@ public class HttpAdminService {
 
     private void send(HttpExchange ex, int code, String contentType, String body) throws IOException {
         var bytes = body.getBytes(StandardCharsets.UTF_8);
-        ex.getResponseHeaders().add("Content-Type", contentType + "; charset=utf-8");
+        var headers = ex.getResponseHeaders();
+        headers.add("Content-Type", contentType + "; charset=utf-8");
+        // 管理接口的响应不应被浏览器或中间层缓存
+        headers.add("Cache-Control", "no-store");
+        headers.add("X-Content-Type-Options", "nosniff");
         ex.sendResponseHeaders(code, bytes.length);
         try (OutputStream os = ex.getResponseBody()) {
             os.write(bytes);

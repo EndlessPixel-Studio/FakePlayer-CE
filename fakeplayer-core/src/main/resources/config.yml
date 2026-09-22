@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 20
+version: 21
 
 # 多国语言配置
 # 可选项: en, zh, zh_cn, zh_tw, zh_hk
@@ -341,7 +341,8 @@ forced-execution: false
 # ============================================================
 # HTTP 远程管理接口
 # HTTP admin interface for remote fake player management
-# 启用后可通过 GET 请求远程管理假人 (list / spawn / kick)
+# 启用后可通过 GET / POST 请求远程查询与操作假人, 接口清单见 README
+# 注意: 所有接口都会产生副作用, 请勿把接口地址暴露给不可信来源
 # ============================================================
 http-admin:
   # 是否启用 HTTP 接口
@@ -355,8 +356,36 @@ http-admin:
   # Listen port
   port: 3253
   # 鉴权令牌, 为空时启动时随机生成并在控制台打印
+  # 建议使用足够长的随机字符串; 令牌过短会被暴力破解 (接口已有失败锁定, 但仍应以强度为先)
   # Auth token; if empty, a random token is generated at startup and printed to console
   token: ""
+  # 是否允许 GET 请求
+  # 关闭后仅接受 POST —— POST 可把 token 放在请求头里, 避免 token 出现在 URL、代理日志与浏览器历史中,
+  # 也能避免 GET 被浏览器预取 / 爬虫 / 图片标签意外触发 (所有接口都会产生副作用)
+  # 参数传递方式不变, 依旧使用 query
+  # Allow GET requests. When disabled, only POST is accepted; POST lets you pass the token
+  # via the Authorization header instead of the URL, and avoids GET requests being triggered
+  # by browser prefetch, crawlers or image tags (every endpoint has side effects).
+  allow-get: true
+  # Host / Origin 白名单, 留空表示不校验
+  # 配置后 Host 以及浏览器跨源请求的 Origin 必须命中白名单, 可缓解 DNS rebinding
+  # (恶意网页把某个域名解析到本机地址, 再借浏览器访问本接口)
+  # Host / Origin allowlist; empty means no check. When set, the Host header and the Origin of
+  # cross-origin browser requests must match an entry, which mitigates DNS rebinding.
+  allowed-hosts: []
+
+  # 限流与失败锁定
+  # Rate limiting and lockout
+  rate-limit:
+    # 每个来源 IP 每分钟允许的请求数
+    # Requests allowed per source IP per minute
+    requests-per-minute: 120
+    # 连续鉴权失败多少次后锁定来源 IP, 0 表示不锁定
+    # Lock the source IP after this many consecutive auth failures; 0 disables the lockout
+    auth-failures: 10
+    # 锁定时长 (秒)
+    # Lockout duration in seconds
+    lockout-seconds: 60
   # 各接口开关
   # Per-interface switches
   interface:
