@@ -375,11 +375,25 @@ For servers without strict permission management, assign `fakeplayer.basic` — 
 
 ## Placeholder Variables
 
-| Placeholder | Description |
-|---|---|
-| `%fakeplayer_total%` | Total number of fake players on the server |
-| `%fakeplayer_creator%` | Creator name of a fake player |
-| `%fakeplayer_actions%` | Active actions, e.g., `USE\|ATTACK` |
+| Placeholder | Scope | Description |
+|---|---|---|
+| `%fakeplayer_total%` | Global | Total number of fake players on the server |
+| `%fakeplayer_list%` | Global | Names of every fake player online, joined by `fakeplayer.placeholder.separator` (default `, `) |
+| `%fakeplayer_list_<index>%` | Global | Name of the fake player at `index` (0-based); empty when out of range |
+| `%fakeplayer_list_<index>_<attribute>%` | Global | Any fake player attribute below, e.g. `%fakeplayer_list_0_uuid%` |
+| `%fakeplayer_isfake%` | Any player | `true` / `false` — whether the player is a fake player |
+| `%fakeplayer_name%` | Fake player | Name of the fake player |
+| `%fakeplayer_uuid%` | Fake player | UUID of the fake player |
+| `%fakeplayer_creator%` | Fake player | Creator name of the fake player (`%fakeplayer_spawner%` is an alias) |
+| `%fakeplayer_spawntime%` | Fake player | Spawn time, formatted with `fakeplayer.placeholder.time-format` (default `yyyy-MM-dd HH:mm:ss`) |
+| `%fakeplayer_world%` | Fake player | World name the fake player is in |
+| `%fakeplayer_x%` / `%fakeplayer_y%` / `%fakeplayer_z%` | Fake player | Block coordinates of the fake player |
+| `%fakeplayer_health%` | Fake player | Current health |
+| `%fakeplayer_food%` | Fake player | Current food level |
+| `%fakeplayer_level%` | Fake player | Current experience level |
+| `%fakeplayer_gamemode%` | Fake player | Current game mode |
+| `%fakeplayer_actions%` | Fake player | Active actions, e.g., `USE\|ATTACK` |
+| `%fakeplayer_actions_translated%` | Fake player | Same as above but localised |
 
 ## Custom Translation
 
