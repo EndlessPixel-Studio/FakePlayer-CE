@@ -89,7 +89,7 @@ public abstract class CommandSupports {
 
             var names = targets.stream().map(Player::getName);
             if (!arg.isEmpty()) {
-                names = names.filter(n -> n.toLowerCase().contains(arg));
+                names = names.filter(n -> n.toLowerCase(Locale.ROOT).contains(arg));
             }
 
             return names.toArray(String[]::new);
@@ -117,7 +117,7 @@ public abstract class CommandSupports {
             return target == null ? Collections.emptyList() : Collections.singletonList(target);
         }).replaceSuggestions(ArgumentSuggestions.strings(info -> {
             var sender = info.sender();
-            var arg = info.currentArg().toLowerCase();
+            var arg = info.currentArg().toLowerCase(Locale.ROOT);
 
             var fakes = sender.isOp()
                     ? manager().getAll()
@@ -125,7 +125,7 @@ public abstract class CommandSupports {
 
             var names = Stream.concat(fakes.stream().map(Player::getName), Stream.of("-a"));
             if (!arg.isEmpty()) {
-                names = names.filter(n -> n.toLowerCase().contains(arg));
+                names = names.filter(n -> n.toLowerCase(Locale.ROOT).contains(arg));
             }
 
             return names.toArray(String[]::new);
