@@ -381,6 +381,8 @@ For servers without strict permission management, assign `fakeplayer.basic` — 
 
 ## Custom Translation
 
+Built-in locales: `en`, `zh`, `zh_tw`, `zh_hk`. Switch them with `i18n.locale` in `config.yml` (then `/fp reload`).
+
 1. Create a `message` folder inside `plugins/fakeplayer/`
 2. Copy the [template translation file](fakeplayer-core/src/main/resources/message/message.properties) into the `message` folder
 3. Rename it to `message_<language>_<region>.properties` (e.g., `message_en_us.properties`)
