@@ -99,6 +99,7 @@ FakePlayer CE 以**單一通用 jar**（`fakeplayer-fp.buildX.jar`）形式發�
 | /fp dropinv | 假人清空全部背包物品 | fakeplayer.command.dropinv | |
 | /fp skin | 複製其他玩家造型 | fakeplayer.command.skin | 離線玩家複製存在 60 秒冷卻 |
 | /fp invsee | 開啟假人背包介面 | fakeplayer.command.invsee | 對假人按右鍵可觸發同等效果 |
+| /fp enderchest | 開啟假人終界箱 | fakeplayer.command.enderchest | 別名 `/fp ec`，需與假人處於同一世界 |
 | /fp sleep | 假人進入睡覺狀態 | fakeplayer.command.sleep | |
 | /fp wakeup | 喚醒睡覺中的假人 | fakeplayer.command.wakeup | |
 | /fp status | 檢視假人目前狀態 | fakeplayer.command.status | |
@@ -329,6 +330,7 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 - `fakeplayer.command.dropinv` — 清空背包
 - `fakeplayer.command.skin` — 複製造型
 - `fakeplayer.command.invsee` — 檢視背包
+- `fakeplayer.command.enderchest` — 檢視終界箱
 - `fakeplayer.command.status` — 檢視狀態
 - `fakeplayer.command.respawn` — 復活假人
 - `fakeplayer.command.config` — 修改預設設定

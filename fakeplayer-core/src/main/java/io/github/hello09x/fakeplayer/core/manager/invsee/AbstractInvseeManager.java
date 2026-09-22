@@ -61,6 +61,50 @@ public abstract class AbstractInvseeManager implements InvseeManager {
 
     protected abstract @Nullable InventoryView openInventory(@NotNull Player viewer, @NotNull Player whom);
 
+    /**
+     * 打开假人的末影箱, 权限判定与 {@link #invsee(Player, Player)} 保持一致
+     */
+    @Override
+    public boolean enderchest(@NotNull Player viewer, @NotNull Player whom) {
+        var fp = fakeplayerList.getByUUID(whom.getUniqueId());
+        if (fp == null) {
+            return false;
+        }
+        if (!viewer.hasPermission(Permission.enderchest)
+                && !viewer.isOp()
+                && !fp.isCreatedBy(viewer)
+                && !config.isAllowNonOpOpenInv()) {
+            viewer.sendMessage(translatable("fakeplayer.command.enderchest.error.no-permission"));
+            return false;
+        }
+        var view = this.openEnderChest(viewer, whom);
+        if (view == null) {
+            return false;
+        }
+        whom.getLocation().getWorld().playSound(
+                whom.getLocation(),
+                Sound.BLOCK_ENDER_CHEST_OPEN,
+                SoundCategory.BLOCKS,
+                0.3F, 1.0F
+        );
+        return true;
+    }
+
+    /**
+     * 打开假人的末影箱。假人始终在线, 直接取 {@link Player#getEnderChest()} 即可,
+     * 两种实现 (原生 / OpenInv) 通用, 需要时可以覆盖
+     */
+    protected @Nullable InventoryView openEnderChest(@NotNull Player viewer, @NotNull Player whom) {
+        var view = viewer.openInventory(whom.getEnderChest());
+        if (view != null) {
+            view.setTitle(ComponentUtils.toString(translatable(
+                    "fakeplayer.manager.enderchest.title",
+                    text(whom.getName())
+            ), viewer.locale()));
+        }
+        return view;
+    }
+
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void rightClickToInvsee(@NotNull PlayerInteractAtEntityEvent event) {
         if (!((event.getRightClicked()) instanceof Player whom)) {

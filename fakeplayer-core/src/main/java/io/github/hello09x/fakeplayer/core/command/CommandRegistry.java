@@ -41,6 +41,9 @@ public class CommandRegistry {
     private HoldCommand holdCommand;
     @Inject
     private InvseeCommand invseeCommand;
+
+    @Inject
+    private EnderchestCommand enderchestCommand;
     @Inject
     private KickCommand kickCommand;
     @Inject
@@ -169,6 +172,12 @@ public class CommandRegistry {
                                 .withRequirement(CommandSupports::hasFakeplayer)
                                 .withOptionalArguments(fakeplayer("name"))
                                 .executesPlayer(invseeCommand::invsee),
+                        command("enderchest")
+                                .withAliases("ec")
+                                .withShortDescription("fakeplayer.command.enderchest.description")
+                                .withRequirement(CommandSupports::hasFakeplayer)
+                                .withOptionalArguments(fakeplayer("name"))
+                                .executesPlayer(enderchestCommand::enderchest),
                         command("hold")
                                 .withPermission(Permission.hold)
                                 .withShortDescription("fakeplayer.command.hold.description")

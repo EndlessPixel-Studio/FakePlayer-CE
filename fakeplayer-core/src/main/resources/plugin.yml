@@ -43,6 +43,8 @@ permissions:
     description: 'Allow player to run /fp skin'
   fakeplayer.command.invsee:
     description: 'Allow player to run /fp invsee'
+  fakeplayer.command.enderchest:
+    description: 'Allow player to run /fp enderchest'
   fakeplayer.command.status:
     description: 'Allow player to run /fp status'
   fakeplayer.command.respawn:
@@ -120,6 +122,7 @@ permissions:
       - fakeplayer.command.dropinv
       - fakeplayer.command.skin
       - fakeplayer.command.invsee
+      - fakeplayer.command.enderchest
       - fakeplayer.command.status
       - fakeplayer.command.respawn
       - fakeplayer.command.config
