@@ -10,7 +10,7 @@
 
 </div>
 
-English | [简体中文](README_zh.md)
+English | [简体中文](README_zh.md) | [繁體中文](README_zh_TW.md)
 
 ---
 
