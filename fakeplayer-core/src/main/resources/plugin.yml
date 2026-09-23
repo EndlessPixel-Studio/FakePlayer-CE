@@ -11,6 +11,7 @@ softdepend:
   - OpenInv
   - PlaceholderAPI
   - CatSeedLogin
+  - AuthMe
 
 permissions:
   fakeplayer.command.spawn:
