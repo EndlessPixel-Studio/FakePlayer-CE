@@ -10,6 +10,7 @@ depend:
 softdepend:
   - OpenInv
   - PlaceholderAPI
+  - CatSeedLogin
 
 permissions:
   fakeplayer.command.spawn:

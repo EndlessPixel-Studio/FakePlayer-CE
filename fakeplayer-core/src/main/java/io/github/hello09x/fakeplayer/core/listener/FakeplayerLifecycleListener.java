@@ -3,6 +3,7 @@ package io.github.hello09x.fakeplayer.core.listener;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.compat.login.LoginCompatManager;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import io.github.hello09x.fakeplayer.core.repository.FakeplayerAuthRepository;
@@ -33,12 +34,14 @@ public class FakeplayerLifecycleListener implements Listener {
     private final FakeplayerManager manager;
     private final FakeplayerConfig config;
     private final FakeplayerAuthRepository authRepository;
+    private final LoginCompatManager loginCompatManager;
 
     @Inject
-    public FakeplayerLifecycleListener(FakeplayerManager manager, FakeplayerConfig config, FakeplayerAuthRepository authRepository) {
+    public FakeplayerLifecycleListener(FakeplayerManager manager, FakeplayerConfig config, FakeplayerAuthRepository authRepository, LoginCompatManager loginCompatManager) {
         this.manager = manager;
         this.config = config;
         this.authRepository = authRepository;
+        this.loginCompatManager = loginCompatManager;
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -49,6 +52,7 @@ public class FakeplayerLifecycleListener implements Listener {
             return;
         }
 
+        loginCompatManager.exempt(player);
         manager.dispatchCommands(player, config.getPostSpawnCommands());
     }
 
