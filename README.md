@@ -423,6 +423,41 @@ The original project is the foundation of this fork. It targets a **single fixed
 
 > For official FakePlayer updates, please visit the original author's upstream repository.
 
+## Login plugin compatibility & chat events
+
+FakePlayer CE automatically stays compatible with mainstream login plugins, marking fake players as "logged in" when they join so they are not disrupted by the plugins' registration/login checks, auto-kick or freeze mechanisms. At the same time, `/fp say` fully triggers the chat event so chat formatter plugins work normally.
+
+### Login plugin compatibility
+
+| Login plugin | Compatibility | Notes |
+|---|---|---|
+| AuthMe / AuthMeReloaded | Auto forceLogin / forceRegister | Fake players are marked logged in via AuthMe's public API on spawn; unregistered fake players are auto-registered with a random short password and logged in |
+| CatSeedLogin / ReCatSeedLogin | Auto-added to login list | Fake players are written into the plugin's `loginPlayers` list (`isLogin` = true) on spawn, so they are not kicked by `auto-kick` |
+
+- **Automatic**: the compatibility logic declares the corresponding login plugin as a `softdepend`, loading only when that plugin is installed; no effect when absent.
+- **No password / no database**: the compatibility layer marks the login state directly by calling the login plugin's public API via reflection — no account/password needed for fake players, and no database dependency.
+- **Related issues / PRs**: CatSeedLogin compatibility in #17 / #18, AuthMe compatibility in #19.
+
+### Auto-login (self-commands / password)
+
+Besides the built-in login plugin compatibility, you can also fill in register / login commands in `self-commands` in `config.yml` as a fallback (works with any login plugin):
+
+```yaml
+self-commands:
+  - '/register abc123! abc123!'
+  - '/login abc123!'
+```
+
+You can also pair this with `/fp password` and `/fp changepassword` so the plugin stores the password and auto-logs-in on spawn.
+
+> If your server has a login plugin but no built-in compatibility is enabled, fake players may be kicked for being idle too long; use the `self-commands` above to work around it.
+
+### Chat event compatibility (`/fp say`)
+
+`/fp say` goes through `handle.connection.chat(...)` and fully triggers Bukkit's `AsyncPlayerChatEvent` and Paper's `AsyncChatEvent`, so chat formatter plugins such as EssentialsX Chat and Vane can properly intercept, modify format and content; when the event is not cancelled, the message is broadcast per the event result.
+
+This compatibility is consistent across all supported versions (MC `1.20.1 ~ 26.2`). Related issue / PR: #21 / #22.
+
 ## FAQ
 
 ### Player disconnected: "PacketEvents 2.0 failed to inject"
@@ -440,7 +475,7 @@ Fake players spawn with invincible mode enabled by default. Run `/fp config set 
 
 ### Fake players get kicked after a while
 
-Plugins like AuthMe may detect fake players as idle and kick them. Add login commands to the `self-commands` config to prevent this:
+If your server runs a login plugin, fake players may be kicked for being idle too long. FakePlayer CE has built-in **AuthMe / CatSeedLogin compatibility** that marks fake players as logged in on spawn, so usually no extra config is needed (see "Login plugin compatibility" above). If your login plugin has no built-in compatibility yet, add register / login commands to `self-commands` in `config.yml` as a fallback:
 
 ```yaml
 # Use a strong password to pass AuthMe security checks
