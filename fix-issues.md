@@ -1,5 +1,13 @@
 # FakePlayer-CE 修复的Issues和合并的PRs/commits记录
 
+## EndlessPixel-Studio/FakePlayer-CE
+- [EndlessPixel-Studio/FakePlayer-CE Issue #16](https://github.com/EndlessPixel-Studio/FakePlayer-CE/issues/16) 补齐繁体中文（zh_TW/zh_HK）语言支持与帮助文本
+- [EndlessPixel-Studio/FakePlayer-CE Issue #15](https://github.com/EndlessPixel-Studio/FakePlayer-CE/issues/15) 支持打开假人的末影箱（/fp enderchest）
+- [EndlessPixel-Studio/FakePlayer-CE PR #13](https://github.com/EndlessPixel-Studio/FakePlayer-CE/pull/13) fix: follow GCA tool replacement policy
+- [EndlessPixel-Studio/FakePlayer-CE PR #12](https://github.com/EndlessPixel-Studio/FakePlayer-CE/pull/12) fix: match replacement tools by item type
+- [EndlessPixel-Studio/FakePlayer-CE PR #11](https://github.com/EndlessPixel-Studio/FakePlayer-CE/pull/11) fix: cover remaining auto-replenish paths
+- [EndlessPixel-Studio/FakePlayer-CE PR #10](https://github.com/EndlessPixel-Studio/FakePlayer-CE/pull/10) Add low-durability tool replacement
+
 ## EndlessPixel/FakePlayer-CE
 - [EndlessPixel/FakePlayer-CE Issue #3](https://github.com/EndlessPixel/FakePlayer-CE/issues/3) 修复 leaves 1.21.11 插件完全无法加载
 - [EndlessPixel/FakePlayer-CE Issue #4](https://github.com/EndlessPixel/FakePlayer-CE/issues/4) 修复 26.2 Paper 服务端加载失败
