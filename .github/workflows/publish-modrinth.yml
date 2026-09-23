@@ -13,6 +13,10 @@ on:
       version:
         description: 'Modrinth 版本号（如 fp.build11），留空则用 tag 名'
         required: false
+      ref:
+        description: '要检出并构建的 git 引用（tag/分支/sha），用于发布历史版本；留空则构建当前触发引用'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -24,6 +28,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref_name }}
 
       - name: Setup JDK 25
         uses: actions/setup-java@v5
