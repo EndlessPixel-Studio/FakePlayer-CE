@@ -10,6 +10,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ServerboundClientCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.server.PlayerAdvancements;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
@@ -260,7 +262,13 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
 
     @Override
     public void chat(@NotNull String message) {
-        handle.connection.chat(message, null, false);
+        // 与 Paper 的 CraftPlayer#chat(String) 保持一致: 构造一条未签名的聊天消息交给 ChatProcessor,
+        // 完整触发 AsyncPlayerChatEvent / AsyncChatEvent, 让聊天格式化插件能介入修改格式/消息。
+        handle.connection.chat(
+                message,
+                PlayerChatMessage.system(message).withUnsignedContent(Component.literal(message)),
+                false
+        );
     }
 
 }
