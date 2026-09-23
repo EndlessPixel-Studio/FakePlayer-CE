@@ -30,8 +30,6 @@ This repository is **FakePlayer CE (Community Edition)** — an independent comm
 
 FakePlayer is a server-side plugin inspired by [Carpet-Mod](https://github.com/gnembon/fabric-carpet), enabling you to spawn and control realistic fake player entities on your Minecraft server. This CE edition expands the original with multi-version support and long-term maintainability improvements.
 
-📺 [Watch Demo Video](https://youtu.be/NePaDz-P5nI)
-
 ## Features
 
 - Spawn fake players that appear fully real to the server — ideal for chunk loading

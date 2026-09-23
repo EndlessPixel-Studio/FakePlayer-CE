@@ -30,8 +30,6 @@
 
 FakePlayer 是一款受 [Carpet-Mod](https://github.com/gnembon/fabric-carpet) 啟發的伺服器端假人插件，可在 Minecraft 伺服器上生成高度擬真的虛擬玩家。本社群版在原版基礎上擴展了多版本相容能力，並持續跟進維護。
 
-📺 [觀看展示影片](https://youtu.be/NePaDz-P5nI)
-
 ## 功能特性
 
 - 生成對伺服器完全透明的假人玩家，適用於區塊常駐載入
