@@ -1,0 +1,92 @@
+name: Publish to Modrinth
+
+# 构建并把当前插件 jar 作为一个版本发布到 Modrinth。
+# 触发：推送 tag（v* 或 fp.build*），或手动 workflow_dispatch（可填版本号）。
+# 需要仓库 secret MODRINTH_TOKEN（须带「上传版本 / Create versions」作用域）与
+# 变量 MODRINTH_PROJECT_ID（= fpce）。
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'fp.build*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Modrinth 版本号（如 fp.build11），留空则用 tag 名'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Build and publish version to Modrinth
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
+      - name: Build distribution jar
+        run: ./gradlew :fakeplayer-dist:shadowJar --build-cache --parallel --console=plain
+
+      - name: Publish to Modrinth
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          JAR=$(ls fakeplayer-dist/build/libs/*.jar | head -1)
+          echo "jar=$JAR"
+          export VERSION="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION"
+          export JAR
+          python3 - <<'PY'
+          import json, os, urllib.request
+          games = json.load(urllib.request.urlopen("https://api.modrinth.com/v2/tag/game_version", timeout=30))
+          def ver(x): return x["version"] if isinstance(x, dict) else x
+          def parse(v):
+              try: return tuple(int(p) for p in v.split("."))
+              except ValueError: return None
+          def ok(v):
+              t = parse(v)
+              if not t: return False
+              t = t + (0,) * (3 - len(t))
+              return (1, 20, 1) <= t <= (26, 2, 0)
+          gv = [ver(x) for x in games if ok(ver(x))]
+          meta = {
+              "project_id": os.environ["MODRINTH_PROJECT_ID"],
+              "version_number": os.environ["VERSION"],
+              "version_title": os.environ["VERSION"],
+              "version_type": "release",
+              "game_versions": gv,
+              "loaders": ["paper", "purpur", "spigot"],
+              "dependencies": [],
+              "requested_status": "listed",
+              "file_parts": [os.path.basename(os.environ["JAR"])],
+              "featured": True,
+          }
+          json.dump(meta, open("/tmp/meta.json", "w"))
+          print("game_versions count:", len(gv))
+          PY
+          RESP=$(curl -sS -X POST https://api.modrinth.com/v2/version \
+            -H "Authorization: $MODRINTH_TOKEN" \
+            -F "data=</tmp/meta.json" \
+            -F "file=@$JAR")
+          echo "$RESP"
+          echo "$RESP" | python3 -c "import sys,json,os
+try:
+    d=json.load(sys.stdin)
+    if d.get('id'):
+        print('VERSION_URL=https://modrinth.com/project/'+os.environ['MODRINTH_PROJECT_ID']+'/version/'+d['id'])
+except Exception: pass"
