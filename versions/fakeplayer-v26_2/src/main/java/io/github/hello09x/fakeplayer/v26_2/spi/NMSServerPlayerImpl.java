@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.ChatType;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.network.protocol.game.ServerboundClientCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
@@ -267,13 +268,15 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
 
     @Override
     public void chat(@NotNull String message) {
-        // 新版聊天走签名校验链, fake 玩家无真实会话, 直接调 connection.chat 会被静默丢弃。
-        // 改为绕过签名, 直接广播一条未签名的玩家聊天消息。
-        var server = (net.minecraft.server.MinecraftServer) Reflections.getServer(Bukkit.getServer());
-        var playerList = server.getPlayerList();
-        var chatMessage = PlayerChatMessage.unsigned(handle.getUUID(), message);
-        var bound = ChatType.bind(ChatType.CHAT, handle);
-        playerList.broadcastChatMessage(chatMessage, handle, bound);
+        // 新版聊天走签名校验链, 直接调 connection.chat 会被静默丢弃。与 Paper 的 CraftPlayer#chat(String)
+        // 保持一致: 构造一条未签名的聊天消息交给 ChatProcessor, 完整触发
+        // AsyncPlayerChatEvent / AsyncChatEvent, 让聊天格式化插件(EssentialsX Chat / Vane 等)
+        // 能介入修改格式/消息; 事件未取消时按事件结果广播。
+        handle.connection.chat(
+                message,
+                PlayerChatMessage.system(message).withUnsignedContent(Component.literal(message)),
+                false
+        );
     }
 
 }
