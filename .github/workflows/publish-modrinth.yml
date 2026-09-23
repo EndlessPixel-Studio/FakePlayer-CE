@@ -86,4 +86,5 @@ jobs:
             -F "data=</tmp/meta.json" \
             -F "file=@$JAR")
           echo "$RESP"
+          if echo "$RESP" | grep -q '"error"'; then echo "UPLOAD FAILED: Modrinth 返回错误，详见上方 RESP"; exit 1; fi
           echo "$RESP" | python3 -c "import sys,json,os; d=json.load(sys.stdin); print('VERSION_URL=https://modrinth.com/project/'+os.environ['MODRINTH_PROJECT_ID']+'/version/'+d['id']) if d.get('id') else None"
