@@ -1,0 +1,62 @@
+name: Sync README to Modrinth
+
+# 监听 README.md 变更：一旦 master 上的 README.md 更新，就把内容同步到 Modrinth 项目简介（body）。
+# 相对链接（README_zh.md / README_zh_TW.md / BUILD.md / LICENSE.txt / fakeplayer-core/...）会改写为
+# 绝对 GitHub URL，确保在 Modrinth 页面上可正常跳转。
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'README.md'
+  workflow_dispatch:
+
+# CI 只调用 Modrinth API（token 走 secret），不需要写仓库
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sync README.md to Modrinth project body
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Convert relative links and update Modrinth body
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+        run: |
+          python3 - <<'PY'
+          import re, json, os, urllib.request, urllib.error
+
+          REPO = "EndlessPixel-Studio/FakePlayer-CE"
+          BASE = f"https://github.com/{REPO}/blob/master/"
+
+          text = open("README.md", encoding="utf-8").read()
+
+          def repl(m):
+              url = m.group(2).strip()
+              if url.startswith(("http://", "https://", "mailto:", "#")):
+                  return m.group(0)
+              path = url.split("#", 1)[0].lstrip("./")
+              abs_url = BASE + path
+              if "#" in url:
+                  abs_url += url[url.index("#"):]
+              return m.group(1) + abs_url + ")"
+
+          text = re.sub(r'(\]\()(?!(?:https?://|mailto:|#))([^)]+)\)', repl, text)
+
+          data = json.dumps({"body": text}).encode()
+          url = f"https://api.modrinth.com/v2/project/{os.environ['MODRINTH_PROJECT_ID']}"
+          req = urllib.request.Request(
+              url, data=data, method="PATCH",
+              headers={"Authorization": os.environ["MODRINTH_TOKEN"], "Content-Type": "application/json"},
+          )
+          try:
+              r = urllib.request.urlopen(req)
+              print(f"Modrinth PATCH OK status={r.status} body_len={len(text)}")
+          except urllib.error.HTTPError as e:
+              print("Modrinth PATCH FAIL", e.code, e.read().decode()[:500])
+              raise SystemExit(1)
+          PY
