@@ -16,7 +16,8 @@ import java.util.List;
 public class LoginCompatManager {
 
     private final List<LoginCompat> compats = List.of(
-            new CatSeedLoginCompat()
+            new CatSeedLoginCompat(),
+            new AuthMeCompat()
     );
 
     /**
