@@ -19,7 +19,18 @@ public class CatSeedLoginCompat implements LoginCompat {
 
     private static final String PLUGIN_NAME = "CatSeedLogin";
     private static final String HELPER_CLASS = "cc.baka9.catseedlogin.bukkit.object.LoginPlayerHelper";
-    private static final String MODEL_CLASS = "cc.baka9.catseedlogin.common.model.LoginPlayer";
+    /**
+     * CatSeedLogin 的 {@code LoginPlayer} 模型类位置在不同版本/ fork 间不一致：
+     * <ul>
+     *   <li>原版 CatSeedLogin 与 ReCatSeedLogin(>=2.0.0，开发者已移回) 位于 {@code cc.baka9.catseedlogin.bukkit.object.LoginPlayer}</li>
+     *   <li>部分旧版 / 中间 fork 位于 {@code cc.baka9.catseedlogin.common.model.LoginPlayer}</li>
+     * </ul>
+     * 这里按顺序尝试两者，提升兼容面。
+     */
+    private static final String[] MODEL_CLASSES = {
+            "cc.baka9.catseedlogin.bukkit.object.LoginPlayer",
+            "cc.baka9.catseedlogin.common.model.LoginPlayer"
+    };
 
     @Override
     public @NotNull String pluginName() {
@@ -35,8 +46,20 @@ public class CatSeedLoginCompat implements LoginCompat {
             }
             // 通过目标插件自身的类加载器加载其类（无编译期依赖）
             ClassLoader classLoader = plugin.getClass().getClassLoader();
-            Class<?> loginPlayerClass = classLoader.loadClass(MODEL_CLASS);
             Class<?> helperClass = classLoader.loadClass(HELPER_CLASS);
+            Class<?> loginPlayerClass = null;
+            for (String modelClass : MODEL_CLASSES) {
+                try {
+                    loginPlayerClass = classLoader.loadClass(modelClass);
+                    break;
+                } catch (ClassNotFoundException ignored) {
+                    // 尝试下一个候选位置
+                }
+            }
+            if (loginPlayerClass == null) {
+                throw new ClassNotFoundException("CatSeedLogin LoginPlayer (tried: "
+                        + String.join(", ", MODEL_CLASSES) + ")");
+            }
             Object loginPlayer = loginPlayerClass.getConstructor(String.class, String.class)
                     .newInstance(fakePlayer.getName(), "");
             helperClass.getMethod("add", loginPlayerClass).invoke(null, loginPlayer);

@@ -7,6 +7,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
+import java.security.SecureRandom;
 import java.util.UUID;
 
 /**
@@ -47,8 +48,10 @@ public class AuthMeCompat implements LoginCompat {
             if (registered) {
                 apiClass.getMethod("forceLogin", Player.class).invoke(api, fakePlayer);
             } else {
-                // 未注册：用随机密码注册并直接登录（autoLogin=true）
-                String password = "fp-" + UUID.randomUUID() + "-fp";
+                // 未注册：用符合 AuthMe 密码策略的随机密码注册并直接登录（autoLogin=true）。
+                // 注意 AuthMe 默认 passwordMaxLength=30，过长的密码会被注册流水线静默拒绝，
+                // 因此这里生成长度受限的纯字母数字密码。
+                String password = randomPassword();
                 try {
                     apiClass.getMethod("forceRegister", Player.class, String.class, boolean.class)
                            .invoke(api, fakePlayer, password, true);
@@ -58,11 +61,30 @@ public class AuthMeCompat implements LoginCompat {
                            .invoke(api, fakePlayer, password);
                     apiClass.getMethod("forceLogin", Player.class).invoke(api, fakePlayer);
                 }
+                // 兜底：forceRegister(autoLogin) 在某些版本不会自动登录，未认证时再补一次 forceLogin
+                if (!(boolean) apiClass.getMethod("isAuthenticated", Player.class).invoke(api, fakePlayer)) {
+                    apiClass.getMethod("forceLogin", Player.class).invoke(api, fakePlayer);
+                }
             }
         } catch (Throwable t) {
             Main.getInstance().getLogger().warning(
                     "无法将假人 " + fakePlayer.getName() + " 标记为已登录 (AuthMe): " + t.getMessage());
         }
+    }
+
+    /**
+     * 生成符合 AuthMe 默认密码策略的随机密码。
+     * <p>AuthMe 默认 {@code passwordMaxLength=30}、{@code allowedPasswordCharacters=[!-~]*}，
+     * 此处使用 16 位纯字母数字串，既满足最小长度也远小于最大长度，避免被注册流水线静默拒绝。</p>
+     */
+    private static String randomPassword() {
+        final String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        var rnd = new SecureRandom();
+        var sb = new StringBuilder(16);
+        for (int i = 0; i < 16; i++) {
+            sb.append(chars.charAt(rnd.nextInt(chars.length())));
+        }
+        return sb.toString();
     }
 
 }
