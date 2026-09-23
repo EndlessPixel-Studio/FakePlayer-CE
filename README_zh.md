@@ -421,6 +421,41 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 
 > 如需了解 FakePlayer 官方原版更新，请前往原作者上游仓库查阅。
 
+## 登录插件兼容与聊天事件
+
+FakePlayer CE 会自动兼容主流登录插件，在假人加入时将其标记为「已登录」，避免被登录插件的注册 / 登录校验、自动踢出或冻结机制干扰；同时 `/fp say` 会完整触发聊天事件，使聊天格式化插件正常工作。
+
+### 登录插件兼容
+
+| 登录插件 | 兼容方式 | 说明 |
+|---|---|---|
+| AuthMe / AuthMeReloaded | 自动 forceLogin / forceRegister | 假人生成后经 AuthMe 公开 API 标记为已登录；未注册过的假人使用随机短密码自动注册并登录 |
+| CatSeedLogin / ReCatSeedLogin | 自动加入登录名单 | 假人生成后写入插件的 `loginPlayers` 名单（`isLogin` 为真），不会被 `auto-kick` 踢出 |
+
+- **自动生效**：兼容逻辑以 `softdepend` 方式声明对应登录插件，仅当服务器装有该插件时才加载，未安装时无任何影响。
+- **零密码 / 零数据库**：兼容层通过反射调用登录插件的公开 API 直接标记登录状态，无需为假人配置账号密码，也不依赖数据库。
+- **相关 Issue / PR**：CatSeedLogin 兼容见 #17 / #18，AuthMe 兼容见 #19。
+
+### 自动登录（self-commands / 密码）
+
+除内置的登录插件兼容外，也可在 `config.yml` 的 `self-commands` 中填写注册 / 登录指令作为兜底（适用于任意登录插件）：
+
+```yaml
+self-commands:
+  - '/register abc123! abc123!'
+  - '/login abc123!'
+```
+
+还可配合 `/fp password`、`/fp changepassword` 由插件代为保存密码，并在假人生成时自动登录。
+
+> 若服务器装有登录插件但未启用对应内置兼容，假人可能因长时间未登录被踢出，此时用上面的 `self-commands` 规避即可。
+
+### 聊天事件兼容（/fp say）
+
+`/fp say` 会经由 `handle.connection.chat(...)` 完整触发 Bukkit 的 `AsyncPlayerChatEvent` 与 Paper 的 `AsyncChatEvent`，因此 EssentialsX Chat、Vane 等聊天格式化插件能够正常介入、修改格式与内容；事件未被取消时按事件结果广播。
+
+该兼容对所有支持版本（MC `1.20.1 ~ 26.2`）一致生效。相关 Issue / PR：#21 / #22。
+
 ## 常见问题
 
 ### 断开连接：PacketEvents 2.0 failed to inject
@@ -438,7 +473,7 @@ prevent-kicking: ALWAYS
 
 ### 假人一段时间后自动掉线
 
-AuthMe 等登录插件会判定假人长时间未登录而踢出。在配置文件的 `self-commands` 中填入注册/登录指令可规避：
+若服务器装有登录插件，假人可能因长时间未登录被踢出。FakePlayer CE 已内置 **AuthMe / CatSeedLogin 兼容**，假人生成时会自动标记为已登录，通常无需额外配置（详见上文「登录插件兼容」）。如所用登录插件暂无内置兼容，可在 `config.yml` 的 `self-commands` 中填入注册 / 登录指令作为兜底：
 
 ```yaml
 # 请设置高强度密码，避免被 AuthMe 安全策略拦截
