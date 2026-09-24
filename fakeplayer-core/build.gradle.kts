@@ -50,7 +50,7 @@ dependencies {
     implementation("net.kyori:adventure-text-minimessage:4.17.0")
     
     // Other dependencies
-    compileOnly("commons-io:commons-io:2.7")
+    compileOnly("commons-io:commons-io:2.22.0")
     compileOnly("com.github.lishid:openinv:4.1.8")
     compileOnly("me.clip:placeholderapi:2.11.6")
 }
