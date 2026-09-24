@@ -431,10 +431,11 @@ FakePlayer CE automatically stays compatible with mainstream login plugins, mark
 |---|---|---|
 | AuthMe / AuthMeReloaded | Auto forceLogin / forceRegister | Fake players are marked logged in via AuthMe's public API on spawn; unregistered fake players are auto-registered with a random short password and logged in |
 | CatSeedLogin / ReCatSeedLogin | Auto-added to login list | Fake players are written into the plugin's `loginPlayers` list (`isLogin` = true) on spawn, so they are not kicked by `auto-kick` |
+| LibreLogin (Paper) / LibreLoginNext (Paper) | API authorization | The API creates an unregistered user record for a new fake-player name and authorizes it on spawn. The record remains in the login plugin's database; no password is assigned. Existing records are reused when the name's capitalization matches. |
 
 - **Automatic**: the compatibility logic declares the corresponding login plugin as a `softdepend`, loading only when that plugin is installed; no effect when absent.
-- **No password / no database**: the compatibility layer marks the login state directly by calling the login plugin's public API via reflection — no account/password needed for fake players, and no database dependency.
-- **Related issues / PRs**: CatSeedLogin compatibility in #17 / #18, AuthMe compatibility in #19.
+- **Optional APIs**: AuthMe and LibreLogin use their plugin APIs through reflection, while CatSeedLogin uses its plugin-specific login helper. FakePlayer CE does not add compile-time dependencies on these plugins.
+- **Related issues / PRs**: login-plugin compatibility in #17, CatSeedLogin in #18, AuthMe in #19.
 
 ### Auto-login (self-commands / password)
 
@@ -473,7 +474,7 @@ Fake players spawn with invincible mode enabled by default. Run `/fp config set 
 
 ### Fake players get kicked after a while
 
-If your server runs a login plugin, fake players may be kicked for being idle too long. FakePlayer CE has built-in **AuthMe / CatSeedLogin compatibility** that marks fake players as logged in on spawn, so usually no extra config is needed (see "Login plugin compatibility" above). If your login plugin has no built-in compatibility yet, add register / login commands to `self-commands` in `config.yml` as a fallback:
+If your server runs a login plugin, fake players may be kicked for being idle too long. FakePlayer CE has built-in **AuthMe / CatSeedLogin / LibreLogin / LibreLoginNext compatibility** that marks fake players as logged in on spawn, so usually no extra config is needed (see "Login plugin compatibility" above). If your login plugin has no built-in compatibility yet, add register / login commands to `self-commands` in `config.yml` as a fallback:
 
 ```yaml
 # Use a strong password to pass AuthMe security checks
