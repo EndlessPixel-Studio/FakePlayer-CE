@@ -13,7 +13,11 @@ import java.net.InetAddress;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Paper integration for LibreLogin and LibreLoginNext.
@@ -32,6 +36,9 @@ public class LibreLoginCompat implements LoginCompat {
     private final String apiPackage;
     private final String providerClassName;
     private final String apiGetter;
+    private final Map<UUID, Object> createdUsers = new ConcurrentHashMap<>();
+    private final Map<UUID, Object> usersByFakePlayer = new ConcurrentHashMap<>();
+    private final Map<UUID, CompletableFuture<Void>> pendingCleanups = new ConcurrentHashMap<>();
 
     public LibreLoginCompat(
             @NotNull String pluginName,
@@ -86,6 +93,7 @@ public class LibreLoginCompat implements LoginCompat {
             user = createUser.invoke(api, new Object[]{
                     userId, null, null, fakePlayer.getName(), now, now, null, address.getHostAddress(), null, null, null
             });
+            createdUsers.put(fakePlayer.getUniqueId(), user);
             invoke(database, "insertUser", user);
             return true;
         } catch (Throwable throwable) {
@@ -104,6 +112,7 @@ public class LibreLoginCompat implements LoginCompat {
                 throw new IllegalStateException("user record was not created");
             }
 
+            usersByFakePlayer.put(fakePlayer.getUniqueId(), user);
             Object listeners = getField(api, PAPER_LISTENERS_FIELD);
             Object userCache = getField(listeners, USER_CACHE_FIELD);
             invoke(userCache, "put", fakePlayer.getUniqueId(), user);
@@ -122,33 +131,99 @@ public class LibreLoginCompat implements LoginCompat {
                 return;
             }
 
-            try {
-                Object api = getApi();
-                Object database = invoke(api, "getDatabaseProvider");
-                Object user = getUser(database, fakePlayer.getName());
-                if (user == null) {
-                    throw new IllegalStateException("user record was not found");
-                }
-
-                Object authorization = invoke(api, "getAuthorizationProvider");
-                if ((boolean) invoke(authorization, "isAuthorized", fakePlayer)) {
-                    return;
-                }
-
-                Method authorize = findMethod(authorization, "authorize", user, fakePlayer, null);
-                Class<?> reasonType = authorize.getParameterTypes()[2];
-                if (!reasonType.isEnum()) {
-                    throw new IllegalStateException("unexpected authentication reason type: " + reasonType.getName());
-                }
-                Object loginReason = Arrays.stream(reasonType.getEnumConstants())
-                        .filter(value -> ((Enum<?>) value).name().equals("LOGIN"))
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalStateException("LOGIN authentication reason is unavailable"));
-                authorize.invoke(authorization, user, fakePlayer, loginReason);
-            } catch (Throwable throwable) {
-                warn("could not authorize fake player " + fakePlayer.getName(), throwable);
-            }
+            Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> authorize(fakePlayer));
         });
+    }
+
+    private void authorize(Player fakePlayer) {
+        try {
+            Object api = getApi();
+            Object user = usersByFakePlayer.get(fakePlayer.getUniqueId());
+            if (user == null) {
+                Object database = invoke(api, "getDatabaseProvider");
+                user = getUser(database, fakePlayer.getName());
+            }
+            if (user == null) {
+                throw new IllegalStateException("user record was not found");
+            }
+
+            Object authorization = invoke(api, "getAuthorizationProvider");
+            if ((boolean) invoke(authorization, "isAuthorized", fakePlayer)) {
+                return;
+            }
+
+            Method authorize = findMethod(authorization, "authorize", user, fakePlayer, null);
+            Class<?> reasonType = authorize.getParameterTypes()[2];
+            if (!reasonType.isEnum()) {
+                throw new IllegalStateException("unexpected authentication reason type: " + reasonType.getName());
+            }
+            Object loginReason = Arrays.stream(reasonType.getEnumConstants())
+                    .filter(value -> ((Enum<?>) value).name().equals("LOGIN"))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("LOGIN authentication reason is unavailable"));
+            authorize.invoke(authorization, user, fakePlayer, loginReason);
+        } catch (Throwable throwable) {
+            warn("could not authorize fake player " + fakePlayer.getName(), throwable);
+        } finally {
+            usersByFakePlayer.remove(fakePlayer.getUniqueId());
+        }
+    }
+
+    @Override
+    public void cleanup(@NotNull Player fakePlayer) {
+        cleanup(fakePlayer.getUniqueId());
+    }
+
+    @Override
+    public void cleanupAll() {
+        for (UUID fakePlayerId : createdUsers.keySet()) {
+            cleanup(fakePlayerId);
+        }
+        CompletableFuture.allOf(pendingCleanups.values().toArray(CompletableFuture[]::new)).join();
+    }
+
+    private void cleanup(UUID fakePlayerId) {
+        Object createdUser = createdUsers.remove(fakePlayerId);
+        usersByFakePlayer.remove(fakePlayerId);
+        if (createdUser == null) {
+            return;
+        }
+
+        try {
+            Object api = getApi();
+            Object database = invoke(api, "getDatabaseProvider");
+            Object userRecord = createdUser;
+            CompletableFuture<Void> task = CompletableFuture.runAsync(() -> deleteTemporaryUser(
+                    database,
+                    userRecord,
+                    fakePlayerId
+            ));
+            pendingCleanups.put(fakePlayerId, task);
+            task.whenComplete((ignored, throwable) -> pendingCleanups.remove(fakePlayerId, task));
+        } catch (Throwable throwable) {
+            warn("could not remove temporary login record for fake player " + fakePlayerId, throwable);
+        }
+    }
+
+    private void deleteTemporaryUser(Object database, Object createdUser, UUID fakePlayerId) {
+        try {
+            UUID userId = (UUID) invoke(createdUser, "getUuid");
+            Object currentUser = invoke(database, "getByUUID", userId);
+            if (currentUser == null) {
+                return;
+            }
+
+            String createdName = (String) invoke(createdUser, "getLastNickname");
+            String currentName = (String) invoke(currentUser, "getLastNickname");
+            boolean registered = (boolean) invoke(currentUser, "isRegistered");
+            if (!Objects.equals(createdName, currentName) || registered) {
+                return;
+            }
+
+            invoke(database, "deleteUser", currentUser);
+        } catch (Throwable throwable) {
+            warn("could not remove temporary login record for fake player " + fakePlayerId, throwable);
+        }
     }
 
     private Object getApi() throws ReflectiveOperationException {
@@ -238,6 +313,7 @@ public class LibreLoginCompat implements LoginCompat {
                 }
             }
             if (compatible) {
+                method.setAccessible(true);
                 return method;
             }
         }

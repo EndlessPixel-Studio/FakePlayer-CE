@@ -205,7 +205,16 @@ public class Fakeplayer {
 
                     this.teleportToSpawnpoint(option.spawnAt().clone());
                     this.ticker.runTaskTimer(Main.getInstance(), 0, 1);
-                }));
+                }))
+                .whenComplete((ignored, throwable) -> {
+                    if (throwable != null) {
+                        SchedulerUtils.runTask(Main.getInstance(), () -> {
+                            if (!player.isOnline()) {
+                                loginCompatManager.cleanup(player);
+                            }
+                        });
+                    }
+                });
     }
 
     /**

@@ -157,6 +157,9 @@ public final class Main extends JavaPlugin {
             Exceptions.suppress(this, fakeplayerManager::onDisable);
             fakeplayerManager = null;
         }
+        if (injector != null) {
+            Exceptions.suppress(this, () -> injector.getInstance(LoginCompatManager.class).cleanupAll());
+        }
         if (usedIdRepository != null) {
             Exceptions.suppress(this, usedIdRepository::onDisable);
             usedIdRepository = null;

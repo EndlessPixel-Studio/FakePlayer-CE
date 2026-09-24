@@ -40,6 +40,18 @@ public interface LoginCompat {
     }
 
     /**
+     * 清理该兼容层为假人临时创建的登录资料。默认无需处理。
+     */
+    default void cleanup(@NotNull Player fakePlayer) {
+    }
+
+    /**
+     * 插件关闭时清理所有临时登录资料。默认无需处理。
+     */
+    default void cleanupAll() {
+    }
+
+    /**
      * 将假人标记为已登录 / 豁免该登录插件的拦截。
      *
      * @param fakePlayer 刚生成、已加入服务器的假人

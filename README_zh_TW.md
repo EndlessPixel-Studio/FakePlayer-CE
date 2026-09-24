@@ -429,10 +429,11 @@ FakePlayer CE 會自動相容主流登入插件，在假人加入時將其標記
 |---|---|---|
 | AuthMe / AuthMeReloaded | 自動 forceLogin / forceRegister | 假人生成後經 AuthMe 公開 API 標記為已登入；未註冊過的假人使用隨機短密碼自動註冊並登入 |
 | CatSeedLogin / ReCatSeedLogin | 自動加入登入名單 | 假人生成後寫入插件的 `loginPlayers` 名單（`isLogin` 為真），不會被 `auto-kick` 踢出 |
+| LibreLogin（Paper）/ LibreLoginNext（Paper） | API 授權 | 假人在線期間會在資料庫暫時建立無密碼的未註冊帳號記錄，斷線或正常關閉時清理。已有帳號只會在名稱大小寫完全相同時重用，且不會由相容層刪除；伺服器意外崩潰時暫存記錄可能殘留。 |
 
 - **自動生效**：相容邏輯以 `softdepend` 方式宣告對應登入插件，僅當伺服器裝有該插件時才載入，未安裝時沒有任何影響。
-- **零密碼 / 零資料庫**：相容層透過反射呼叫登入插件的公開 API 直接標記登入狀態，無需為假人設定帳號密碼，也不依賴資料庫。
-- **相關 Issue / PR**：CatSeedLogin 相容見 #17 / #18，AuthMe 相容見 #19。
+- **資料庫行為**：CatSeedLogin 只更新記憶體中的登入名單；LibreLogin Paper 需要暫存一筆使用者記錄，斷線或正常關閉時刪除；AuthMe 對新名稱會透過 `forceRegister` 建立帳號。
+- **相關 Issue / PR**：CatSeedLogin 相容見 #17 / #18，AuthMe 相容見 #19，LibreLogin 相容見 #26。
 
 ### 自動登入（self-commands / 密碼）
 
@@ -471,7 +472,7 @@ prevent-kicking: ALWAYS
 
 ### 假人一段時間後自動掉線
 
-若伺服器裝有登入插件，假人可能因長時間未登入被踢出。FakePlayer CE 已內建 **AuthMe / CatSeedLogin 相容**，假人生成時會自動標記為已登入，通常無需額外設定（詳見上文「登入插件相容」）。如所用登入插件暫無內建相容，可在 `config.yml` 的 `self-commands` 中填入註冊 / 登入指令作為兜底：
+若伺服器裝有登入插件，假人可能因長時間未登入被踢出。FakePlayer CE 已內建 **AuthMe / CatSeedLogin / LibreLogin / LibreLoginNext 相容**，假人生成時會自動標記為已登入，通常無需額外設定（詳見上文「登入插件相容」）。如所用登入插件暫無內建相容，可在 `config.yml` 的 `self-commands` 中填入註冊 / 登入指令作為兜底：
 
 ```yaml
 # 請設定高強度密碼，避免被 AuthMe 安全策略攔截
