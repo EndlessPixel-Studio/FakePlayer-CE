@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       # 保留 JDK 25
       - name: Setup JDK 25
