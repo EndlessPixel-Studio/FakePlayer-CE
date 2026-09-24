@@ -33,5 +33,5 @@ dependencies {
     compileOnly("org.jetbrains:annotations:26.1.0")
     
     // Adventure API for text components
-    compileOnly("net.kyori:adventure-api:4.17.0")
+    compileOnly("net.kyori:adventure-api:5.2.0")
 }
