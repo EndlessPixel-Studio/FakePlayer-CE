@@ -70,6 +70,28 @@ public class LoginCompatManager {
         }
     }
 
+    /**
+     * 清理假人离线后不再需要的临时登录资料。
+     */
+    public void cleanup(@NotNull Player fakePlayer) {
+        for (LoginCompat compat : compats) {
+            if (isEnabled(compat.pluginName())) {
+                compat.cleanup(fakePlayer);
+            }
+        }
+    }
+
+    /**
+     * 插件关闭时清理所有临时登录资料。
+     */
+    public void cleanupAll() {
+        for (LoginCompat compat : compats) {
+            if (isEnabled(compat.pluginName())) {
+                compat.cleanupAll();
+            }
+        }
+    }
+
     private boolean isEnabled(@NotNull String pluginName) {
         Plugin plugin = Bukkit.getPluginManager().getPlugin(pluginName);
         return plugin != null && plugin.isEnabled();

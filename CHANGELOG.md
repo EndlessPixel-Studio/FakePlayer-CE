@@ -12,14 +12,14 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
-- **Login plugin compatibility.** Fake players are now marked as logged in for AuthMe / AuthMeReloaded, CatSeedLogin / ReCatSeedLogin and LibreLogin (Paper) / LibreLoginNext (Paper) — AuthMe through its public API (`forceLogin` / `forceRegister`, auto-registering unregistered names with a random short password), CatSeedLogin by adding the fake player to its `loginPlayers` list, LibreLogin by creating an unregistered user record and authorizing it on spawn (no password; existing records are reused when the name's capitalization matches). All of them are declared as `softdepend` and load only when that plugin is installed (#17, #19, #26).
+- **Login plugin compatibility.** Fake players are now marked as logged in for AuthMe / AuthMeReloaded, CatSeedLogin / ReCatSeedLogin and LibreLogin (Paper) / LibreLoginNext (Paper) — AuthMe through its public API (`forceLogin` / `forceRegister`, auto-registering unregistered names with a random short password), CatSeedLogin by adding the fake player to its `loginPlayers` list, LibreLogin by creating a temporary unregistered user record for an online fake player and authorizing it on spawn (no password; removed on disconnect or orderly shutdown; existing records are reused only when name capitalization matches). All of them are declared as `softdepend` and load only when that plugin is installed (#17, #19, #26).
 - **`/fp say` now goes through the chat event pipeline.** Messages are sent as unsigned chat through `ChatProcessor`, fully triggering `AsyncPlayerChatEvent` / `AsyncChatEvent` so chat-formatting plugins (EssentialsX Chat, Vane, …) can modify the format; the result is broadcast unless the event is cancelled. Previously chat was silently dropped on modern versions because of signature verification (#21).
 - Fixed AuthMe login failing with short passwords, and CatSeedLogin compatibility when its classes live in a different location.
 - Fixed command help ignoring the configured locale: help text is now resolved with the plugin's configured locale (#20).
 
 ### 中文
 
-- **新增登录插件兼容。** 假人生成时会被自动标记为已登录，现支持 AuthMe / AuthMeReloaded、CatSeedLogin / ReCatSeedLogin 与 LibreLogin（Paper）/ LibreLoginNext（Paper）——AuthMe 走公开 API（`forceLogin` / `forceRegister`，未注册的名称用随机短密码自动注册），CatSeedLogin 写入其 `loginPlayers` 名单，LibreLogin 创建未注册账号记录并在生成时授权（不设置密码；名称大小写一致时复用已有记录）。三者均以 `softdepend` 声明，仅在对应插件安装时加载（#17、#19、#26）。
+- **新增登录插件兼容。** 假人生成时会被自动标记为已登录，现支持 AuthMe / AuthMeReloaded、CatSeedLogin / ReCatSeedLogin 与 LibreLogin（Paper）/ LibreLoginNext（Paper）——AuthMe 走公开 API（`forceLogin` / `forceRegister`，未注册的名称用随机短密码自动注册），CatSeedLogin 写入其 `loginPlayers` 名单，LibreLogin 为在线假人创建临时未注册记录并在生成时授权（不设置密码；断开连接或正常关闭时清理；仅名称大小写一致时复用已有记录）。三者均以 `softdepend` 声明，仅在对应插件安装时加载（#17、#19、#26）。
 - **`/fp say` 现走聊天事件管线。** 消息以未签名形式交给 `ChatProcessor` 处理，完整触发 `AsyncPlayerChatEvent` / `AsyncChatEvent`，聊天格式化插件（EssentialsX Chat、Vane 等）可介入修改格式；事件未取消时按结果广播。此前因新版签名校验，聊天会被静默丢弃（#21）。
 - 修复 AuthMe 短密码登录失败，以及 CatSeedLogin 类位于不同位置时的兼容问题。
 - 修复命令帮助未遵循配置语言：帮助文本现按插件配置的 locale 解析（#20）。
