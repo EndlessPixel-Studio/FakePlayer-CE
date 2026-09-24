@@ -1,0 +1,50 @@
+name: Sync README to NexusMC
+
+# 监听 README_zh.md 变更：master 上更新后同步到 NexusMC 资源正文（content）。
+# 与 sync-modrinth.yml 的区别：NexusMC 的 content 收的是 TipTap JSON 而非 Markdown，
+# 转换由 .github/scripts/sync_nexusmc.py 完成（含相对链接改绝对、不可见字符净化）。
+#
+# 注意：更新已发布（approved）的资源会重新进入审核（status -> pending），
+# 审核期间前台仍展示旧内容。这是平台行为，非本工作流可控制。
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'README_zh.md'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '只打印转换结果，不发送 PATCH'
+        type: boolean
+        default: false
+
+# CI 只调用 NexusMC API（token 走 secret），不需要写仓库
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-nexusmc-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync README_zh.md to NexusMC content
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Convert README and PATCH NexusMC content
+        env:
+          NEXUSMC_TOKEN: ${{ secrets.NEXUSMC_TOKEN }}
+          NEXUSMC_RESOURCE_ID: ${{ vars.NEXUSMC_RESOURCE_ID }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.ref_name }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+        run: |
+          python3 -m py_compile .github/scripts/sync_nexusmc.py
+          python3 .github/scripts/sync_nexusmc.py
