@@ -6,6 +6,7 @@ import io.github.hello09x.devtools.core.utils.SchedulerUtils;
 import io.github.hello09x.devtools.core.utils.WorldUtils;
 import io.github.hello09x.fakeplayer.api.spi.*;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.compat.login.LoginCompatManager;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.config.PreventKicking;
 import io.github.hello09x.fakeplayer.core.constant.MetadataKeys;
@@ -47,6 +48,7 @@ public class Fakeplayer {
     private final FakeplayerSkinManager skinManager;
     private final FakeplayerReplenishManager replenishManager;
     private final FakeplayerAutofishManager autofishManager;
+    private final LoginCompatManager loginCompatManager;
     private final ActionManager actionManager;
 
     @NotNull
@@ -105,6 +107,7 @@ public class Fakeplayer {
         this.skinManager = injector.getInstance(FakeplayerSkinManager.class);
         this.replenishManager = injector.getInstance(FakeplayerReplenishManager.class);
         this.autofishManager = injector.getInstance(FakeplayerAutofishManager.class);
+        this.loginCompatManager = injector.getInstance(LoginCompatManager.class);
         this.actionManager = injector.getInstance(ActionManager.class);
         this.nameManager = injector.getInstance(NameManager.class);
 
@@ -131,6 +134,12 @@ public class Fakeplayer {
         var address = ipGen.next();
         return SchedulerUtils
                 .runTaskAsynchronously(Main.getInstance(), () -> {
+                    if (!loginCompatManager.prepare(player, address)) {
+                        throw new CommandException(text(
+                                "Could not prepare login compatibility for fake player " + name
+                        ));
+                    }
+
                     var event = this.callPreLoginEvent(address);
                     if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
                         throw new CommandException(translatable(
@@ -138,6 +147,11 @@ public class Fakeplayer {
                                 text(player.getName(), WHITE),
                                 event.kickMessage()
                         ).color(RED));
+                    }
+                    if (!loginCompatManager.afterPreLogin(player)) {
+                        throw new CommandException(text(
+                                "Could not complete login compatibility for fake player " + name
+                        ));
                     }
                 })
                 .thenComposeAsync(nul -> SchedulerUtils.runTask(Main.getInstance(), () -> {

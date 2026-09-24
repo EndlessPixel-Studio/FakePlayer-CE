@@ -3,6 +3,8 @@ package io.github.hello09x.fakeplayer.core.compat.login;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.InetAddress;
+
 /**
  * 登录插件兼容抽象。
  * <p>主流登录插件（AuthMe / CatSeedLogin 等）在玩家未登录时会冻结移动/交互、拦截命令并在超时后踢出。
@@ -15,6 +17,27 @@ public interface LoginCompat {
      */
     @NotNull
     String pluginName();
+
+    /**
+     * 在触发登录插件的预登录事件前准备假人账号。默认无需处理。
+     *
+     * @param fakePlayer 尚未加入服务器的假人
+     * @param address 假人的内部连接地址
+     * @return 是否可以继续生成
+     */
+    default boolean prepare(@NotNull Player fakePlayer, @NotNull InetAddress address) {
+        return true;
+    }
+
+    /**
+     * 登录插件处理完预登录事件后同步其玩家缓存。默认无需处理。
+     *
+     * @param fakePlayer 尚未加入服务器的假人
+     * @return 是否可以继续生成
+     */
+    default boolean afterPreLogin(@NotNull Player fakePlayer) {
+        return true;
+    }
 
     /**
      * 将假人标记为已登录 / 豁免该登录插件的拦截。
