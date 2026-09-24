@@ -46,8 +46,8 @@ dependencies {
     // expose the server's adventure to plugin classloaders, which caused devtools (which still
     // references net.kyori.adventure.translation.* and the removed UTF8ResourceBundleControl) to
     // fail with NoClassDefFoundError on newer servers (e.g. Leaf 26.2).
-    implementation("net.kyori:adventure-api:4.17.0")
-    implementation("net.kyori:adventure-text-minimessage:4.17.0")
+    implementation("net.kyori:adventure-api:5.2.0")
+    implementation("net.kyori:adventure-text-minimessage:5.2.0")
     
     // Other dependencies
     compileOnly("commons-io:commons-io:2.22.0")
