@@ -52,7 +52,7 @@ jobs:
       # PR 仅验证构建，产物主要用于发布，故仅 push 到 master 时上传
       - name: Upload artifacts
         if: ${{ github.event_name == 'push' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fakeplayer-ce
           path: fakeplayer-dist/build/libs/*.jar
