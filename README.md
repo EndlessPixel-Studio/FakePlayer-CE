@@ -431,11 +431,11 @@ FakePlayer CE automatically stays compatible with mainstream login plugins, mark
 |---|---|---|
 | AuthMe / AuthMeReloaded | Auto forceLogin / forceRegister | Fake players are marked logged in via AuthMe's public API on spawn; unregistered fake players are auto-registered with a random short password and logged in |
 | CatSeedLogin / ReCatSeedLogin | Auto-added to login list | Fake players are written into the plugin's `loginPlayers` list (`isLogin` = true) on spawn, so they are not kicked by `auto-kick` |
-| LibreLogin (Paper) / LibreLoginNext (Paper) | API authorization | The API creates an unregistered user record for a new fake-player name and authorizes it on spawn. The record remains in the login plugin's database; no password is assigned. Existing records are reused when the name's capitalization matches. |
+| LibreLogin (Paper) / LibreLoginNext (Paper) | API authorization | A temporary unregistered database record is created for a new fake-player name while it is online, then removed on disconnect or orderly plugin shutdown. No password is assigned. Existing records are reused when the name's capitalization matches and are never removed by this compatibility layer. An abrupt server crash can leave a temporary record behind. |
 
 - **Automatic**: the compatibility logic declares the corresponding login plugin as a `softdepend`, loading only when that plugin is installed; no effect when absent.
 - **Optional APIs**: AuthMe and LibreLogin use their plugin APIs through reflection, while CatSeedLogin uses its plugin-specific login helper. FakePlayer CE does not add compile-time dependencies on these plugins.
-- **Related issues / PRs**: login-plugin compatibility in #17, CatSeedLogin in #18, AuthMe in #19.
+- **Related issues / PRs**: login-plugin compatibility in #17, CatSeedLogin in #18, AuthMe in #19, LibreLogin in #26.
 
 ### Auto-login (self-commands / password)
 
