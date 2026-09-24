@@ -59,8 +59,9 @@ FakePlayer CE ships as a **single universal jar** (`fakeplayer-fp.buildX.jar`) t
 
 ### 1. Stable release (recommended)
 
-Download the latest stable build from the GitHub Releases page:
+Download the latest stable build from Modrinth or the GitHub Releases page:
 
+- 🔷 [Modrinth](https://modrinth.com/plugin/fpce)
 - 📦 [Release Downloads](https://github.com/EndlessPixel/FakePlayer-CE/releases)
 
 Each release includes the pre-built `fakeplayer-fp.buildX.jar`. Place it into your server's `plugins/` folder.

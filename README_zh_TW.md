@@ -58,8 +58,9 @@ FakePlayer CE 以**單一通用 jar**（`fakeplayer-fp.buildX.jar`）形式發�
 
 ### 1. 穩定版發布（推薦）
 
-從 GitHub Releases 頁面下載最新穩定建置：
+從 Modrinth 或 GitHub Releases 頁面下載最新穩定建置：
 
+- 🔷 [Modrinth](https://modrinth.com/plugin/fpce)
 - 📦 [Release 發布下載](https://github.com/EndlessPixel/FakePlayer-CE/releases)
 
 每個 Release 均包含預先建置的 `fakeplayer-fp.buildX.jar`，將其放入伺服器端的 `plugins/` 目錄即可。
