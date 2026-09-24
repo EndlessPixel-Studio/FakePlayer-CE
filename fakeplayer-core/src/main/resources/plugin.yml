@@ -12,6 +12,8 @@ softdepend:
   - PlaceholderAPI
   - CatSeedLogin
   - AuthMe
+  - LibreLogin
+  - LibreLoginNext
 
 permissions:
   fakeplayer.command.spawn:
