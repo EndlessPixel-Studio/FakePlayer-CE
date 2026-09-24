@@ -3,9 +3,6 @@
 ######################
 .gradle/
 build/
-gradlew
-gradlew.bat
-gradle.properties
 
 ######################
 # Java
@@ -85,7 +82,6 @@ session.lock
 ######################
 # IDE
 ######################
-# IntelliJ IDEA / Android Studio
 .idea/
 *.iml
 *.ipr
@@ -93,16 +89,13 @@ session.lock
 out/
 buildtool/
 
-# Eclipse
 .project
 .classpath
 .settings/
 bin/
 
-# VS Code
 .vscode/
 
-# NetBeans
 nbproject/private/
 nbbuild/
 dist/
