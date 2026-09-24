@@ -7,9 +7,10 @@ import dev.jorel.commandapi.arguments.EntitySelectorArgument;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import io.github.hello09x.devtools.command.HelpCommand;
-import io.github.hello09x.devtools.core.utils.ComponentUtils;
+import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
+import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.command.impl.*;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.constant.Direction;
@@ -21,8 +22,8 @@ import java.util.List;
 
 import static io.github.hello09x.devtools.command.Commands.*;
 import static io.github.hello09x.fakeplayer.core.command.CommandSupports.*;
-import static net.kyori.adventure.text.Component.translatable;
 
+import static net.kyori.adventure.text.Component.translatable;
 
 @Singleton
 public class CommandRegistry {
@@ -102,12 +103,10 @@ public class CommandRegistry {
     private FakeplayerConfig config;
 
     public void register() {
+        var helpLocale = TranslatorUtils.getDefaultLocale(Main.getInstance());
+        var helpLocalizer = new CommandHelpLocalizer(Main.getInstance(), helpLocale);
         var root = command("fakeplayer")
                 .withAliases("fp")
-                .withHelp(
-                        ComponentUtils.toString(translatable("fakeplayer.command.fp.short-description"), null),
-                        ComponentUtils.toString(translatable("fakeplayer.command.fp.full-description"), null)
-                )
                 .withUsage(
                         "type fp ? for more information",
                         "hello09x [汤姆]"
@@ -551,7 +550,12 @@ public class CommandRegistry {
                                 )
 
                 );
-        HelpCommand.generateHelpCommand(root, true);
+        root.withHelp(
+                helpLocalizer.translate("fakeplayer.command.fp.short-description"),
+                helpLocalizer.translate("fakeplayer.command.fp.full-description")
+        );
+        helpLocalizer.localizeDescriptions(root);
+        HelpCommand.generateHelpCommand(root, false);
         root.register();
     }
 
