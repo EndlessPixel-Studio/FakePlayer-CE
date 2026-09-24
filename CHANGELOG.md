@@ -8,6 +8,18 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - 只记录影响用户 / 运行时行为的变更（新功能、修复、破坏性变更、配置或权限变化）。不写构建工具链、静态分析、死代码清理、重构等内部维护（顺带修复的功能缺陷只写修复本身）。
 - 版本号 `fp.buildN` 仅在发布时提升。
 
+## fp.build12 - 2026-09-24
+
+### English
+
+- **LibreLogin compatibility.** Fake players are auto-authorized for LibreLogin (Paper) / LibreLoginNext (Paper): an unregistered user record is created for a new fake-player name and authorized on spawn; no password is assigned, and existing records are reused when the name's capitalization matches. As with other login plugins, it is declared as a `softdepend` and loads only when installed.
+- Fixed command help ignoring the configured locale: help text is now resolved with the plugin's configured locale (#20).
+
+### 中文
+
+- **新增 LibreLogin 兼容。** 假人对 LibreLogin（Paper）/ LibreLoginNext（Paper）自动授权：为新假人名称创建未注册账号记录并在生成时通过 API 授权，不设置密码；名称大小写一致时复用已有记录。与其他登录插件一致，以 `softdepend` 声明，仅在插件安装时加载。
+- 修复命令帮助未遵循配置语言：帮助文本现按插件配置的 locale 解析（#20）。
+
 ## fp.build11 - 2026-09-23
 
 ### English
