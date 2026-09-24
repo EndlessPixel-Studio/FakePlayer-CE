@@ -8,8 +8,7 @@ updates:
     open-pull-requests-limit: 10
     target-branch: "master"
     labels:
-      - "dependencies"
-      - "gradle"
+      - "dependency | 依赖"
     commit-message:
       prefix: "build"
       include: "scope"
@@ -22,8 +21,7 @@ updates:
     open-pull-requests-limit: 10
     target-branch: "master"
     labels:
-      - "dependencies"
-      - "github-actions"
+      - "dependency | 依赖"
     commit-message:
       prefix: "ci"
       include: "scope"
