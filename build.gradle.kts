@@ -34,8 +34,8 @@ subprojects {
     }
 
     dependencies {
-        compileOnly("org.projectlombok:lombok:1.18.36")
-        annotationProcessor("org.projectlombok:lombok:1.18.36")
+        compileOnly("org.projectlombok:lombok:1.18.48")
+        annotationProcessor("org.projectlombok:lombok:1.18.48")
         compileOnly("com.mojang:authlib:4.0.43")
         compileOnly("dev.jorel:commandapi-paper-core:12.0.0")
         compileOnly("com.mojang:brigadier:1.1.8")
