@@ -429,10 +429,11 @@ FakePlayer CE 会自动兼容主流登录插件，在假人加入时将其标记
 |---|---|---|
 | AuthMe / AuthMeReloaded | 自动 forceLogin / forceRegister | 假人生成后经 AuthMe 公开 API 标记为已登录；未注册过的假人使用随机短密码自动注册并登录 |
 | CatSeedLogin / ReCatSeedLogin | 自动加入登录名单 | 假人生成后写入插件的 `loginPlayers` 名单（`isLogin` 为真），不会被 `auto-kick` 踢出 |
+| LibreLogin（Paper）/ LibreLoginNext（Paper） | API 授权 | 新假人名称会在登录插件数据库中创建未注册账号记录，并在生成时通过 API 授权；记录会保留在登录插件数据库中，不设置密码。已有账号在名称大小写一致时会直接复用。 |
 
-- **自动生效**：兼容逻辑以 `softdepend` 方式声明对应登录插件，仅当服务器装有该插件时才加载，未安装时无任何影响。
-- **零密码 / 零数据库**：兼容层通过反射调用登录插件的公开 API 直接标记登录状态，无需为假人配置账号密码，也不依赖数据库。
-- **相关 Issue / PR**：CatSeedLogin 兼容见 #17 / #18，AuthMe 兼容见 #19。
+- **自动生效**：兼容逻辑以 `softdepend` 方式声明对应登录插件，仅当服务器装有该插件时才生效，未安装时无任何影响。
+- **可选 API**：AuthMe 与 LibreLogin 通过反射调用对应插件 API；CatSeedLogin 使用其专用登录辅助类。FakePlayer CE 不添加这些插件的编译期依赖。
+- **相关 Issue / PR**：登录插件兼容见 #17，CatSeedLogin 见 #18，AuthMe 见 #19。
 
 ### 自动登录（self-commands / 密码）
 
@@ -471,7 +472,7 @@ prevent-kicking: ALWAYS
 
 ### 假人一段时间后自动掉线
 
-若服务器装有登录插件，假人可能因长时间未登录被踢出。FakePlayer CE 已内置 **AuthMe / CatSeedLogin 兼容**，假人生成时会自动标记为已登录，通常无需额外配置（详见上文「登录插件兼容」）。如所用登录插件暂无内置兼容，可在 `config.yml` 的 `self-commands` 中填入注册 / 登录指令作为兜底：
+若服务器装有登录插件，假人可能因长时间未登录被踢出。FakePlayer CE 已内置 **AuthMe / CatSeedLogin / LibreLogin / LibreLoginNext 兼容**，假人生成时会自动标记为已登录，通常无需额外配置（详见上文「登录插件兼容」）。如所用登录插件暂无内置兼容，可在 `config.yml` 的 `self-commands` 中填入注册 / 登录指令作为兜底：
 
 ```yaml
 # 请设置高强度密码，避免被 AuthMe 安全策略拦截

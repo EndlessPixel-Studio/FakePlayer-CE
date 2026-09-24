@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.InetAddress;
 import java.util.List;
 
 /**
@@ -17,8 +18,44 @@ public class LoginCompatManager {
 
     private final List<LoginCompat> compats = List.of(
             new CatSeedLoginCompat(),
-            new AuthMeCompat()
+            new AuthMeCompat(),
+            new LibreLoginCompat(
+                    "LibreLogin",
+                    "xyz.kyngs.librelogin",
+                    "xyz.kyngs.librelogin.api.provider.LibreLoginProvider",
+                    "getLibreLogin"
+            ),
+            new LibreLoginCompat(
+                    "LibreLoginNext",
+                    "xyz.miguvt.libreloginnext",
+                    "xyz.miguvt.libreloginnext.api.provider.LibreLoginNextProvider",
+                    "getLibreLoginNext"
+            )
     );
+
+    /**
+     * 在登录插件处理预登录事件前，为假人准备其登录资料。
+     */
+    public boolean prepare(@NotNull Player fakePlayer, @NotNull InetAddress address) {
+        for (LoginCompat compat : compats) {
+            if (isEnabled(compat.pluginName()) && !compat.prepare(fakePlayer, address)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 登录插件完成预登录事件后同步其内部的玩家缓存。
+     */
+    public boolean afterPreLogin(@NotNull Player fakePlayer) {
+        for (LoginCompat compat : compats) {
+            if (isEnabled(compat.pluginName()) && !compat.afterPreLogin(fakePlayer)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * 对假人执行所有可用登录插件的豁免。
