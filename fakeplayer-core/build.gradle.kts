@@ -52,7 +52,7 @@ dependencies {
     // Other dependencies
     compileOnly("commons-io:commons-io:2.22.0")
     compileOnly("com.github.lishid:openinv:4.1.8")
-    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("me.clip:placeholderapi:2.12.3")
 }
 
 val pluginRevision: String = version.toString()
