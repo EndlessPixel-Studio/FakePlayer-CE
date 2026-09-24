@@ -7,6 +7,9 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     target-branch: "master"
+    labels:
+      - "dependencies"
+      - "gradle"
     commit-message:
       prefix: "build"
       include: "scope"
@@ -18,6 +21,9 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     target-branch: "master"
+    labels:
+      - "dependencies"
+      - "github-actions"
     commit-message:
       prefix: "ci"
       include: "scope"
