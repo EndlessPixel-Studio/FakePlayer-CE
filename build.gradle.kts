@@ -4,7 +4,7 @@ plugins {
     // 静态分析: pmd 是 Gradle 核心插件 (无需声明版本), spotbugs 只对
     // fakeplayer-api / fakeplayer-core 启用; 版本模块是 NMS 代码且编译到 Java 25,
     // SpotBugs 读不了那么新的 class 文件
-    id("com.github.spotbugs") version "6.4.2" apply false
+    id("com.github.spotbugs") version "6.5.11" apply false
 }
 
 allprojects {
