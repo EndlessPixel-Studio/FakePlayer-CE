@@ -3,31 +3,26 @@
 ######################
 .gradle/
 build/
-!gradle/wrapper/gradle-wrapper.jar
-!gradle/wrapper/gradle-wrapper.properties
-
 gradlew
 gradlew.bat
-
 gradle.properties
 
 ######################
 # Java
 ######################
 *.class
-*.log
-
-# Packaging
+*.jar
 *.war
 *.ear
-*.jar
 *.zip
 *.tar.gz
 *.rar
+*.log
 
-# JVM crash logs
+# JVM crash dumps
 hs_err_pid*
 replay_pid*
+*.hprof
 
 # BlueJ
 *.ctxt
@@ -35,36 +30,99 @@ replay_pid*
 # Mobile Tools for Java
 .mtj.tmp/
 
+# ⚠️ 必须放在 *.jar 之后，否则会被重新忽略
+!gradle/wrapper/gradle-wrapper.jar
+
 ######################
-# IntelliJ / Android Studio
+# Paper / Spigot 插件开发
 ######################
+# paperweight-userdev 缓存 / 重映射产物
+.paper-remapped/
+paperweight/
+*.paper-remapped.jar
+
+# 本地测试服务器（run-paper / paperweight / 手搭）
+run/
+runs/
+test-server/
+server/
+server-*/
+plugins/
+
+# 测试服务器运行时生成的文件
+eula.txt
+server.properties
+bukkit.yml
+spigot.yml
+paper.yml
+paper-global.yml
+paper-world-defaults.yml
+commands.yml
+help.yml
+permissions.yml
+banned-ips.json
+banned-players.json
+ops.json
+whitelist.json
+usercache.json
+usernamecache.json
+version_history.json
+logs/
+crash-reports/
+timings/
+
+# 测试服务器生成的世界数据
+world/
+world_nether/
+world_the_end/
+world_*/
+*.mca
+*.mcr
+*.mcc
+*.dat_old
+session.lock
+
+######################
+# IDE
+######################
+# IntelliJ IDEA / Android Studio
 .idea/
 *.iml
+*.ipr
+*.iws
 out/
 buildtool/
 
-# Serialized cache
-.idea/caches/build_file_checksums.ser
-
-# Crashlytics
-crashlytics.properties
-crashlytics-build.properties
-fabric.properties
-
-######################
 # Eclipse
-######################
 .project
 .classpath
 .settings/
 bin/
 
+# VS Code
+.vscode/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+
 ######################
-# Misc / Tools
+# Python（脚本/构建辅助）
+######################
+__pycache__/
+*.py[cod]
+
+######################
+# OS
+######################
+.DS_Store
+Thumbs.db
+desktop.ini
+
+######################
+# 项目本地工具 / 目录
 ######################
 marscode/
-test-server/
 .codebuddy/
-
-server-*/
-server/
