@@ -31,7 +31,7 @@ tasks.withType<com.github.spotbugs.snom.SpotBugsTask>().configureEach {
 dependencies {
     compileOnly(project(":fakeplayer-api"))
     compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
-    compileOnly("org.jetbrains:annotations:24.0.1")
+    compileOnly("org.jetbrains:annotations:26.1.0")
     
     // devtools libraries
     implementation("com.github.tanyaofei.devtools:devtools-core:0.1.7-SNAPSHOT")
