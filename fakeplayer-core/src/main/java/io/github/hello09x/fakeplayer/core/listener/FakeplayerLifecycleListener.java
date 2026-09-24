@@ -96,6 +96,7 @@ public class FakeplayerLifecycleListener implements Listener {
             try {
                 manager.dispatchCommands(new FakeplayerManager.DispatchCommandArgs(player.getName(),uuid.toString(),pendingFakeQuits.get(uuid)), config.getAfterQuitCommands());
             } finally {
+                loginCompatManager.cleanup(player);
                 pendingFakeQuits.remove(uuid);
             }
         }, 1);
