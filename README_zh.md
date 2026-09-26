@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/EndlessPixel-Studio/FakePlayer-CE/actions/workflows/ci.yml/badge.svg)](https://github.com/EndlessPixel-Studio/FakePlayer-CE/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/EndlessPixel-Studio/FakePlayer-CE)](LICENSE.txt)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1%20~%2026.2-5fbb47)](https://github.com/EndlessPixel-Studio/FakePlayer-CE)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1%20~%2026.3-5fbb47)](https://github.com/EndlessPixel-Studio/FakePlayer-CE)
 [![Built with JDK 25](https://img.shields.io/badge/Built%20with-JDK%2025-ED8B00?logo=openjdk&logoColor=white)](https://www.java.com)
 [![Platforms](https://img.shields.io/badge/Platforms-Paper%20%7C%20Spigot%20%7C%20Purpur-2d2d2d)](https://github.com/EndlessPixel-Studio/FakePlayer-CE)
 
@@ -14,14 +14,14 @@
 
 ---
 
-> **FakePlayer CE** 是基于 FakePlayer 原项目的社区维护分支，通过 Gradle 多模块架构重构，实现了对 Minecraft `1.20.1` 至 `26.2` 全版本的**单一 Jar 包兼容**。
+> **FakePlayer CE** 是基于 FakePlayer 原项目的社区维护分支，通过 Gradle 多模块架构重构，实现了对 Minecraft `1.20.1` 至 `26.3` 全版本的**单一 Jar 包兼容**。
 
 ## ⚠️ 社区版声明
 
 本仓库为 **FakePlayer CE（Community Edition）** —— 一个独立的社区维护分支，**并非 FakePlayer 官方原版**。
 
 - 本项目**不由原作者发布、维护或背书**，系基于开源协议二次开发的社区版本。
-- 核心目标：重构并扩展至 Minecraft `1.20.1` ~ `26.2` 全版本跨版本兼容，单一 Jar 包通吃。
+- 核心目标：重构并扩展至 Minecraft `1.20.1` ~ `26.3` 全版本跨版本兼容，单一 Jar 包通吃。
 - 所有 Bug、功能需求、问题反馈**请仅提交至本仓库**，切勿提交至上游原作者仓库。
 
 ---
@@ -41,7 +41,7 @@ FakePlayer 是一款受 [Carpet-Mod](https://github.com/gnembon/fabric-carpet) �
 
 | 增强项 | 说明 |
 |---|---|
-| **单 Jar 多版本** | 一个通用 Jar 覆盖 MC `1.20.1 ~ 26.2`，无需分版本下载 |
+| **单 Jar 多版本** | 一个通用 Jar 覆盖 MC `1.20.1 ~ 26.3`，无需分版本下载 |
 | **Gradle Kotlin DSL 构建** | 从 Maven 迁移至现代化 Gradle 多模块工程架构 |
 | **NMS 版本隔离** | 各版本 NMS 代码独立封装，降低未来 MC 版本适配成本 |
 | **持续兼容维护** | 持续跟进 Paper/Purpur 最新版本兼容性修复 |
@@ -54,7 +54,7 @@ FakePlayer 是一款受 [Carpet-Mod](https://github.com/gnembon/fabric-carpet) �
 
 ## 下载
 
-FakePlayer CE 以**单一通用 jar**（`fakeplayer-fp.buildX.jar`）形式发布，覆盖 Minecraft `1.20.1 ~ 26.2` 全版本。
+FakePlayer CE 以**单一通用 jar**（`fakeplayer-fp.buildX.jar`）形式发布，覆盖 Minecraft `1.20.1 ~ 26.3` 全版本。
 
 ### 1. 稳定版发布（推荐）
 
@@ -413,7 +413,7 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 ### FakePlayer CE 修改汇总
 
 1. **构建体系**：从 Maven 迁移至 Gradle Kotlin DSL 多模块工程
-2. **跨版本适配**：NMS 代码按版本拆分为独立模块，覆盖 `1.20.1 ~ 26.2`
+2. **跨版本适配**：NMS 代码按版本拆分为独立模块，覆盖 `1.20.1 ~ 26.3`
 3. **发布形式**：统一单通用 Jar 包，不再分版本单独分发
 4. **长期维护**：持续跟进 Paper/Purpur 新版本兼容性问题修复
 5. **多版本修复**：针对性修复跨版本运行时冲突 Bug

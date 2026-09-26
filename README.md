@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/EndlessPixel-Studio/FakePlayer-CE/actions/workflows/ci.yml/badge.svg)](https://github.com/EndlessPixel-Studio/FakePlayer-CE/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/EndlessPixel-Studio/FakePlayer-CE)](LICENSE.txt)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1%20~%2026.2-5fbb47)](https://github.com/EndlessPixel-Studio/FakePlayer-CE)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1%20~%2026.3-5fbb47)](https://github.com/EndlessPixel-Studio/FakePlayer-CE)
 [![Built with JDK 25](https://img.shields.io/badge/Built%20with-JDK%2025-ED8B00?logo=openjdk&logoColor=white)](https://www.java.com)
 [![Platforms](https://img.shields.io/badge/Platforms-Paper%20%7C%20Spigot%20%7C%20Purpur-2d2d2d)](https://github.com/EndlessPixel-Studio/FakePlayer-CE)
 
@@ -14,14 +14,14 @@ English | [简体中文](README_zh.md) | [繁體中文](README_zh_TW.md)
 
 ---
 
-> **FakePlayer CE** is a community-maintained fork of the original FakePlayer project, rebuilt with Gradle multi-module architecture to deliver **single-jar cross-version compatibility** for Minecraft `1.20.1` through `26.2`.
+> **FakePlayer CE** is a community-maintained fork of the original FakePlayer project, rebuilt with Gradle multi-module architecture to deliver **single-jar cross-version compatibility** for Minecraft `1.20.1` through `26.3`.
 
 ## ⚠️ Community Edition Statement
 
 This repository is **FakePlayer CE (Community Edition)** — an independent community fork, **NOT the original FakePlayer project**.
 
 - This project is **not maintained, endorsed, or released by the original author** of FakePlayer.
-- Refactored and extended to support **cross-version compatibility** from Minecraft `1.20.1` to `26.2` in a single universal jar.
+- Refactored and extended to support **cross-version compatibility** from Minecraft `1.20.1` to `26.3` in a single universal jar.
 - All issues, bugs, and feature requests should be submitted **exclusively to this repository** — please do not report them upstream.
 
 ---
@@ -42,7 +42,7 @@ FakePlayer is a server-side plugin inspired by [Carpet-Mod](https://github.com/g
 
 | Enhancement | Description |
 |---|---|
-| **Single-Jar Multi-Version** | One universal jar serves MC `1.20.1 ~ 26.2` — no per-version downloads |
+| **Single-Jar Multi-Version** | One universal jar serves MC `1.20.1 ~ 26.3` — no per-version downloads |
 | **Gradle Kotlin DSL Build** | Migrated from Maven to a modern Gradle multi-module project structure |
 | **Isolated NMS Modules** | Version-specific NMS code encapsulated independently, reducing adaptation cost for future releases |
 | **Ongoing Compatibility** | Continuous fixes for latest Paper/Purpur builds |
@@ -55,7 +55,7 @@ FakePlayer is a server-side plugin inspired by [Carpet-Mod](https://github.com/g
 
 ## Download
 
-FakePlayer CE ships as a **single universal jar** (`fakeplayer-fp.buildX.jar`) that supports Minecraft `1.20.1 ~ 26.2`.
+FakePlayer CE ships as a **single universal jar** (`fakeplayer-fp.buildX.jar`) that supports Minecraft `1.20.1 ~ 26.3`.
 
 ### 1. Stable release (recommended)
 
@@ -415,7 +415,7 @@ The original project is the foundation of this fork. It targets a **single fixed
 ### FakePlayer CE Changes
 
 1. **Build system**: Migrated from Maven to Gradle Kotlin DSL multi-module project
-2. **Cross-version support**: NMS code isolated into version-specific modules covering `1.20.1 ~ 26.2`
+2. **Cross-version support**: NMS code isolated into version-specific modules covering `1.20.1 ~ 26.3`
 3. **Unified release**: Single universal jar replaces per-version artifacts
 4. **Ongoing maintenance**: Continuous compatibility updates for latest Paper/Purpur builds
 5. **Multi-version fixes**: Targeted bug fixes for cross-version runtime conflicts
