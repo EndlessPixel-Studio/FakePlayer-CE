@@ -5,6 +5,7 @@ import com.google.inject.Singleton;
 import io.github.hello09x.devtools.core.utils.ComponentUtils;
 import io.github.hello09x.devtools.core.utils.MetadataUtils;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.constant.MetadataKeys;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
@@ -153,7 +154,7 @@ public class FakeplayerListener implements Listener {
 
         try {
             if (manager.getCreator(target) instanceof Player creator && manager.countByCreator(creator) == 1) {
-                Bukkit.getScheduler().runTaskLater(Main.getInstance(), creator::updateCommands, 1); // 需要下 1 tick 移除后才正确刷新
+                Schedulers.entityLater(Main.getInstance(), creator, 1, creator::updateCommands); // 需要下 1 tick 移除后才正确刷新
             }
         } finally {
             manager.cleanup(target);

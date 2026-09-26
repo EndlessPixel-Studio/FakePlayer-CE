@@ -2,7 +2,7 @@ package io.github.hello09x.fakeplayer.core.entity;
 
 import io.github.hello09x.devtools.command.exception.CommandException;
 import io.github.hello09x.devtools.core.utils.EntityUtils;
-import io.github.hello09x.devtools.core.utils.SchedulerUtils;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.devtools.core.utils.WorldUtils;
 import io.github.hello09x.fakeplayer.api.spi.*;
 import io.github.hello09x.fakeplayer.core.Main;
@@ -132,8 +132,8 @@ public class Fakeplayer {
      */
     public CompletableFuture<Void> spawnAsync(@NotNull SpawnOption option) {
         var address = ipGen.next();
-        return SchedulerUtils
-                .runTaskAsynchronously(Main.getInstance(), () -> {
+        return Schedulers
+                .callAsync(Main.getInstance(), () -> {
                     if (!loginCompatManager.prepare(player, address)) {
                         throw new CommandException(text(
                                 "Could not prepare login compatibility for fake player " + name
@@ -154,7 +154,7 @@ public class Fakeplayer {
                         ));
                     }
                 })
-                .thenComposeAsync(nul -> SchedulerUtils.runTask(Main.getInstance(), () -> {
+                .thenComposeAsync(nul -> Schedulers.callGlobal(Main.getInstance(), () -> {
                     this.player.setMetadata(MetadataKeys.SPAWNED_AT, new FixedMetadataValue(Main.getInstance(), Bukkit.getCurrentTick()));
                     {
                         var event = this.callLoginEvent(address);
@@ -204,11 +204,11 @@ public class Fakeplayer {
                     this.handle.setupClientOptions();   // 处理皮肤设置问题
 
                     this.teleportToSpawnpoint(option.spawnAt().clone());
-                    this.ticker.runTaskTimer(Main.getInstance(), 0, 1);
+                    this.ticker.run();
                 }))
                 .whenComplete((ignored, throwable) -> {
                     if (throwable != null) {
-                        SchedulerUtils.runTask(Main.getInstance(), () -> {
+                        Schedulers.global(Main.getInstance(), () -> {
                             if (!player.isOnline()) {
                                 loginCompatManager.cleanup(player);
                             }
@@ -235,7 +235,7 @@ public class Fakeplayer {
             }
         }
 
-        Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+        Schedulers.entity(Main.getInstance(), player, () -> {
             if (!EntityUtils.teleportAndSound(player, to)) {
                 this.creator.sendMessage(translatable(
                         "fakeplayer.command.spawn.error.teleport-failed",

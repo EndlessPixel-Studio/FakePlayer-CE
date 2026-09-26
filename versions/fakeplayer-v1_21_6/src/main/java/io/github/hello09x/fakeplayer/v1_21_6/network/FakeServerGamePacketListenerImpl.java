@@ -2,6 +2,7 @@ package io.github.hello09x.fakeplayer.v1_21_6.network;
 
 import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
@@ -44,7 +45,7 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
 
     public void handleClientboundSetEntityMotionPacket(@NotNull ClientboundSetEntityMotionPacket packet) {
         if (packet.getId() == this.player.getId() && this.player.hurtMarked) {
-            Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+            Schedulers.entity(Main.getInstance(), this.player.getBukkitEntity(), () -> {
                 this.player.hurtMarked = true;
                 this.player.lerpMotion(packet.getXa(), packet.getYa(), packet.getZa());
             });
