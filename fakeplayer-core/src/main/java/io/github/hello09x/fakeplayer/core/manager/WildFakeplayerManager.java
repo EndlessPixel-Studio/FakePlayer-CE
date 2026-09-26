@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -43,7 +44,7 @@ public class WildFakeplayerManager implements PluginMessageListener {
     public WildFakeplayerManager(FakeplayerManager manager, FakeplayerConfig config) {
         this.manager = manager;
         this.config = config;
-        Bukkit.getScheduler().runTaskTimer(Main.getInstance(), this::cleanup, 0, CLEANUP_PERIOD);
+        Schedulers.globalTimer(Main.getInstance(), 0, CLEANUP_PERIOD, this::cleanup);
     }
 
     @Override

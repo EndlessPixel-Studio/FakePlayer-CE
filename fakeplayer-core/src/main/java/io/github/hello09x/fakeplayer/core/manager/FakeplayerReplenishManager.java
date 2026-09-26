@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.github.hello09x.devtools.core.utils.BlockUtils;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.command.Permission;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.constant.MetadataKeys;
@@ -258,7 +259,7 @@ public class FakeplayerReplenishManager implements Listener {
             return;
         }
 
-        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+        Schedulers.entityLater(Main.getInstance(), target, 1, () -> {
             this.pendingReplenishments.remove(request);
             var allowRemainderStorage = this.pendingContainerReturns.remove(request);
             if (!target.isOnline()) {
@@ -281,7 +282,7 @@ public class FakeplayerReplenishManager implements Listener {
                 }
             }
 
-        }, 1);  // delay 1 是因为要等手上的物品在此 tick 消耗完
+        });  // delay 1 是因为要等手上的物品在此 tick 消耗完
     }
 
     /**
@@ -448,7 +449,7 @@ public class FakeplayerReplenishManager implements Listener {
                 continue;
             }
 
-            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+            Schedulers.entityLater(Main.getInstance(), target, 20, () -> {
                 if (!target.isOnline()) {
                     return;
                 }
@@ -485,7 +486,7 @@ public class FakeplayerReplenishManager implements Listener {
                     }
                 }
                 target.closeInventory(InventoryCloseEvent.Reason.PLAYER);
-            }, 20);
+            });
             return;
         }
     }
@@ -574,7 +575,7 @@ public class FakeplayerReplenishManager implements Listener {
             return;
         }
 
-        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+        Schedulers.entityLater(Main.getInstance(), target, 1, () -> {
             var wasBroken = Boolean.TRUE.equals(this.pendingToolReplacements.remove(request));
             if (!target.isOnline() || !this.isReplaceTools(target)) {
                 return;
@@ -614,7 +615,7 @@ public class FakeplayerReplenishManager implements Listener {
                                .isPresent()) {
                 this.replenishFromNearbyChest(target, slot, required, true);
             }
-        }, 1);
+        });
     }
 
     /**

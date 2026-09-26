@@ -6,6 +6,7 @@ import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerSkinManager;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -29,9 +30,9 @@ public class SkinCommand extends AbstractCommand {
     @Inject
     public SkinCommand(FakeplayerSkinManager manager) {
         this.manager = manager;
-        Bukkit.getScheduler().runTaskTimer(Main.getInstance(), () -> {
+        Schedulers.globalTimer(Main.getInstance(), 0, 1, () -> {
             spams.entrySet().removeIf(counter -> counter.getValue().decrementAndGet() <= 0);
-        }, 0, 1);
+        });
     }
 
     /**
@@ -56,7 +57,7 @@ public class SkinCommand extends AbstractCommand {
             this.manager.useOnlineSkinAsync(fake, player)
                         .thenAcceptAsync(success -> {
                             manager.rememberSkin(sender, fake, player);
-                            Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                            Schedulers.entity(Main.getInstance(), fake.getPlayer(), () -> {
                                 if (success) {
                                     fake.sendMessage(translatable("fakeplayer.command.generic.success"));
                                 }

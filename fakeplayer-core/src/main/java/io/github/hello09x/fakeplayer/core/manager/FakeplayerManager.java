@@ -5,7 +5,7 @@ import com.google.inject.Singleton;
 import io.github.hello09x.devtools.command.exception.CommandException;
 import io.github.hello09x.devtools.core.utils.Exceptions;
 import io.github.hello09x.devtools.core.utils.MetadataUtils;
-import io.github.hello09x.devtools.core.utils.SchedulerUtils;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
@@ -78,7 +78,7 @@ public class FakeplayerManager {
                                                 //Detects TPS performance from the past 1 minute only
                                                 //将服务器卡顿检测范围缩小到过去一分钟，以配合新功能获得更及时的反应
                                                    if (Bukkit.getServer().getTPS()[0] < config.getKaleTps()) {
-                                                       Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                                                       Schedulers.global(Main.getInstance(), () -> {
                                                            laglevel=min(laglevel+1,this.config.getPlayerLimit());
                                                            Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
                                                            for (Player player : onlinePlayers) {
@@ -101,7 +101,7 @@ public class FakeplayerManager {
                                                        //Restore fakeplayer limits, one at a time
                                                        //如果卡顿恢复，则每周期恢复1个假人上限
                                                        // 在主线程中递减 laglevel 并广播, 避免跨线程竞争与主线程外调用 Bukkit API
-                                                       Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                                                       Schedulers.global(Main.getInstance(), () -> {
                                                            if (laglevel > 0) {
                                                                Bukkit.broadcast(Component.text("Fakeplayer restrictions removed! Current limits: ").color(GREEN).append(Component.text(this.config.getPlayerLimit() - laglevel + 1).color(AQUA)));
                                                            }
@@ -163,7 +163,7 @@ public class FakeplayerManager {
                     }
                     return featureManager.getUserConfigs(creatorId);
                 })
-                .thenCompose(userConfigs -> SchedulerUtils.runTask(Main.getInstance(), () -> {
+                .thenCompose(userConfigs -> Schedulers.callGlobal(Main.getInstance(), () -> {
                     if (stopping) {
                         throw new IllegalStateException("Plugin is disabled");
                     }
@@ -192,7 +192,7 @@ public class FakeplayerManager {
                 return CompletableFuture.<Player>failedFuture(error);
             }
             try {
-                return SchedulerUtils.runTask(Main.getInstance(), () -> {
+                return Schedulers.callGlobal(Main.getInstance(), () -> {
                     if (target.isOnline()) {
                         target.kick(text(REMOVAL_REASON_PREFIX + "Failed to spawn"));
                     }

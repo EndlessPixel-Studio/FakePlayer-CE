@@ -8,6 +8,7 @@ import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import io.github.hello09x.devtools.core.utils.ComponentUtils;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.manager.feature.FakeplayerFeatureManager;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import net.kyori.adventure.text.format.Style;
@@ -73,7 +74,7 @@ public class ConfigCommand extends AbstractCommand {
                     }).toList())
             )).toList();
             var message = join(separator(newline()), lines);
-            Bukkit.getScheduler().runTask(Main.getInstance(), () -> sender.sendMessage(message));
+            Schedulers.runFor(Main.getInstance(), sender, () -> sender.sendMessage(message));
         });
     }
 

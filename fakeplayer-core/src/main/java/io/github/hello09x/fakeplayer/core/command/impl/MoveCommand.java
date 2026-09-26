@@ -3,18 +3,19 @@ package io.github.hello09x.fakeplayer.core.command.impl;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import io.github.hello09x.fakeplayer.core.Main;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.jetbrains.annotations.Range;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
 public class MoveCommand extends AbstractCommand {
 
-    private final Map<UUID, BukkitTask> stopTasks = new HashMap<>();
+    private final Map<UUID, ScheduledTask> stopTasks = new HashMap<>();
 
     /**
      * 假人移动
@@ -37,19 +38,17 @@ public class MoveCommand extends AbstractCommand {
             }
 
             var fakeId = fake.getUniqueId();
-            var stopping = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    handle.setXxa(0);
-                    handle.setZza(0);
-                    var self = stopTasks.get(fakeId);
-                    if (self != null && self.getTaskId() == this.getTaskId()) {
-                        stopTasks.remove(fakeId);
-                    }
-                }
-            };
-
-            this.stopTasks.put(fakeId, stopping.runTaskLater(Main.getInstance(), fake.isSprinting() ? 40 : 20));
+            var ref = new AtomicReference<ScheduledTask>();
+            var stopping = Schedulers.entityLater(Main.getInstance(), fake.getPlayer(), fake.isSprinting() ? 40 : 20, () -> {
+                handle.setXxa(0);
+                handle.setZza(0);
+                // 仅移除本次调度对应的任务, 避免误删后续重新发起的停止任务
+                stopTasks.remove(fakeId, ref.get());
+            });
+            if (stopping != null) {
+                ref.set(stopping);
+                this.stopTasks.put(fakeId, stopping);
+            }
         };
     }
 
