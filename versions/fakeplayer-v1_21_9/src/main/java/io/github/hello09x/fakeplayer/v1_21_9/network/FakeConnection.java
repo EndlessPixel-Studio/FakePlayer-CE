@@ -7,6 +7,9 @@ import io.netty.channel.ChannelFutureListener;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.ClientboundKeepAlivePacket;
+import net.minecraft.network.protocol.common.ServerboundKeepAlivePacket;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,18 +34,23 @@ public class FakeConnection extends Connection {
     }
 
     @Override
-    public void send(Packet<?> packet, @Nullable ChannelFutureListener channelfuturelistener) {
-    }
+    public void send(Packet<?> packet, @Nullable ChannelFutureListener channelfuturelistener) { this.send(packet, channelfuturelistener, true); }
 
     @Override
     public void send(Packet<?> packet, @Nullable ChannelFutureListener channelfuturelistener, boolean flag) {
+        // 假人没有真实客户端, 主动回应 keepalive, 否则会被判定超时踢出 (Folia 会 tick 连接)
+        if (packet instanceof ClientboundKeepAlivePacket keepAlive
+                && this.getPacketListener() instanceof ServerGamePacketListenerImpl gameListener) {
+            try {
+                gameListener.handleKeepAlive(new ServerboundKeepAlivePacket(keepAlive.getId()));
+            } catch (Throwable ignored) {
+            }
+        }
     }
 
 
 
     @Override
-    public void send(Packet<?> packet) {
-
-    }
+    public void send(Packet<?> packet) { this.send(packet, null, true); }
 
 }
