@@ -1,28 +1,29 @@
 # FakePlayer-CE 修复的Issues和合并的PRs/commits记录 来自其他仓库，不包含本仓库
 
 ## EndlessPixel/FakePlayer-CE
-- [EndlessPixel/FakePlayer-CE Issue #3](https://github.com/EndlessPixel/FakePlayer-CE/issues/3)
-- [EndlessPixel/FakePlayer-CE Issue #4](https://github.com/EndlessPixel/FakePlayer-CE/issues/4)
-- [EndlessPixel/FakePlayer-CE Issue #5](https://github.com/EndlessPixel/FakePlayer-CE/issues/5)
-- [EndlessPixel/FakePlayer-CE Issue #6](https://github.com/EndlessPixel/FakePlayer-CE/issues/6)
+- [EndlessPixel/FakePlayer-CE Issus #3](https://github.com/EndlessPixel/FakePlayer-CE/issues/3)
+- [EndlessPixel/FakePlayer-CE Issus #4](https://github.com/EndlessPixel/FakePlayer-CE/issues/4)
+- [EndlessPixel/FakePlayer-CE Issus #5](https://github.com/EndlessPixel/FakePlayer-CE/issues/5)
+- [EndlessPixel/FakePlayer-CE Issus #6](https://github.com/EndlessPixel/FakePlayer-CE/issues/6)
 - [EndlessPixel/FakePlayer-CE PR #7](https://github.com/EndlessPixel/FakePlayer-CE/pull/7)
 - [EndlessPixel/FakePlayer-CE PR #8](https://github.com/EndlessPixel/FakePlayer-CE/pull/8)
 - [EndlessPixel/FakePlayer-CE PR #10](https://github.com/EndlessPixel/FakePlayer-CE/pull/10)
 
 ## tanyaofei/minecraft-fakeplayer
-- [tanyaofei/minecraft-fakeplayer Issue #172](https://github.com/tanyaofei/minecraft-fakeplayer/issues/172)
-- [tanyaofei/minecraft-fakeplayer Issue #178](https://github.com/tanyaofei/minecraft-fakeplayer/issues/178)
-- [tanyaofei/minecraft-fakeplayer Issue #181](https://github.com/tanyaofei/minecraft-fakeplayer/issues/181)
-- [tanyaofei/minecraft-fakeplayer Issue #186](https://github.com/tanyaofei/minecraft-fakeplayer/issues/186)
+- [tanyaofei/minecraft-fakeplayer Issus #172](https://github.com/tanyaofei/minecraft-fakeplayer/issues/172)
+- [tanyaofei/minecraft-fakeplayer Issus #178](https://github.com/tanyaofei/minecraft-fakeplayer/issues/178)
+- [tanyaofei/minecraft-fakeplayer Issus #181](https://github.com/tanyaofei/minecraft-fakeplayer/issues/181)
+- [tanyaofei/minecraft-fakeplayer Issus #186](https://github.com/tanyaofei/minecraft-fakeplayer/issues/186)
+- [tanyaofei/minecraft-fakeplayer Issus #189](https://github.com/tanyaofei/minecraft-fakeplayer/pull/189)
 - [tanyaofei/minecraft-fakeplayer PR #190](https://github.com/tanyaofei/minecraft-fakeplayer/pull/190)
-- [tanyaofei/minecraft-fakeplayer Issue #193](https://github.com/tanyaofei/minecraft-fakeplayer/issues/193)
-- [tanyaofei/minecraft-fakeplayer Issue #195](https://github.com/tanyaofei/minecraft-fakeplayer/issues/195)
+- [tanyaofei/minecraft-fakeplayer Issus #193](https://github.com/tanyaofei/minecraft-fakeplayer/issues/193)
+- [tanyaofei/minecraft-fakeplayer Issus #195](https://github.com/tanyaofei/minecraft-fakeplayer/issues/195)
 - [tanyaofei/minecraft-fakeplayer PR #196](https://github.com/tanyaofei/minecraft-fakeplayer/pull/196)
-- [tanyaofei/minecraft-fakeplayer Issue #197](https://github.com/tanyaofei/minecraft-fakeplayer/issues/197)
-- [tanyaofei/minecraft-fakeplayer Issue #198](https://github.com/tanyaofei/minecraft-fakeplayer/issues/198)
-- [tanyaofei/minecraft-fakeplayer Issue #199](https://github.com/tanyaofei/minecraft-fakeplayer/issues/199)
-- [tanyaofei/minecraft-fakeplayer Issue #200](https://github.com/tanyaofei/minecraft-fakeplayer/issues/200)
-- [tanyaofei/minecraft-fakeplayer Issue #201](https://github.com/tanyaofei/minecraft-fakeplayer/issues/201)
+- [tanyaofei/minecraft-fakeplayer Issus #197](https://github.com/tanyaofei/minecraft-fakeplayer/issues/197)
+- [tanyaofei/minecraft-fakeplayer Issus #198](https://github.com/tanyaofei/minecraft-fakeplayer/issues/198)
+- [tanyaofei/minecraft-fakeplayer Issus #199](https://github.com/tanyaofei/minecraft-fakeplayer/issues/199)
+- [tanyaofei/minecraft-fakeplayer Issus #200](https://github.com/tanyaofei/minecraft-fakeplayer/issues/200)
+- [tanyaofei/minecraft-fakeplayer Issus #201](https://github.com/tanyaofei/minecraft-fakeplayer/issues/201)
 - 
 ## xiplugin/FakePlayer
 - [xiplugin/FakePlayer commit 9d21b2c](https://github.com/xiplugin/FakePlayer/commit/9d21b2c8f410729c5d2e30ff71d3bf972c34dcbe)
@@ -34,4 +35,4 @@
 - [shulng/ReCatSeedLogin Issus #6](https://github.com/shulng/ReCatSeedLogin/issues/6)
 
 ## CatSeed/CatSeedLogin
-- [CatSeed/CatSeedLogin Issue #39](https://github.com/CatSeed/CatSeedLogin/issues/39)
+- [CatSeed/CatSeedLogin Issus #39](https://github.com/CatSeed/CatSeedLogin/issues/39)
