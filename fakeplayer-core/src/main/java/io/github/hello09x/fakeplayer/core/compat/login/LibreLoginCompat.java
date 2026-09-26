@@ -1,6 +1,7 @@
 package io.github.hello09x.fakeplayer.core.compat.login;
 
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -126,12 +127,12 @@ public class LibreLoginCompat implements LoginCompat {
     @Override
     public void exempt(@NotNull Player fakePlayer) {
         // Wait until the login plugin's PlayerJoinEvent handler has started tracking this player.
-        Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+        Schedulers.entity(Main.getInstance(), fakePlayer, () -> {
             if (!fakePlayer.isOnline()) {
                 return;
             }
 
-            Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> authorize(fakePlayer));
+            Schedulers.async(Main.getInstance(), () -> authorize(fakePlayer));
         });
     }
 

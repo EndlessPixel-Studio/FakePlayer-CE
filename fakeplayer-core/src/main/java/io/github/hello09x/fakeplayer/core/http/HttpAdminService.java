@@ -9,6 +9,7 @@ import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerPlayer;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.constant.MetadataKeys;
 import io.github.hello09x.fakeplayer.core.entity.FakeplayerTicker;
@@ -1138,7 +1139,7 @@ public class HttpAdminService {
      * 在主线程执行并等待结果 (HTTP 处理线程不能直接操作 Bukkit API)
      */
     private static <T> T callSync(Callable<T> callable) throws Exception {
-        return Bukkit.getScheduler().callSyncMethod(Main.getInstance(), callable).get(10, TimeUnit.SECONDS);
+        return Schedulers.callGlobal(Main.getInstance(), callable).get(10, TimeUnit.SECONDS);
     }
 
     /**

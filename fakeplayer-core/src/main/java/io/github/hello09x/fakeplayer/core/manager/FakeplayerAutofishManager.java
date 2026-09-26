@@ -7,8 +7,8 @@ import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.constant.MetadataKeys;
 import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import net.kyori.adventure.util.Ticks;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -60,12 +60,12 @@ public class FakeplayerAutofishManager implements Listener {
             return;
         }
 
-        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+        Schedulers.entityLater(Main.getInstance(), player, 1, () -> {
             actionManager.setAction(player, ActionType.USE, ActionSetting.once());
-            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+            Schedulers.entityLater(Main.getInstance(), player, Ticks.TICKS_PER_SECOND, () -> {
                 actionManager.setAction(player, ActionType.USE, ActionSetting.once());
-            }, Ticks.TICKS_PER_SECOND);
-        }, 1);
+            });
+        });
     }
 
 }

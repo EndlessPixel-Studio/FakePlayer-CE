@@ -7,7 +7,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.github.hello09x.devtools.core.utils.SchedulerUtils;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.repository.FakeplayerSkinRepository;
@@ -124,7 +124,7 @@ public class FakeplayerSkinManager {
                         profileCache.put(from.getUniqueId(), profile);
                     }
 
-                    return SchedulerUtils.runTask(Main.getInstance(), () -> switch (result) {
+                    return Schedulers.callEntity(Main.getInstance(), to, () -> switch (result) {
                         case SUCCESS -> {
                             try {
                                 this.setTexture(to, profile);

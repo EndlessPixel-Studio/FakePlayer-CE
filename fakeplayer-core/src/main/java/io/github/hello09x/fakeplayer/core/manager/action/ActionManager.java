@@ -8,7 +8,6 @@ import io.github.hello09x.fakeplayer.api.spi.ActionTicker;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
 import io.github.hello09x.fakeplayer.core.Main;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -30,7 +29,7 @@ public class ActionManager {
     @Inject
     public ActionManager(NMSBridge bridge) {
         this.bridge = bridge;
-        Bukkit.getScheduler().runTaskTimer(Main.getInstance(), this::tick, 0, 1);
+        // tick 由各假人的 FakeplayerTicker 在实体调度器上按玩家驱动 (Folia 兼容), 见 #tick(Player)
     }
 
     public boolean hasActiveAction(
@@ -81,33 +80,36 @@ public class ActionManager {
         }
     }
 
-    public void tick() {
-        var itr = managers.entrySet().iterator();
-        while (itr.hasNext()) {
-            var entry = itr.next();
-            var player = Bukkit.getPlayer(entry.getKey());
+    /**
+     * tick 指定假人的动作。
+     * <p>由 {@link io.github.hello09x.fakeplayer.core.entity.FakeplayerTicker} 在假人所属区域线程驱动
+     * (Folia 下不能跨区域线程操作实体)。</p>
+     */
+    public void tick(@NotNull Player player) {
+        var tickers = this.managers.get(player.getUniqueId());
+        if (tickers == null || tickers.isEmpty()) {
+            return;
+        }
 
-            if (player == null || !player.isValid()) {
-                // 假人下线或者死亡
-                itr.remove();
-                for (var ticker : entry.getValue().values()) {
-                    ticker.stop();
-                }
-                continue;
+        if (!player.isValid()) {
+            // 假人下线或者死亡
+            this.managers.remove(player.getUniqueId());
+            for (var ticker : tickers.values()) {
+                ticker.stop();
             }
+            return;
+        }
 
-            // do tick
-            entry.getValue().values().removeIf(ticker -> {
-                try {
-                    return ticker.tick();
-                } catch (Throwable e) {
-                    log.warning(Throwables.getStackTraceAsString(e));
-                    return false;
-                }
-            });
-            if (entry.getValue().isEmpty()) {
-                itr.remove();
+        tickers.values().removeIf(ticker -> {
+            try {
+                return ticker.tick();
+            } catch (Throwable e) {
+                log.warning(Throwables.getStackTraceAsString(e));
+                return false;
             }
+        });
+        if (tickers.isEmpty()) {
+            this.managers.remove(player.getUniqueId());
         }
     }
 

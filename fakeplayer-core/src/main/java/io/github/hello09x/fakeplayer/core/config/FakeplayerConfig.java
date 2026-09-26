@@ -7,6 +7,7 @@ import com.google.inject.Singleton;
 import io.github.hello09x.devtools.core.config.ConfigUtils;
 import io.github.hello09x.devtools.core.config.PluginConfig;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import lombok.Getter;
 import lombok.ToString;
@@ -441,11 +442,11 @@ public class FakeplayerConfig extends PluginConfig {
         this.nameStyleDecorations = this.getNameStyleDecorations(file);
 
         if (this.isConfigFileOutOfDate()) {
-            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+            Schedulers.globalLater(Main.getInstance(), 1, () -> {
                 if (Main.getInstance().isEnabled()) {
                     Main.getInstance().getComponentLogger().warn(translatable("fakeplayer.configuration.out-of-date"));
                 }
-            }, 1);
+            });
         }
 
         if (!this.allowCommands.isEmpty()) {

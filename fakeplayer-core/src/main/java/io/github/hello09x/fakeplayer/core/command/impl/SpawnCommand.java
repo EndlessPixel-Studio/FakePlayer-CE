@@ -8,6 +8,7 @@ import io.github.hello09x.devtools.command.exception.HandleCommandException;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.entity.FakeplayerTicker;
 import io.github.hello09x.fakeplayer.core.util.Mth;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
@@ -15,7 +16,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -31,7 +31,6 @@ import static net.kyori.adventure.text.format.NamedTextColor.*;
 public class SpawnCommand extends AbstractCommand {
 
     private final static DateTimeFormatter REMOVE_AT_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
-    private final static BukkitScheduler scheduler = Bukkit.getScheduler();
 
     private static String toLocationString(@NotNull Location location) {
         return location.getWorld().getName()
@@ -89,7 +88,7 @@ public class SpawnCommand extends AbstractCommand {
                                text(REMOVE_AT_FORMATTER.format(removedAt))
                        ).color(GRAY);
                    }
-                   scheduler.runTask(Main.getInstance(), () -> {
+                   Schedulers.runFor(Main.getInstance(), sender, () -> {
                        sender.sendMessage(message);
                        if (sender instanceof Player p && manager.countByCreator(sender) == 1) {
                            // 有些命令在有假人的时候才会显示, 因此需要强制刷新一下
@@ -98,9 +97,9 @@ public class SpawnCommand extends AbstractCommand {
                    });
                }).exceptionally(e -> {
                    if (Throwables.getRootCause(e) instanceof CommandException ce) {
-                       scheduler.runTask(Main.getInstance(), () -> sender.sendMessage(ce.component()));
+                       Schedulers.runFor(Main.getInstance(), sender, () -> sender.sendMessage(ce.component()));
                    } else {
-                       scheduler.runTask(Main.getInstance(), () -> sender.sendMessage(translatable("fakeplayer.command.spawn.error.unknown", RED)));
+                       Schedulers.runFor(Main.getInstance(), sender, () -> sender.sendMessage(translatable("fakeplayer.command.spawn.error.unknown", RED)));
                        log.severe(Throwables.getStackTraceAsString(e));
                    }
                    return null;

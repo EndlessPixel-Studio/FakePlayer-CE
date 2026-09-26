@@ -7,6 +7,7 @@ import io.github.hello09x.fakeplayer.core.compat.login.LoginCompatManager;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import io.github.hello09x.fakeplayer.core.repository.FakeplayerAuthRepository;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -64,13 +65,13 @@ public class FakeplayerLifecycleListener implements Listener {
             return;
         }
 
-        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+        Schedulers.entityLater(Main.getInstance(), player, 20, () -> {
             if (player.isOnline()) {
                 manager.dispatchCommands(player, config.getAfterSpawnCommands());
                 manager.issueCommands(player, config.getSelfCommands());
                 this.autoLogin(player);
             }
-        }, 20);
+        });
     }
 
     //K:假人UUID V:创建者名称
@@ -92,14 +93,14 @@ public class FakeplayerLifecycleListener implements Listener {
         var player = event.getPlayer();
         var uuid = player.getUniqueId();
         if (!pendingFakeQuits.containsKey(uuid)) return;
-        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+        Schedulers.globalLater(Main.getInstance(), 1, () -> {
             try {
                 manager.dispatchCommands(new FakeplayerManager.DispatchCommandArgs(player.getName(),uuid.toString(),pendingFakeQuits.get(uuid)), config.getAfterQuitCommands());
             } finally {
                 loginCompatManager.cleanup(player);
                 pendingFakeQuits.remove(uuid);
             }
-        }, 1);
+        });
     }
 
     /**

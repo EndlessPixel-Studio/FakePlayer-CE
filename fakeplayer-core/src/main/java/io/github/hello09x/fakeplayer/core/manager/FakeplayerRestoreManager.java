@@ -3,6 +3,7 @@ package io.github.hello09x.fakeplayer.core.manager;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.entity.FakeplayerTicker;
 import io.github.hello09x.fakeplayer.core.util.OfflineCreator;
@@ -57,11 +58,11 @@ public class FakeplayerRestoreManager implements Listener {
      * <p>任务始终注册, 是否记录由 {@link #saveSnapshot()} 内的配置开关决定, 以便 /fp reload 后动态生效。</p>
      */
     public void start() {
-        Bukkit.getScheduler().runTaskTimerAsynchronously(
+        Schedulers.asyncTimer(
                 Main.getInstance(),
-                this::saveSnapshot,
                 SNAPSHOT_INTERVAL_TICKS,
-                SNAPSHOT_INTERVAL_TICKS
+                SNAPSHOT_INTERVAL_TICKS,
+                this::saveSnapshot
         );
     }
 
@@ -113,7 +114,7 @@ public class FakeplayerRestoreManager implements Listener {
         var lifespan = Optional.ofNullable(config.getLifespan()).map(Duration::toMillis).orElse(FakeplayerTicker.NON_REMOVE_AT);
 
         // 逐个重建需要等待, 放到异步线程串行执行 (与 /spawn 的异步生成流程一致)
-        Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> {
+        Schedulers.async(Main.getInstance(), () -> {
             var restored = 0;
             for (var entry : entries) {
                 try {
