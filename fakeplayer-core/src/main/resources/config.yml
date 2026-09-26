@@ -115,6 +115,17 @@ prevent-kicking: ON_SPAWNING
 # Define whether fake personas will be removed when the creator quited.
 follow-quiting: true
 
+# 创建者退出时立即清理其假人
+# 默认的跟随下线逻辑依赖定时轮询, 开启后会在创建者退出后按下面的延迟立即清理, 无需等待轮询
+# 注意: 开启后会绕过「仅切换服务器不触发跟随下线」的判断, 切换服务器的玩家其假人也会被移除
+# Remove fake players immediately when the creator quits, instead of waiting for the periodic poll.
+# NOTE: enabling this bypasses the "server switching" guard, so a creator who merely switches
+# servers will also have their fake players removed.
+follow-quiting-force: false
+# 创建者退出后延迟多少秒执行立即清理
+# Delay in seconds before the immediate cleanup runs.
+follow-quiting-force-delay: 3
+
 
 # 退出时是否丢弃背包物品
 # Define whether fake players will drop items from their inventory when they remove.
