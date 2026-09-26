@@ -73,6 +73,17 @@ public class FakeplayerConfig extends PluginConfig {
     private boolean followQuiting;
 
     /**
+     * 创建者玩家下线时是否<strong>立即</strong>清理其假人
+     * <p>默认的跟随下线是基于定时轮询, 开启后会在玩家退出时立刻就清理</p>
+     */
+    private boolean followQuitingForce;
+
+    /**
+     * 创建者玩家下线后延迟多少秒执行立即清理
+     */
+    private int followQuitingForceDelay;
+
+    /**
      * 是否探测 IP
      */
     private boolean detectIp;
@@ -368,6 +379,8 @@ public class FakeplayerConfig extends PluginConfig {
         this.playerLimit = maxIfZero(file.getInt("player-limit", 1));
         this.serverLimit = maxIfZero(file.getInt("server-limit", 1000));
         this.followQuiting = file.getBoolean("follow-quiting", true);
+        this.followQuitingForce = file.getBoolean("follow-quiting-force", false);
+        this.followQuitingForceDelay = file.getInt("follow-quiting-force-delay", 3);
         this.detectIp = file.getBoolean("detect-ip", false);
         this.kaleTps = file.getInt("kale-tps", 0);
         this.selfCommands = file.getStringList("self-commands");

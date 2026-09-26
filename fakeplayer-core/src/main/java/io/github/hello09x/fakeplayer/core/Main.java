@@ -73,6 +73,7 @@ public final class Main extends JavaPlugin {
 
         {
             var manager = getServer().getPluginManager();
+            manager.registerEvents(injector.getInstance(WildFakeplayerManager.class), this);
             manager.registerEvents(injector.getInstance(PlayerListener.class), this);
             manager.registerEvents(injector.getInstance(FakeplayerLifecycleListener.class), this);
             manager.registerEvents(injector.getInstance(FakeplayerAutofishManager.class), this);

@@ -10,6 +10,9 @@
 - [EndlessPixel/FakePlayer-CE PR #10](https://github.com/EndlessPixel/FakePlayer-CE/pull/10)
 
 ## tanyaofei/minecraft-fakeplayer
+- [tanyaofei/minecraft-fakeplayer Issus #104](https://github.com/tanyaofei/minecraft-fakeplayer/issues/104)
+- [tanyaofei/minecraft-fakeplayer Issus #137](https://github.com/tanyaofei/minecraft-fakeplayer/issues/137)
+- [tanyaofei/minecraft-fakeplayer Issus #138](https://github.com/tanyaofei/minecraft-fakeplayer/issues/138)
 - [tanyaofei/minecraft-fakeplayer Issus #172](https://github.com/tanyaofei/minecraft-fakeplayer/issues/172)
 - [tanyaofei/minecraft-fakeplayer Issus #178](https://github.com/tanyaofei/minecraft-fakeplayer/issues/178)
 - [tanyaofei/minecraft-fakeplayer Issus #181](https://github.com/tanyaofei/minecraft-fakeplayer/issues/181)
@@ -31,6 +34,7 @@
 - [xiplugin/FakePlayer commit 7162822](https://github.com/xiplugin/FakePlayer/commit/716282294dfbdd097ec831c75482ea1a6e5e9fc2)
 - [xiplugin/FakePlayer commit 66f2af6](https://github.com/xiplugin/FakePlayer/commit/66f2af68cf176e731cb56fe15804f6482cbbab3e)
 - [xiplugin/FakePlayer commit d8ae21e](https://github.com/xiplugin/FakePlayer/commit/d8ae21e66618d9164df57e54bdcb068dca88f785)
+- [xiplugin/FakePlayer commit d6041da](https://github.com/xiplugin/FakePlayer/commit/d6041da6b983be844dbb51952bcb7834217bda79)
 
 ## shulng/ReCatSeedLogin
 - [shulng/ReCatSeedLogin Issus #6](https://github.com/shulng/ReCatSeedLogin/issues/6)
