@@ -10,6 +10,9 @@
 - [EndlessPixel/FakePlayer-CE PR #10](https://github.com/EndlessPixel/FakePlayer-CE/pull/10)
 
 ## tanyaofei/minecraft-fakeplayer
+- [tanyaofei/minecraft-fakeplayer Issus #104](https://github.com/tanyaofei/minecraft-fakeplayer/issues/104)
+- [tanyaofei/minecraft-fakeplayer Issus #137](https://github.com/tanyaofei/minecraft-fakeplayer/issues/137)
+- [tanyaofei/minecraft-fakeplayer Issus #138](https://github.com/tanyaofei/minecraft-fakeplayer/issues/138)
 - [tanyaofei/minecraft-fakeplayer Issus #172](https://github.com/tanyaofei/minecraft-fakeplayer/issues/172)
 - [tanyaofei/minecraft-fakeplayer Issus #178](https://github.com/tanyaofei/minecraft-fakeplayer/issues/178)
 - [tanyaofei/minecraft-fakeplayer Issus #181](https://github.com/tanyaofei/minecraft-fakeplayer/issues/181)
