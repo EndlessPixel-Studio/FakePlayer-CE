@@ -1,7 +1,6 @@
 package io.github.hello09x.fakeplayer.core.entity;
 
 import io.github.hello09x.devtools.command.exception.CommandException;
-import io.github.hello09x.devtools.core.utils.EntityUtils;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.devtools.core.utils.WorldUtils;
 import io.github.hello09x.fakeplayer.api.spi.*;
@@ -22,6 +21,7 @@ import lombok.Getter;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -154,7 +154,7 @@ public class Fakeplayer {
                         ));
                     }
                 })
-                .thenComposeAsync(nul -> Schedulers.callGlobal(Main.getInstance(), () -> {
+                .thenComposeAsync(nul -> Schedulers.callAt(Main.getInstance(), option.spawnAt(), () -> {
                     this.player.setMetadata(MetadataKeys.SPAWNED_AT, new FixedMetadataValue(Main.getInstance(), Bukkit.getCurrentTick()));
                     {
                         var event = this.callLoginEvent(address);
@@ -224,25 +224,33 @@ public class Fakeplayer {
      */
     private void teleportToSpawnpoint(@NotNull Location to) {
         var from = this.player.getLocation();
+        var chain = CompletableFuture.completedFuture(true);
+
         if (from.getWorld().equals(to.getWorld())) {
             // 如果生成世界等于目的世界, 则需要穿越一次维度才能获取刷怪能力
             var otherWorld = WorldUtils.getOtherWorld(from.getWorld());
-            if (otherWorld == null || !player.teleport(otherWorld.getSpawnLocation())) {
+            if (otherWorld == null) {
                 this.creator.sendMessage(translatable(
                         "fakeplayer.command.spawn.error.no-mob-spawning-ability",
                         text(player.getName(), WHITE)
                 ).color(GRAY));
+            } else {
+                // Folia: 区域线程内禁止同步 teleport, 必须使用 teleportAsync
+                chain = this.player.teleportAsync(otherWorld.getSpawnLocation());
             }
         }
 
-        Schedulers.entity(Main.getInstance(), player, () -> {
-            if (!EntityUtils.teleportAndSound(player, to)) {
-                this.creator.sendMessage(translatable(
-                        "fakeplayer.command.spawn.error.teleport-failed",
-                        text(player.getName(), WHITE)
-                ).color(GRAY));
-            }
-        });
+        chain.thenCompose(ignored -> this.player.teleportAsync(to))
+             .thenAccept(success -> {
+                 if (success) {
+                     to.getWorld().playSound(to, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F);
+                 } else {
+                     this.creator.sendMessage(translatable(
+                             "fakeplayer.command.spawn.error.teleport-failed",
+                             text(player.getName(), WHITE)
+                     ).color(GRAY));
+                 }
+             });
     }
 
     public boolean isOnline() {
