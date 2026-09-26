@@ -88,6 +88,36 @@ public final class Schedulers {
         return Bukkit.getRegionScheduler().run(plugin, location, $ -> task.run());
     }
 
+    public static @NotNull CompletableFuture<Void> callAt(@NotNull Plugin plugin, @NotNull Location location, @NotNull Runnable task) {
+        return callAt(plugin, location, (Callable<Void>) () -> {
+            task.run();
+            return null;
+        });
+    }
+
+    /** 在指定坐标所属的区域线程执行并阻塞等待结果（区块级实体操作必须在此进行）。 */
+    public static <T> @NotNull CompletableFuture<T> callAt(@NotNull Plugin plugin, @NotNull Location location, @NotNull Callable<T> task) {
+        return CompletableFuture.supplyAsync(() -> {
+            var blocker = Thread.currentThread();
+            var exception = new AtomicReference<Throwable>();
+            var value = new AtomicReference<T>();
+            Bukkit.getRegionScheduler().run(plugin, location, $ -> {
+                try {
+                    value.set(task.call());
+                } catch (Throwable e) {
+                    exception.set(e);
+                } finally {
+                    LockSupport.unpark(blocker);
+                }
+            });
+            LockSupport.park(blocker);
+            if (exception.get() != null) {
+                throw new CompletionException(exception.get());
+            }
+            return value.get();
+        });
+    }
+
     // ---------------------------------------------------------------------- async
 
     public static @NotNull ScheduledTask async(@NotNull Plugin plugin, @NotNull Runnable task) {
