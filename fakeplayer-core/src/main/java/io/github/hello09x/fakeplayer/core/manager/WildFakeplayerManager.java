@@ -8,6 +8,9 @@ import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,7 +20,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Singleton
-public class WildFakeplayerManager implements PluginMessageListener {
+public class WildFakeplayerManager implements PluginMessageListener, Listener {
 
     private final static Logger log = Main.getInstance().getLogger();
     private final static boolean IS_BUNGEECORD = Bukkit
@@ -45,6 +48,23 @@ public class WildFakeplayerManager implements PluginMessageListener {
         this.manager = manager;
         this.config = config;
         Schedulers.globalTimer(Main.getInstance(), 0, CLEANUP_PERIOD, this::cleanup);
+    }
+
+    /**
+     * 创建者退出后立即清理其假人, 而不必等待定时轮询。
+     * <p>按 {@code follow-quiting-force} 开关启用, 延迟 {@code follow-quiting-force-delay} 秒执行。</p>
+     */
+    @EventHandler
+    public void handleFollowQuitingForce(@NotNull PlayerQuitEvent event) {
+        if (!config.isFollowQuiting() || !config.isFollowQuitingForce()) {
+            return;
+        }
+
+        var delayTicks = Math.max(1, config.getFollowQuitingForceDelay()) * 20L;
+        for (var target : this.manager.getAll(event.getPlayer())) {
+            // 在假人所属区域线程上移除 (Folia 兼容)
+            Schedulers.entityLater(Main.getInstance(), target, delayTicks, () -> manager.remove(target.getName(), "Creator offline"));
+        }
     }
 
     @Override
