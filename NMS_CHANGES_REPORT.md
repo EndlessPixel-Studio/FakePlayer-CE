@@ -25,6 +25,7 @@
 | `fakeplayer-v1_20_1`  | 1.20.1 |
 | `fakeplayer-v26_1`    | 26.1 (新版本号方案) |
 | `fakeplayer-v26_2`    | 26.2 (新版本号方案) |
+| `fakeplayer-v26_3`    | 26.3 (新版本号方案) |
 
 ### 桥接模块（仅有 NMSBridgeImpl.java，复用邻近完整模块的 NMS 代码）
 
@@ -53,12 +54,14 @@ Minecraft 在 1.21.x 之后采用了新的版本号方案（如 26.0、26.1、26
 | `fakeplayer-v26_1_1` | 桥接模块 | 26.1.1 | v26_1 |
 | `fakeplayer-v26_1_2` | 桥接模块 | 26.1.2 | v26_1 |
 | `fakeplayer-v26_2`   | 完整模块 | 26.2 | - |
+| `fakeplayer-v26_3`   | 完整模块 | 26.3 | - |
 
 ### 2.0 整体设计
 
 - `fakeplayer-v26_1` 是 26.1.x 系列的完整 NMS 实现（15 个文件），基于 v1_21_11 适配到 Paper 26.1 API。
 - `fakeplayer-v26_1_1` / `fakeplayer-v26_1_2` 是桥接模块，仅包含 `NMSBridgeImpl.java`，委托到 `v26_1` 的 NMS 实现。
 - `fakeplayer-v26_2` 是 26.2 的完整 NMS 实现（15 个文件），独立的完整模块。
+- `fakeplayer-v26_3` 是 26.3 的完整 NMS 实现（15 个文件）。26.3 引入了破坏性 NMS 变更（见 2.3），因此**不能**像 `v26_1_1` / `v26_1_2` 那样桥接 `v26_2`，而是复制 `v26_2` 后逐处适配。
 
 ### 2.1 预期 NMS API 变更（参考 FakePlayerPlus 适配经验）
 
@@ -78,8 +81,20 @@ Minecraft 在 1.21.x 之后采用了新的版本号方案（如 26.0、26.1、26
 
 - `fakeplayer-v26_1` 的 `isSupported()` 精确匹配 `"26.1"`，桥接模块 `v26_1_1` / `v26_1_2` 分别精确匹配 `"26.1.1"` / `"26.1.2"`。
 - `fakeplayer-v26_2` 的 `isSupported()` 精确匹配 `"26.2"`。
-- 若 26.3 未引入破坏性变更，可创建桥接模块 `v26_3` 复用到最近的完整模块。
+- ~~若 26.3 未引入破坏性变更，可创建桥接模块 `v26_3` 复用到最近的完整模块。~~ **实测不成立**：26.3 确实引入了破坏性变更，`v26_3` 改为完整模块实现（见 2.3）。
 - 若 26.x 中某个次版本引入重大变更，则创建新的完整模块。
+
+### 2.3 v26_3 vs v26_2（26.3 破坏性变更）
+
+26.3 引入以下破坏性 NMS 变更，`v26_3` 相应调整（签名以 26.3 正式版服务端类 `javap` 核对）：
+
+| 位置 | 26.2 写法 | 26.3 实际签名 |
+|------|-----------|---------------|
+| `action/AttackAction.java`、`action/MineAction.java`、`action/UseAction.java` | `LivingEntity.swing(InteractionHand)` | `swing(InteractionHand, SwingAnimation, boolean)`，使用 `SwingAnimation.DEFAULT` + `true` |
+| `network/FakeServerGamePacketListenerImpl.java` | `Entity.hurtMarked` 字段 | `Entity.syncVelocity`（由 `markHurt()` 写入，26.3 中为 public 字段） |
+| `spi/NMSServerPlayerImpl.java` | `ServerPlayer.drop(ItemStack, boolean, boolean)` | `drop(ItemStack, boolean, Prediction)`：第三参变为 `Prediction`（`PREDICTED` 表示客户端已预测会跳过挥手动画，服务端主动丢弃用 `SERVER_ONLY`），`dropAround` 在 26.3 内部固定为 `false` |
+
+> 依赖侧：26.3 需要 **CommandAPI `12.1.0`+**（其 12.1.0 才声明支持 26.3，见 `dev.jorel:commandapi-paper-core`）。
 
 ---
 

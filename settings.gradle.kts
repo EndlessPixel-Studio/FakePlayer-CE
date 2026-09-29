@@ -34,6 +34,7 @@ listOf(
     "fakeplayer-v26_1_1",
     "fakeplayer-v26_1_2",
     "fakeplayer-v26_2",
+    "fakeplayer-v26_3",
 ).forEach {
     include(":$it")
     project(":$it").projectDir = file("versions/$it")

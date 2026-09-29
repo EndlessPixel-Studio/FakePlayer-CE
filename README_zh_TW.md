@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/EndlessPixel-Studio/FakePlayer-CE/actions/workflows/ci.yml/badge.svg)](https://github.com/EndlessPixel-Studio/FakePlayer-CE/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/EndlessPixel-Studio/FakePlayer-CE)](LICENSE.txt)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1%20~%2026.2-5fbb47)](https://github.com/EndlessPixel-Studio/FakePlayer-CE)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1%20~%2026.3-5fbb47)](https://github.com/EndlessPixel-Studio/FakePlayer-CE)
 [![Built with JDK 25](https://img.shields.io/badge/Built%20with-JDK%2025-ED8B00?logo=openjdk&logoColor=white)](https://www.java.com)
 [![Platforms](https://img.shields.io/badge/Platforms-Paper%20%7C%20Spigot%20%7C%20Purpur-2d2d2d)](https://github.com/EndlessPixel-Studio/FakePlayer-CE)
 
@@ -14,14 +14,14 @@
 
 ---
 
-> **FakePlayer CE** 是以 FakePlayer 原專案為基礎的社群維護分支，透過 Gradle 多模組架構重構，實現了對 Minecraft `1.20.1` 至 `26.2` 全版本的**單一 Jar 檔相容**。
+> **FakePlayer CE** 是以 FakePlayer 原專案為基礎的社群維護分支，透過 Gradle 多模組架構重構，實現了對 Minecraft `1.20.1` 至 `26.3` 全版本的**單一 Jar 檔相容**。
 
 ## ⚠️ 社群版聲明
 
 本倉庫為 **FakePlayer CE（Community Edition）** —— 一個獨立的社群維護分支，**並非 FakePlayer 官方原版**。
 
 - 本專案**不由原作者發布、維護或背書**，係基於開源協議二次開發的社群版本。
-- 核心目標：重構並擴展至 Minecraft `1.20.1` ~ `26.2` 全版本跨版本相容，單一 Jar 檔通吃。
+- 核心目標：重構並擴展至 Minecraft `1.20.1` ~ `26.3` 全版本跨版本相容，單一 Jar 檔通吃。
 - 所有 Bug、功能需求、問題回饋**請僅提交至本倉庫**，切勿提交至上游原作者倉庫。
 
 ---
@@ -41,7 +41,7 @@ FakePlayer 是一款受 [Carpet-Mod](https://github.com/gnembon/fabric-carpet) �
 
 | 增強項 | 說明 |
 |---|---|
-| **單 Jar 多版本** | 一個通用 Jar 覆蓋 MC `1.20.1 ~ 26.2`，無需分版本下載 |
+| **單 Jar 多版本** | 一個通用 Jar 覆蓋 MC `1.20.1 ~ 26.3`，無需分版本下載 |
 | **Gradle Kotlin DSL 建置** | 從 Maven 遷移至現代化 Gradle 多模組工程架構 |
 | **NMS 版本隔離** | 各版本 NMS 程式碼獨立封裝，降低未來 MC 版本適配成本 |
 | **持續相容維護** | 持續跟進 Paper/Purpur 最新版本相容性修復 |
@@ -50,11 +50,11 @@ FakePlayer 是一款受 [Carpet-Mod](https://github.com/gnembon/fabric-carpet) �
 ## 執行前置依賴
 
 - [Paper](https://papermc.io) 或 [Purpur](http://purpurmc.org) 核心伺服器端
-- [CommandAPI](https://commandapi.jorel.dev) 前置插件（**請勿使用 `10.0.0` 版本**）
+- [CommandAPI](https://commandapi.jorel.dev) 前置插件（**請勿使用 `10.0.0` 版本**；**Minecraft 26.3 需 `12.1.0` 及以上**）
 
 ## 下載
 
-FakePlayer CE 以**單一通用 jar**（`fakeplayer-fp.buildX.jar`）形式發布，覆蓋 Minecraft `1.20.1 ~ 26.2` 全版本。
+FakePlayer CE 以**單一通用 jar**（`fakeplayer-fp.buildX.jar`）形式發布，覆蓋 Minecraft `1.20.1 ~ 26.3` 全版本。
 
 ### 1. 穩定版發布（推薦）
 
@@ -413,7 +413,7 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 ### FakePlayer CE 修改彙總
 
 1. **建置體系**：從 Maven 遷移至 Gradle Kotlin DSL 多模組工程
-2. **跨版本適配**：NMS 程式碼按版本拆分為獨立模組，覆蓋 `1.20.1 ~ 26.2`
+2. **跨版本適配**：NMS 程式碼按版本拆分為獨立模組，覆蓋 `1.20.1 ~ 26.3`
 3. **發布形式**：統一單一通用 Jar 檔，不再分版本單獨分發
 4. **長期維護**：持續跟進 Paper/Purpur 新版本相容性問題修復
 5. **多版本修復**：針對性修復跨版本執行時期衝突 Bug
@@ -454,7 +454,7 @@ self-commands:
 
 `/fp say` 會經由 `handle.connection.chat(...)` 完整觸發 Bukkit 的 `AsyncPlayerChatEvent` 與 Paper 的 `AsyncChatEvent`，因此 EssentialsX Chat、Vane 等聊天格式化插件能夠正常介入、修改格式與內容；事件未被取消時按事件結果廣播。
 
-該相容對所有支援版本（MC `1.20.1 ~ 26.2`）一致生效。相關 Issue / PR：#21 / #22。
+該相容對所有支援版本（MC `1.20.1 ~ 26.3`）一致生效。相關 Issue / PR：#21 / #22。
 
 ## 常見問題
 
