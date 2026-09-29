@@ -1,2 +1,9 @@
 *.png binary
 *.kts linguist-language=Kotlin
+*.md linguist-language=Markdown
+*.mdx linguist-language=Markdown
+*.xml linguist-language=XML
+*.yaml linguist-language=YAML
+*.yml linguist-language=YAML
+*.json linguist-language=JSON
+*.kt linguist-language=Kotlin
