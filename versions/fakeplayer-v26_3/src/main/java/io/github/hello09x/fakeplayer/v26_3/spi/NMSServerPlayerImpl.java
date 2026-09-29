@@ -1,0 +1,286 @@
+package io.github.hello09x.fakeplayer.v26_3.spi;
+
+import io.github.hello09x.fakeplayer.api.spi.NMSServerPlayer;
+import io.github.hello09x.fakeplayer.core.constant.ConstantPool;
+import io.github.hello09x.fakeplayer.core.util.Reflections;
+import io.github.hello09x.fakeplayer.v26_3.network.FakePlayerAdvancements;
+import lombok.Getter;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.ChatType;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.PlayerChatMessage;
+import net.minecraft.network.protocol.game.ServerboundClientCommandPacket;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.server.PlayerAdvancements;
+import net.minecraft.server.level.ClientInformation;
+import net.minecraft.server.level.ParticleStatus;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Prediction;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.player.ChatVisiblity;
+import net.minecraft.world.level.storage.ValueInputContextHelper;
+import net.minecraft.world.phys.Vec3;
+import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+
+
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
+
+import java.lang.reflect.Field;
+import java.util.stream.Stream;
+
+public class NMSServerPlayerImpl implements NMSServerPlayer {
+
+    private final static Field ServerPlayer$advancements = Reflections.getFirstFieldByType(
+            ServerPlayer.class,
+            PlayerAdvancements.class,
+            false
+    );
+
+    private final ServerPlayer handle;
+
+    private final Player player;
+
+    public NMSServerPlayerImpl(@NotNull Player player) {
+        this.player = player;
+        this.handle = (ServerPlayer) Reflections.getHandle(player);
+    }
+
+    public ServerPlayer getHandle() {
+        return handle;
+    }
+
+    @Override
+    public @NotNull Player getPlayer() {
+        return player;
+    }
+
+    @Override
+    public double getX() {
+        return handle.getX();
+    }
+
+    @Override
+    public double getY() {
+        return handle.getY();
+    }
+
+    @Override
+    public double getZ() {
+        return handle.getZ();
+    }
+
+    @Override
+    public void setXo(double xo) {
+        handle.xo = xo;
+    }
+
+    @Override
+    public void setYo(double yo) {
+        handle.yo = yo;
+    }
+
+    @Override
+    public void setZo(double zo) {
+        handle.zo = zo;
+    }
+
+    @Override
+    public void doTick() {
+        handle.doTick();
+    }
+
+    @Override
+    public void absMoveTo(double x, double y, double z, float yRot, float xRot) {
+        handle.absSnapTo(x, y, z, yRot, xRot);
+    }
+
+    @Override
+    public float getYRot() {
+        return handle.getYRot();
+    }
+
+    @Override
+    public void setYRot(float yRot) {
+        handle.setYRot(yRot);
+    }
+
+    @Override
+    public float getXRot() {
+        return handle.getXRot();
+    }
+
+    @Override
+    public void setXRot(float xRot) {
+        handle.setXRot(xRot);
+    }
+
+    @Override
+    public float getZza() {
+        return handle.zza;
+    }
+
+    @Override
+    public void setZza(float zza) {
+        handle.zza = zza;
+    }
+
+    @Override
+    public float getXxa() {
+        return handle.xxa;
+    }
+
+    @Override
+    public void setXxa(float xxa) {
+        handle.xxa = xxa;
+    }
+
+    @Override
+    public void setDeltaMovement(@NotNull Vector vector) {
+        handle.setDeltaMovement(new Vec3(
+                vector.getX(),
+                vector.getY(),
+                vector.getZ()
+        ));
+    }
+
+    @Override
+    public boolean startRiding(@NotNull Entity entity, boolean force) {
+        return handle.startRiding(new NMSEntityImpl(entity).getHandle(), force, true);
+    }
+
+    @Override
+    public void stopRiding() {
+        handle.stopRiding();
+    }
+
+
+    @Override
+    public int getTickCount() {
+        return handle.tickCount;
+    }
+
+    @Override
+    public void drop(boolean allStack) {
+        handle.drop(allStack);
+    }
+
+    @Override
+    public void resetLastActionTime() {
+        handle.resetLastActionTime();
+    }
+
+    @Override
+    public boolean onGround() {
+        return handle.onGround();
+    }
+
+    @Override
+    public void jumpFromGround() {
+        handle.jumpFromGround();
+    }
+
+    @Override
+    public void setJumping(boolean jumping) {
+        handle.setJumping(jumping);
+    }
+
+    @Override
+    public boolean isUsingItem() {
+        return handle.isUsingItem();
+    }
+
+    @Override
+    public void disableAdvancements(@NotNull Plugin plugin) {
+        if (ServerPlayer$advancements == null) {
+            return;
+        }
+
+        var server = (net.minecraft.server.MinecraftServer) Reflections.getServer(Bukkit.getServer());
+        try {
+            ServerPlayer$advancements.set(
+                    handle,
+                    new FakePlayerAdvancements(
+                            server.getFixerUpper(),
+                            server.getPlayerList(),
+                            server.getAdvancements(),
+                            plugin.getDataFolder().getParentFile().toPath(),
+                            handle
+                    )
+            );
+        } catch (IllegalAccessException ignored) {
+        }
+    }
+
+    @Override
+    public void drop(int slot, boolean flag, boolean flag1) {
+        // 26.3: ServerPlayer.drop(ItemStack, boolean, Prediction) —— 原本的第三个 boolean 变成 Prediction,
+        // dropAround 在 26.3 内部固定为 false。此处按原语义把 flag1 (includeThrowerName) 传为 boolean,
+        // 并用 SERVER_ONLY 让服务端照常播放挥手动画 (PREDICTED 表示客户端已预测, 会跳过 swing)。
+        var inventory = handle.getInventory();
+        handle.drop(inventory.removeItem(slot, inventory.getItem(slot).getCount()), flag1, Prediction.SERVER_ONLY);
+    }
+
+    @Override
+    public void setPlayBefore() {
+        ((CraftPlayer) player).readExtraData(
+                new ValueInputContextHelper(HolderLookup.Provider.create(Stream.empty()), null).empty()
+        );
+    }
+
+    @Override
+    public void setupClientOptions() {
+        var option = new ClientInformation(
+                "en_us",
+                Bukkit.getViewDistance(),
+                ChatVisiblity.SYSTEM,
+                false,
+                ConstantPool.MODEL_CUSTOMISATION,
+                HumanoidArm.RIGHT,
+                false,
+                true,
+                ParticleStatus.MINIMAL
+        );
+
+        handle.updateOptions(option);
+    }
+
+    @Override
+    public void respawn() {
+        if (!this.player.isDead()) {
+            return;
+        }
+
+        var packet = new ServerboundClientCommandPacket(ServerboundClientCommandPacket.Action.PERFORM_RESPAWN);
+        handle.connection.handleClientCommand(packet);
+    }
+
+    @Override
+    public void swapItemWithOffhand() {
+        handle.connection.handlePlayerAction(new ServerboundPlayerActionPacket(
+                ServerboundPlayerActionPacket.Action.SWAP_ITEM_WITH_OFFHAND,
+                new BlockPos(0, 0, 0),
+                Direction.DOWN
+        ));
+    }
+
+    @Override
+    public void chat(@NotNull String message) {
+        // 新版聊天走签名校验链, 直接调 connection.chat 会被静默丢弃。与 Paper 的 CraftPlayer#chat(String)
+        // 保持一致: 构造一条未签名的聊天消息交给 ChatProcessor, 完整触发
+        // AsyncPlayerChatEvent / AsyncChatEvent, 让聊天格式化插件(EssentialsX Chat / Vane 等)
+        // 能介入修改格式/消息; 事件未取消时按事件结果广播。
+        handle.connection.chat(
+                message,
+                PlayerChatMessage.system(message).withUnsignedContent(Component.literal(message)),
+                false
+        );
+    }
+
+}
