@@ -21,4 +21,10 @@ public class Release {
      */
     private String body;
 
+    /**
+     * GitHub release page
+     */
+    @SerializedName("html_url")
+    private String htmlUrl;
+
 }

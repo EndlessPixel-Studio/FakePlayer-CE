@@ -12,291 +12,174 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 22
+version: 23
 
-# 多国语言配置
+
+# ============================================================
+# 语言 / Language
+# ============================================================
 # 可选项: en, zh, zh_cn, zh_tw, zh_hk
-# Language
-# Options: en, zh, zh_cn, zh_tw, zh_hk
 i18n:
   locale: zh
 
 
-# 服务器最多存在多少个假人
-# 默认: 1000
-# Define the maximum number of fake players on the server at the same time
-# default: 1000
+# ============================================================
+# 数量限制 / Limits
+# ============================================================
+
+# 服务器同时存在的假人上限
+# Maximum fake players on the whole server
 server-limit: 1000
 
-
-# 每个玩家最多创建多少个假人
-# 默认: 1
-# Define the maximum number of fake players each player can spawn
-# Default: 1
+# 每个玩家可召唤的假人上限
+# Maximum fake players each player can spawn
 player-limit: 1
 
-
-# 如果启用, 则一个 IP 只能创建 `player-limit` 个假人
-# 能够避免玩家开小号疯狂创建假人
-# Define whether to check if players with the same IP sharing `player-limit`
+# 同一 IP 共享 player-limit (防止开小号刷假人)
+# Players sharing an IP share the player-limit
 detect-ip: true
-
 
 # 假人存活时间, 0 表示永久
 # 单位: 分钟
-# Define the maximum lifespan of fake players
-# Unit: minute, `0` represents permanent
+# Fake player lifespan, 0 means permanent
+# Unit: minute
 lifespan: 0
 
 
-# 假人默认名称模版
-# 如果为空, 则跟随创建者的名字并且加上后缀
-# 如果为其他值, 则使用该模版并且加上后缀
-# 这个值仅在使用 spawn 命令时没有自定义名称时生效
-# 占位符:
-#   %c: 创建者名称
-# 注意:
-#   1. 如果包含除 英文字母、数字、下划线 以外的字符，将会导致原版及第三方的许多命令失效
-#   2. 长度超过 16 位将会被截取
-#   3. 不能以 - 开头
-#   4. 反正我不建议你启用这个选项, 因为如果玩家给假人 res 权限之类的或者把一些物品给了假人, 其他玩家召唤了同名假人, 这可能会有风险
-# Name template of fake players
-# If this value is empty, fake players will use creators' name as their name and add a numerical suffix.
-# Otherwise, fake players will use this value as their names and add a numerical suffix.
-# Variables:
-#   %c: the name of the creator
-# Tips:
-#   1. If this value contains characters other than alphabetic, numbers, and underscores, many vanilla commands will not be usable on them.
-#   2. Characters longer than 16 characters will be truncated
-#   3. Cannot start with '-'
-#   4. It's not recommended, players may give them RES privileges, or put some items into their inventory.
+# ============================================================
+# 名称 / Naming
+# ============================================================
+
+# 默认名称模版, 留空表示使用创建者名称加后缀
+# %c: 创建者名称
+# 注意: 只应包含英文字母/数字/下划线 (否则许多原版与第三方命令会失效), 长度不超过 16, 且不能以 - 开头
+# Name template, empty means the creator's name plus a suffix
+# %c: the name of the creator
+# Note: only letters/numbers/underscores (otherwise many commands will not work on them), max 16 chars, cannot start with '-'
 name-template: ''
 
-# 假人名称前缀
-# 自动生成的名称或者玩家创建时指定名称都将会追加前缀
-# Name prefix.
-# Prefix will be added to the generated name or specified name
+# 名称前缀, 自动生成的名称与自定义名称都会加上
+# Name prefix, added to generated and custom names
 name-prefix: ''
 
-# 假人自定义名称允许的字符
-#  格式: 正则表达式
-#  默认: '^[a-zA-Z0-9_]+$'
-# 注意:
-#   1. 如果允许了 英文字母、数字、下划线 以外的字符, 将会导致原版及第三方的许多命令失效
-#   2. 自定义名称需要玩家具有 `fakeplayer.spawn.name` 权限
-#   3. 如果你改了正则表达式, 请确保它以 `^` 开头并且以 `$` 结尾
+# 自定义名称允许的字符 (正则表达式, 必须以 ^ 开头、以 $ 结尾)
+# 自定义名称需要玩家拥有 `fakeplayer.spawn.name` 权限
+# Allowed characters of a custom name (regex, must start with ^ and end with $)
+# A custom name requires the `fakeplayer.spawn.name` permission
 name-pattern: '^[a-zA-Z0-9_]+$'
 
-# 假人在 Tab 上的名称样式
-# Name style on Tab listing
-# Options:
-#   black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple, gold, gray,
-#   dark_gray, blue, green, aqua, red, light_purple, yellow, white
-#   obfuscated, bold, strikethrough, underlined, italic
+# Tab 列表中的名称样式
+# 可选项: black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple, gold, gray,
+#         dark_gray, blue, green, aqua, red, light_purple, yellow, white,
+#         obfuscated, bold, strikethrough, underlined, italic
+# Name style on the tab list
 name-style: gray, italic
 
 
-# 防止假人被其他插件踢掉, 这个选项用来兼容一些插件因为某些问题而踢掉假人
-# 可选项:
-#   NEVER: 不进行任何处理
-#   ON_SPAWNING: 创建时防止被踢出, 某些登陆插件会在加入时踢掉, 但不支持某些插件会在下 1 tick 时才踢的情况
-#   ALWAYS: 永远, 即除了本插件以外任何插件包括 /kick 命令都无法将假人踢掉
-# Prevent some plugins kick our fake players, enabling this option may resolve some compatibility issues with login plugins.
-# Options:
-#   NEVER: do not prevent kicking
-#   ON_SPAWNING: only prevent kicking when fake players is spawning, but some plugin will kick them on the next tick, in such causes you should use `ALWAYS`
-#   ALWAYS: always prevent kicking from other plugins and command `/kick`
-prevent-kicking: ON_SPAWNING
+# ============================================================
+# 生命周期 / Lifecycle
+# ============================================================
 
-
-# 跟随下线
-# 假人创建者下线时是否也跟着下线
-# 如果玩家只是切换服务器, 那么不会触发跟随下线
-# Define whether fake personas will be removed when the creator quited.
+# 创建者下线时假人跟随下线
+# 玩家只是切换服务器时不会触发跟随下线
+# Remove fake players when their creator quits
+# Merely switching servers does not trigger this
 follow-quiting: true
 
-# 创建者退出时立即清理其假人
-# 默认的跟随下线逻辑依赖定时轮询, 开启后会在创建者退出后按下面的延迟立即清理, 无需等待轮询
-# 注意: 开启后会绕过「仅切换服务器不触发跟随下线」的判断, 切换服务器的玩家其假人也会被移除
-# Remove fake players immediately when the creator quits, instead of waiting for the periodic poll.
-# NOTE: enabling this bypasses the "server switching" guard, so a creator who merely switches
-# servers will also have their fake players removed.
+# 创建者退出时立即清理其假人 (默认的跟随下线依赖定时轮询)
+# 注意: 开启后会绕过「仅切换服务器不触发跟随下线」的判断
+# Remove them right after the creator quits, instead of waiting for the periodic poll
+# NOTE: this bypasses the "server switching" guard above
 follow-quiting-force: false
-# 创建者退出后延迟多少秒执行立即清理
-# Delay in seconds before the immediate cleanup runs.
+
+# 立即清理前延迟多少秒
+# Delay in seconds before the immediate cleanup runs
 follow-quiting-force-delay: 3
 
-
-# 退出时是否丢弃背包物品
-# Define whether fake players will drop items from their inventory when they remove.
+# 假人被移除时是否丢弃背包物品
+# Drop inventory items when a fake player is removed
 drop-inventory-on-quiting: false
 
-
-# 是否保存假人存档, 如果你将这个设置改成 `false`, 你可能还需要将 `drop-inventory-on-quiting` 设置为 `true` 以防玩家放置一些物品到假人的背包
-# 默认: true
-# Define whether persist player's data, if this value is `false`,
-# you may need to set `drop-inventory-on-quiting` as `true` in case players will put some items in their inventory
-# 默认: true
+# 是否保存假人存档
+# 设为 false 时建议将 drop-inventory-on-quiting 也设为 true
+# Whether to persist fake player data
+# When set to false, consider enabling drop-inventory-on-quiting as well
 persistent-data: true
 
-
-# 死亡时是否踢出游戏, 如果设置为 false, 那么玩家可以通过 /fp respawn 命令重生
-# Define whether kick the fake player who was dead,
-# if this value is false, players can type command '/fp respawn' to respawn him
+# 死亡时是否踢出, 设为 false 时玩家可以通过 /fp respawn 重生
+# Kick the fake player on death; when false it can be respawned with /fp respawn
 kick-on-dead: true
 
-# 是否记录当前在线的假人, 并在下一次服务器启动时自动恢复 (含原位置与创建者)
-# Record online fake players and restore them automatically (with position and creator) on the next server start
-# Default: false
+# 记录在线假人, 并在下次服务器启动时自动恢复 (含原位置与创建者)
+# Record online fake players and restore them (with position and creator) on the next server start
 restore-on-start: false
 
+# 防止假人被其他插件或 /kick 踢出
+# 可选项:
+#   NEVER: 不处理
+#   ON_SPAWNING: 仅在创建时防止被踢出
+#   ALWAYS: 始终防止 (注意: 某些登录插件会在下 1 tick 踢人, 这种情况请用 ALWAYS)
+# Prevent fake players from being kicked by other plugins or /kick
+# Options: NEVER / ON_SPAWNING / ALWAYS
+prevent-kicking: ON_SPAWNING
 
-# 服务器最近 5 分钟平均 TPS 低于这个值清除所有假人
-# 每 60 秒检测一次
-# 默认: 0, 即不开启, 因为移除假人可能导致玩家红石机器出问题, 按需开启吧
-# Server will detect tps every 5 minutes, if the average tps is lower than this value, all fake players will be removed
-# Default: 0, means disabled
-# Tips:
-#    It's not recommended to enable this option, as it may cause the redstone machine to malfunction
+# 服务器最近 5 分钟平均 TPS 低于此值时清除所有假人, 0 表示关闭
+# 不推荐开启, 移除假人可能导致玩家的红石机器出问题
+# Remove all fake players when the 5-minute average TPS drops below this value, 0 disables it
+# Not recommended: removing fake players may break redstone machines
 kale-tps: 0
 
 
-# Invsee implement:
-# Options:
-#   AUTO: Auto choose a implement depends on server plugins. Supports: OpenInv
-#   SIMPLE: A simple implement, with it, you can NOT visit or modify equipments
-# Invsee 实现:
-# 可选项:
-#   AUTO: 自动，自动根据服务器安装的插件来选择, 当前支持的插件: OpenInv
-#   SIMPLE: 一个简单的内嵌实现, 使用这个不能看到或者编辑假人的装备栏
-invsee-implement: AUTO
+# ============================================================
+# 命令钩子 / Command hooks
+# ============================================================
+# 占位符: %p 假人名称, %u 假人 UUID, %c 创建者名称
+# Variables: %p fake player name, %u fake player UUID, %c creator name
 
-# Allow non-OP players to open fake player inventories
-# 允许非 OP 玩家打开假人背包 (默认关闭, 开启后所有玩家均可打开)
-allow-non-op-open-inv: false
-
-
-# Pre-Spawn-Commands
-# Server will execute the following commands BEFORE trying to spawn a fake player.
-# This is helpful for adding fake player into whitelist
-# Variables:
-#   %p: the name of the fake player
-#   %u: the UUID of the fake player
-#   %c: the name of the creator
-# 服务器会在假人创建前执行这些命令
-# 这里可以添加类似于白名单的命令来保证后续创建过程的正常执行
-# 变量:
-#   %p: 假人的名称
-#   %u: 假人的 UUID
-#   %c: 创建人的名称
+# 创建假人之前执行 (可用于加白名单等)
+# Commands executed BEFORE trying to spawn a fake player
 pre-spawn-commands:
   - ''
   - ''
 
-
-# Post-Spawn-Commands
-# Server will execute the following commands DURING spawning (in PlayerJoinEvent).
-# Variables:
-#   %p: the name of the fake player
-#   %u: the UUID of the fake player
-#   %c: the name of the creator
-# 服务器会在假人正在加入游戏中执行这些命令
-# 变量:
-#   %p: 假人的名称
-#   %u: 假人的 UUID
-#   %c: 创建人的名称
+# 假人正在加入游戏时执行 (PlayerJoinEvent 内)
+# Commands executed DURING spawning (in PlayerJoinEvent)
 post-spawn-commands:
   - ''
   - ''
 
-
-# After-Spawn-Commands
-# Server will execute the following commands AFTER the fake player was spawned (after PlayerJoinEvent).
-# This is helpful for giving permission.
-# Variables:
-#   %p: the name of the fake player
-#   %u: the UUID of the fake player
-#   %c: the name of the creator
-# 服务器会在假人创建后执行这里的命令
-# 这里可以添加一些权限组分配之类的命令
-# 变量:
-#   %p: 假人的名称
-#   %u: 假人的 UUID
-#   %c: 创建人的名称
+# 假人创建完成后执行 (可用于分配权限组)
+# Commands executed AFTER the fake player was spawned
 after-spawn-commands:
   - ''
   - ''
 
-
-# Self-Commands
-# The fake player will execute the following commands AFTER they were joined the server.
-# This is helpful for them to execute some login command.
-# Ensure the password is complex enough otherwise the login plugin might reject it.
-# Variables:
-#   %p: the name of the fake player
-#   %u: the UUID of the fake player
-#   %c: the name of the creator
-# 假人在加入游戏后会执行以下命令
-# 你可以添加一些登陆命令来让他们完成登陆过程
-# 变量:
-#   %p: 假人的名称
-#   %u: 假人的 UUID
-#   %c: 创建人的名称
+# 由假人自己执行, 可用于登录插件
+# 请确保密码足够复杂, 否则登录插件可能拒绝
+# Executed by the fake player itself, useful for login commands
 self-commands:
   - ''
   - ''
 
-
-# Post-Destroy-Commands
-# Server will execute the following commands when the fake player is quiting but not quited (in PlayerQuitEvent)
-# This is helpful for cleaning up their inventory if you want it
-# Variables:
-#   %p: the name of the fake player
-#   %u: the UUID of the fake player
-#   %c: the name of the creator
-# 服务器会在假人正在退出时执行这些命令, 命令执行的那一刻假人还位于服务器
-# 你可以添加一些用来清空假人背包之类的命令
-# 变量:
-#   %p: 假人的名称
-#   %u: 假人的 UUID
-#   %c: 创建人的名称
+# 假人正在退出时执行, 此时假人仍在服务器上
+# Commands executed when the fake player is quitting (still online)
 post-quit-commands:
   - ''
   - ''
 
-
-# Post-Destroy-Commands
-# Server will execute the following commands AFTER the fake player was quited. (after PlayerQuitEvent)
-# Variables:
-#   %p: the name of the fake player
-#   %u: the UUID of the fake player
-#   %c: the name of the creator
-# 销毁后命令
-# 服务器会在假人退出游戏之后执行这些命令
-# 你可以添加一些清理白名单、取消权限分配、清理某些插件数据等命令
-# 变量:
-#   %p: 假人的名称
-#   %u: 假人的 UUID
-#   %c: 创建人的名称
+# 假人退出游戏后执行 (可用于清理数据)
+# Commands executed AFTER the fake player has quit
 after-quit-commands:
   - ''
   - ''
 
 
-# 允许玩家让假人执行的命令
-# 在这里你可以放一些你服务器的命令，玩家就可以执行
-# 例如添加 /sit 之后, 玩家可以通过 '/fp cmd myfakeplayer sit' 让假人坐下来
-# ！！！注意: 在这里定义的命令, 不需要 fakeplayer.cmd 权限！！！
-# ！！！注意: 给了 fakeplayer.cmd 命令，玩家就能够控制假人执行所有(有权限的)命令！！！
-# Define which commands can be executed by `/fp cmd` without 'fakeplayer.cmd' permission
-allow-commands:
-  - ''
-  - ''
+# ============================================================
+# 假人特性 / Fake player features
+# ============================================================
 
-# Default Features of fake players
-# It takes effect when the player has never changed the config by '/fp config' or has no permission.
-# 默认假人特性
-# 当玩家没有通过 /fp config 更改过配置或者他没有权限时生效
+# 默认特性: 玩家未通过 /fp config 修改过配置或没有权限时生效
+# Default features, applied when the player never changed them via /fp config or has no permission
 default-features:
   collidable: true
   pickup_items: true
@@ -309,56 +192,83 @@ default-features:
   wolverine: false
 
 # 自动补货时工具的自动修复阈值
-# 取值 0-100, 表示工具磨损达到该百分比时自动修复 (耐久归零)
-# 0 表示不自动修复工具 (默认)
+# 取值 0-100, 表示工具磨损达到该百分比时修复; 0 表示不自动修复
+# Durability percentage at which replenish repairs tools; 0 disables auto repair
 replenish:
   tools:
     durability-threshold: 0
 
-# GCA-style replacement: non-Mending tools are replaced after breaking; Mending tools are replaced at this threshold.
-# Mending tools with more remaining durability than the threshold are eligible replacements.
-# This feature is enabled per fake player with `/fp config set replace_tools true`.
-# GCA 风格替换：非经验修补工具损坏后更换；经验修补工具在剩余耐久达到此值或更低时更换。
-# 经验修补候选工具的剩余耐久必须高于此值；非经验修补候选工具不受耐久值限制。
+# 工具替换: 非经验修补工具损坏后更换; 经验修补工具在剩余耐久低于该值时更换
+# 该特性通过 `/fp config set replace_tools true` 按假人开启
+# Non-Mending tools are replaced after breaking; Mending tools are replaced at this remaining durability
+# Enabled per fake player with `/fp config set replace_tools true`
 tool-replacement:
   remaining-durability-threshold: 10
 
+# Invsee 实现:
+#   AUTO: 自动选择 (目前支持 OpenInv)
+#   SIMPLE: 内置实现, 无法查看或编辑装备栏
+# Invsee implementation: AUTO (auto-detect, currently OpenInv) or SIMPLE (cannot view or edit equipment)
+invsee-implement: AUTO
 
-# 检测更新
-# 仅仅是检测, 并不会帮你下载
-check-for-updates: true
+# 允许非 OP 玩家打开假人背包
+# Allow non-OP players to open fake player inventories
+allow-non-op-open-inv: false
 
 
-# 自动登录
-# 假人生成后是否自动执行注册/登录命令, 需要先通过 '/fp password <名称> <密码>' 为假人设置密码
-# 密码保存在插件数据库中
-# 命令模板中的 %password% 会被替换为数据库中存储的密码, 其余 %p %u %c 占位符会自动替换
-# 默认: false
-# Auto login
-# Whether fake players automatically run register/login commands after spawn.
-# You should set a password first via '/fp password <name> <password>', the password is stored in the plugin database.
-# %password% in the templates will be replaced with the stored password, %p %u %c are replaced automatically.
-# Default: false
+# ============================================================
+# 自动登录 / Auto login
+# ============================================================
+
+# 假人生成后是否自动执行注册/登录命令
+# 需先通过 `/fp password <名称> <密码>` 为假人设置密码, 密码保存在插件数据库中
+# 模板中的 %password% 会替换为数据库中的密码, %p %u %c 同上
+# Automatically run the register/login commands after spawning
+# Set a password first with `/fp password <name> <password>` (stored in the plugin database)
+# %password% is replaced with the stored password, %p %u %c as above
 auto-login: false
 register: "/reg %password% %password%"
 login: "/login %password%"
 
-# 强制在不支持的版本运行 (忽略 NMSBridge 版本检查)
-# Force running on unsupported Minecraft versions by ignoring the NMSBridge version check.
-# 开启后将以第一个可用的 NMSBridge 实现兜底, 可能因 NMS 不兼容而崩溃, 风险自负.
-# Default: false
-forced-execution: false
+# 随机密码字符集; 留空表示不自动生成 (必须手动设置密码后才能自动登录)
+# Random password charset; leave empty to disable generation (a password must be set manually)
+random-password: ""
+
+# 随机密码长度
+# Random password length
+random-password-length: 12
+
+# 修改密码命令模板, %oldpassword% 与 %newpassword% 会被替换
+# 默认为 AuthMe 风格, 若你的登录插件使用 /changepw 请按需修改
+# Change password command template; %oldpassword% and %newpassword% are replaced
+change-password: "/changepassword %oldpassword% %newpassword% %newpassword%"
+
 
 # ============================================================
-# HTTP 远程管理接口
-# HTTP admin interface for remote fake player management
-# 启用后可通过 GET / POST 请求远程查询与操作假人, 接口清单见 README
-# 注意: 所有接口都会产生副作用, 请勿把接口地址暴露给不可信来源
+# 其他 / Misc
 # ============================================================
+
+# 检测更新: 与本仓库 GitHub Releases 的最新 `fp.buildN` 比较
+# 仅仅是检测, 不会自动下载
+# Check for updates against the latest `fp.buildN` GitHub release of this repository
+# Detection only, nothing is downloaded automatically
+check-for-updates: true
+
+# 在不支持的版本强制运行 (忽略 NMSBridge 版本检查, 可能因 NMS 不兼容而崩溃)
+# Force running on unsupported Minecraft versions by ignoring the NMSBridge version check
+forced-execution: false
+
+
+# ============================================================
+# HTTP 远程管理接口 / HTTP admin interface
+# ============================================================
+# 启用后可通过 GET / POST 远程查询与操作假人, 接口清单见 README
+# 所有接口都会产生副作用, 请勿把接口地址暴露给不可信来源
+# Endpoints are documented in the README. Every endpoint has side effects,
+# never expose this service to untrusted networks.
 http-admin:
   # 是否启用 HTTP 接口
   # Enable the HTTP admin interface
-  # Default: false
   enabled: false
   # 监听地址, 0.0.0.0 表示监听所有网卡
   # Listen address, 0.0.0.0 listens on all interfaces
@@ -367,25 +277,20 @@ http-admin:
   # Listen port
   port: 3253
   # 鉴权令牌, 为空时启动时随机生成并在控制台打印
-  # 建议使用足够长的随机字符串; 令牌过短会被暴力破解 (接口已有失败锁定, 但仍应以强度为先)
+  # 建议使用足够长的随机字符串
   # Auth token; if empty, a random token is generated at startup and printed to console
   token: ""
-  # 是否允许 GET 请求
-  # 关闭后仅接受 POST。令牌无论如何都通过 Authorization 请求头传递, 参数仍走 query;
-  # 关闭 GET 主要是为了不让接口被浏览器预取 / 爬虫 / 图片标签意外触发 (所有接口都会产生副作用)
-  # Allow GET requests. When disabled, only POST is accepted. The token always travels in the
-  # Authorization header and parameters stay in the query string; disabling GET keeps the
-  # endpoints from being triggered by browser prefetch, crawlers or image tags.
+  # 是否允许 GET 请求; 关闭后仅接受 POST
+  # 令牌始终通过 Authorization 请求头传递, 参数仍走 query
+  # Allow GET requests; when disabled only POST is accepted
+  # The token always travels in the Authorization header, parameters stay in the query string
   allow-get: true
   # Host / Origin 白名单, 留空表示不校验
-  # 配置后 Host 以及浏览器跨源请求的 Origin 必须命中白名单, 可缓解 DNS rebinding
-  # (恶意网页把某个域名解析到本机地址, 再借浏览器访问本接口)
-  # Host / Origin allowlist; empty means no check. When set, the Host header and the Origin of
-  # cross-origin browser requests must match an entry, which mitigates DNS rebinding.
+  # 可缓解 DNS rebinding (恶意网页把域名解析到本机再借浏览器访问本接口)
+  # Host / Origin allowlist, empty means no check; mitigates DNS rebinding
   allowed-hosts: []
 
-  # 限流与失败锁定
-  # Rate limiting and lockout
+  # 限流与失败锁定 / Rate limiting and lockout
   rate-limit:
     # 每个来源 IP 每分钟允许的请求数
     # Requests allowed per source IP per minute
@@ -396,48 +301,26 @@ http-admin:
     # 锁定时长 (秒)
     # Lockout duration in seconds
     lockout-seconds: 60
-  # 各接口开关
-  # Per-interface switches
+
+  # 各接口开关 / Per-endpoint switches
   interface:
-    # 查询类
-    list: true          # GET /list         列出在线假人
-    status: true        # GET /status       假人详细状态 (坐标/血量/背包/动作等)
-    info: true          # GET /info         插件与服务端信息
-    # 生命周期
-    spawn: true         # GET /spawn        生成假人
-    kick: true          # GET /kick         移除假人
-    kill: true          # GET /kill         杀死假人
-    respawn: true       # GET /respawn      重生已死亡的假人
-    # 行为控制
+    # 查询类 / Query
+    list: true          # GET /list         列出在线假人          list online fake players
+    status: true        # GET /status       假人详细状态          detailed state (location/health/inventory/actions)
+    info: true          # GET /info         插件与服务端信息      plugin and server info
+    # 生命周期 / Lifecycle
+    spawn: true         # GET /spawn        生成假人              spawn a fake player
+    kick: true          # GET /kick         移除假人              remove a fake player
+    kill: true          # GET /kill         杀死假人              kill a fake player
+    respawn: true       # GET /respawn      重生已死亡的假人      respawn a dead fake player
+    # 行为控制 / Behaviour
     action: true        # GET /action       触发动作 (attack/mine/use/jump/drop/say 等)
-    stop: true          # GET /stop         停止假人当前所有动作
-    say: true           # GET /say          让假人发言
-    teleport: true      # GET /teleport     传送假人
-    look: true          # GET /look         设置假人朝向
-    hold: true          # GET /hold         切换假人主手槽位
-    swap: true          # GET /swap         交换假人主副手物品
-    # 其他
-    cmd: true           # GET /cmd          以假人身份执行命令
-    batch: true         # GET /kickall /killall /sayall  批量操作
-
-# 随机密码字符集
-# 当 auto-login 开启且某个假人尚未通过 '/fp password' 设置密码时, 从以下字符集中随机生成密码并自动注册/登录
-# 留空表示不自动生成, 必须手动设置密码后才能自动登录
-# Random password charset
-# When auto-login is enabled and a fake player has no password set, a random password is generated from this charset and used to register/login automatically.
-# Leave empty to disable auto generation (a password must be set manually).
-random-password: ""
-
-# 随机密码长度
-# Random password length
-# 默认: 12
-random-password-length: 12
-
-# 修改密码命令模板
-# 当玩家使用 '/fp changepassword <名称> <旧密码> <新密码>' 时为假人执行修改密码命令
-# %oldpassword% 与 %newpassword% 会分别替换为旧密码和新密码
-# 默认使用 AuthMe 风格的 /changepassword, 若你的登录插件使用 /changepw 请按需修改
-# Change password command template
-# %oldpassword% and %newpassword% are replaced with the old and new password.
-# Default uses AuthMe-style /changepassword, change it if your auth plugin uses /changepw.
-change-password: "/changepassword %oldpassword% %newpassword% %newpassword%"
+    stop: true          # GET /stop         停止当前所有动作      stop all running actions
+    say: true           # GET /say          让假人发言            make a fake player send a chat message
+    teleport: true      # GET /teleport     传送假人              teleport a fake player
+    look: true          # GET /look         设置朝向              set the look direction
+    hold: true          # GET /hold         切换主手槽位          switch the main hand slot
+    swap: true          # GET /swap         交换主副手物品        swap main and off hand
+    # 其他 / Others
+    cmd: true           # GET /cmd          以假人身份执行命令    run a command as the fake player
+    batch: true         # GET /kickall /killall /sayall            批量操作 batch operations

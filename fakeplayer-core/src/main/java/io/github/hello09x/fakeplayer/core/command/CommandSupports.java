@@ -201,7 +201,7 @@ public abstract class CommandSupports {
     }
 
     public static boolean isCmdAvailable(@NotNull CommandSender sender) {
-        return (sender.hasPermission(Permission.cmd) || !config().getAllowCommands().isEmpty()) && hasFakeplayer(sender);
+        return sender.hasPermission(Permission.cmd) && hasFakeplayer(sender);
     }
 
 }

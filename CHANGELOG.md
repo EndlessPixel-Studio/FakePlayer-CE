@@ -13,11 +13,17 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 ### English
 
 - **Support for Minecraft 26.3.** A new `fakeplayer-v26_3` module (a full NMS implementation, not a bridge) adapts to the 26.3 API changes: `LivingEntity.swing(InteractionHand)` gained `SwingAnimation`/boolean parameters, `Entity.hurtMarked` was replaced by `syncVelocity`, and `ServerPlayer.drop` now takes a `Prediction`. On 26.3, CommandAPI `12.1.0` or newer is required.
+- **Removed the deprecated `allow-commands` option.** `/fp cmd` now always requires the `fakeplayer.command.cmd` permission — assign it with a permissions plugin. The option had been deprecated and only printed a removal warning on startup.
+- **`check-for-updates` now checks this repository.** It queries the latest GitHub release of `EndlessPixel-Studio/FakePlayer-CE` and compares the `fp.buildN` build number, instead of the original upstream project (which made the check meaningless for this fork and usually failed).
+- `config.yml` reordered into themed sections with condensed comments; bumped to version 23.
 - Fixed `/fp say` (and `say continuous` / `say interval`) rejecting the name of a fake player owned by someone else with "you haven't spawned a fake player yet" — from the console this made it impossible to address any fake player by name at all. An explicitly given name is now resolved with the same rules as every other command: operators and the console may target any fake player, regular players only their own.
 
 ### 中文
 
 - **支持 Minecraft 26.3。** 新增 `fakeplayer-v26_3` 模块（完整 NMS 实现，非桥接），适配 26.3 的 API 变更：`LivingEntity.swing(InteractionHand)` 新增 `SwingAnimation` 与 boolean 参数、`Entity.hurtMarked` 由 `syncVelocity` 取代、`ServerPlayer.drop` 改为接受 `Prediction`。在 26.3 上需 CommandAPI `12.1.0` 及以上。
+- **移除已废弃的 `allow-commands` 配置。** `/fp cmd` 现在始终需要 `fakeplayer.command.cmd` 权限，请通过权限插件分配。该配置早已标记废弃，启动时仅打印一条移除警告。
+- **`check-for-updates` 改为检查本仓库。** 现查询 `EndlessPixel-Studio/FakePlayer-CE` 的最新 GitHub Release，并按 `fp.buildN` 的构建号比较；此前检查的是原上游项目，对本分支没有意义且通常直接失败。
+- `config.yml` 按主题重新分组并精简注释，版本提升至 23。
 - 修复 `/fp say`（及 `say continuous` / `say interval`）指定「他人的假人名称」时报「你还没召唤假人呢」的问题——在控制台里这会导致完全无法按名字指定假人。显式给出的名字现按与其他命令一致的规则解析：op 与控制台可指定任意假人，普通玩家只能指定自己召唤的假人。
 
 ## fp.build12 - 2026-09-26
