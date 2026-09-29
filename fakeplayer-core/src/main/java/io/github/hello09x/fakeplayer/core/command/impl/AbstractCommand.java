@@ -61,9 +61,9 @@ public abstract class AbstractCommand {
             fake = p;
         } else if (raw instanceof String s && !s.isBlank()) {
             // 兼容 say 命令: name 以字符串形式传入 (单参数时回退为消息, 该字符串通常不是有效假人名)
-            fake = manager.getAll(sender).stream()
-                    .filter(f -> f.getName().equalsIgnoreCase(s))
-                    .findFirst().orElse(null);
+            // 与 FakePlayerCommandArgument 保持一致的语义: op / 控制台可以指定任意假人,
+            // 普通玩家只能指定自己召唤的假人。此前只查自己召唤的假人, 导致控制台无法按名字操作别人召唤的假人
+            fake = sender.isOp() ? manager.get(s) : manager.get(sender, s);
         }
         if (fake == null && sender instanceof Player p && args.getRaw("name") == null) {
             fake = manager.getSelection(p);
