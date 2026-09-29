@@ -33,6 +33,7 @@ dependencies {
     compileOnly(project(":fakeplayer-v26_1_1"))
     compileOnly(project(":fakeplayer-v26_1_2"))
     compileOnly(project(":fakeplayer-v26_2"))
+    compileOnly(project(":fakeplayer-v26_3"))
 }
 
 tasks.register<Jar>("shadowJar") {
@@ -60,6 +61,7 @@ tasks.register<Jar>("shadowJar") {
     dependsOn(":fakeplayer-v26_1_1:build")
     dependsOn(":fakeplayer-v26_1_2:build")
     dependsOn(":fakeplayer-v26_2:build")
+    dependsOn(":fakeplayer-v26_3:build")
 
     val coreJar = project(":fakeplayer-core").tasks.named<Jar>("jar")
     from(coreJar.map { zipTree(it.archiveFile.get().asFile) })
@@ -85,6 +87,7 @@ tasks.register<Jar>("shadowJar") {
     from(project(":fakeplayer-v26_1_1").sourceSets.main.get().output)
     from(project(":fakeplayer-v26_1_2").sourceSets.main.get().output)
     from(project(":fakeplayer-v26_2").sourceSets.main.get().output)
+    from(project(":fakeplayer-v26_3").sourceSets.main.get().output)
 
     // Include fakeplayer-dist's own resources (SPI services, etc.)
     from(sourceSets.main.get().output)
@@ -127,7 +130,8 @@ tasks.register<Jar>("shadowJar") {
                 "io.github.hello09x.fakeplayer.v26_1.spi.NMSBridgeImpl",
                 "io.github.hello09x.fakeplayer.v26_1_1.spi.NMSBridgeImpl",
                 "io.github.hello09x.fakeplayer.v26_1_2.spi.NMSBridgeImpl",
-                "io.github.hello09x.fakeplayer.v26_2.spi.NMSBridgeImpl"
+                "io.github.hello09x.fakeplayer.v26_2.spi.NMSBridgeImpl",
+                "io.github.hello09x.fakeplayer.v26_3.spi.NMSBridgeImpl"
             )
             check(providers.toSet() == expectedProviders) {
                 "Distribution JAR has an incomplete NMS bridge provider set"
