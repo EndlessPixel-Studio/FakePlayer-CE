@@ -154,12 +154,6 @@ public class FakeplayerConfig extends PluginConfig {
     private boolean checkForUpdates;
 
     /**
-     * 允许执行的命令
-     */
-    @Deprecated
-    private Set<String> allowCommands;
-
-    /**
      * 默认假人存活时间
      */
     @Nullable
@@ -400,11 +394,6 @@ public class FakeplayerConfig extends PluginConfig {
         this.nameTemplate = getNameTemplate(file);
         this.namePrefix = file.getString("name-prefix", "");
         this.lifespan = getLifespan(file);
-        this.allowCommands = file.getStringList("allow-commands")
-                                 .stream()
-                                 .map(c -> c.startsWith("/") ? c.substring(1) : c)
-                                 .filter(c -> !c.isBlank())
-                                 .collect(Collectors.toSet());
 
         this.defaultOnlineSkin = file.getBoolean("default-online-skin", false);
         this.defaultFeatures = Arrays.stream(Feature.values())
@@ -460,10 +449,6 @@ public class FakeplayerConfig extends PluginConfig {
                     Main.getInstance().getComponentLogger().warn(translatable("fakeplayer.configuration.out-of-date"));
                 }
             });
-        }
-
-        if (!this.allowCommands.isEmpty()) {
-            log.warning("allow-commands is deprecated which will be removed at 0.4.0, you should use Permissions Plugin to assign permission groups to fake players.");
         }
 
         var preparingCommands = file.getStringList("preparing-commands");
