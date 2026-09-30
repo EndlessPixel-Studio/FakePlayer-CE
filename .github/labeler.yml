@@ -1,0 +1,31 @@
+"documentation | 文档":
+  - changed-files:
+      - any-glob-to-any-file: ['**/*.md']
+
+"core | 核心":
+  - changed-files:
+      - any-glob-to-any-file: ['fakeplayer-core/**']
+
+"api | 接口":
+  - changed-files:
+      - any-glob-to-any-file: ['fakeplayer-api/**']
+
+"nms | 版本适配":
+  - changed-files:
+      - any-glob-to-any-file: ['versions/**']
+
+"dist | 构建发布":
+  - changed-files:
+      - any-glob-to-any-file: ['fakeplayer-dist/**']
+
+"ci | 持续集成":
+  - changed-files:
+      - any-glob-to-any-file: ['.github/**']
+
+"locale | 本地化":
+  - changed-files:
+      - any-glob-to-any-file: ['fakeplayer-core/src/main/resources/message/**']
+
+"config | 配置":
+  - changed-files:
+      - any-glob-to-any-file: ['fakeplayer-core/src/main/resources/config.yml']
