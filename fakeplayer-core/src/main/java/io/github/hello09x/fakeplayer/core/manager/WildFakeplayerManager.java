@@ -52,7 +52,8 @@ public class WildFakeplayerManager implements PluginMessageListener, Listener {
 
     /**
      * 创建者退出后立即清理其假人, 而不必等待定时轮询。
-     * <p>按 {@code follow-quiting-force} 开关启用, 延迟 {@code follow-quiting-force-delay} 秒执行。</p>
+     * <p>按 {@code follow-quiting-force} 开关启用, 延迟 {@code follow-quiting-force-delay} 秒执行;
+     * 若创建者在该延迟内重新上线 (快速重连或切换服务器后返回), 则保留其假人。</p>
      */
     @EventHandler
     public void handleFollowQuitingForce(@NotNull PlayerQuitEvent event) {
@@ -60,10 +61,18 @@ public class WildFakeplayerManager implements PluginMessageListener, Listener {
             return;
         }
 
+        var creator = event.getPlayer();
+        var creatorUuid = creator.getUniqueId();
         var delayTicks = Math.max(1, config.getFollowQuitingForceDelay()) * 20L;
-        for (var target : this.manager.getAll(event.getPlayer())) {
+        for (var target : this.manager.getAll(creator)) {
             // 在假人所属区域线程上移除 (Folia 兼容)
-            Schedulers.entityLater(Main.getInstance(), target, delayTicks, () -> manager.remove(target.getName(), "Creator offline"));
+            Schedulers.entityLater(Main.getInstance(), target, delayTicks, () -> {
+                // 创建者已经回到服务器, 说明只是快速重连, 不要误删
+                if (Bukkit.getPlayer(creatorUuid) != null) {
+                    return;
+                }
+                manager.remove(target.getName(), "Creator offline");
+            });
         }
     }
 
