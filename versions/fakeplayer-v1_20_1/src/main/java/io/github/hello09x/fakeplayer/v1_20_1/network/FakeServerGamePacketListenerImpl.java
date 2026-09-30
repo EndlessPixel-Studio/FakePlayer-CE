@@ -6,15 +6,12 @@ import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundCustomPayloadPacket;
-import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.messaging.StandardMessenger;
 import org.jetbrains.annotations.NotNull;
-import java.util.EnumSet;
-import java.util.List;
 
 public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerImpl implements NMSServerGamePacketListener {
 
@@ -60,24 +57,25 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
 
 
     /**
-     * 自定义延迟 (ping), 负数表示使用服务端计算出的真实值
+     * 自定义延迟 (ping)
+     * <p>1.20.1 的延迟还是 {@link ServerGamePacketListenerImpl} 上的字段 (没有 {@code latency()} 方法),
+     * 因此这里通过反射写入; 原版每 30 秒会广播一次延迟, 写入后最迟 30 秒内会在 Tab 列表生效</p>
+     *
+     * @param ping      延迟 (毫秒), 负数表示不修改
+     * @param broadcast 该版本无法立即广播, 忽略该参数
      */
-    private int fakePing = -1;
-
-    @Override
-    public int latency() {
-        return this.fakePing >= 0 ? this.fakePing : super.latency();
-    }
-
     @Override
     public void setPing(int ping, boolean broadcast) {
-        this.fakePing = ping;
-        if (broadcast) {
-            // 原版每 30 秒才广播一次延迟, 这里主动广播让 Tab 列表立刻刷新
-            this.server.getPlayerList().broadcastAll(new ClientboundPlayerInfoUpdatePacket(
-                    EnumSet.of(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY),
-                    List.of(this.player)
-            ));
+        if (ping < 0) {
+            return;
+        }
+
+        try {
+            var field = ServerGamePacketListenerImpl.class.getDeclaredField("latency");
+            field.setAccessible(true);
+            field.setInt(this, ping);
+        } catch (ReflectiveOperationException e) {
+            Main.getInstance().getLogger().warning("Failed to set the ping: " + e.getMessage());
         }
     }
 
