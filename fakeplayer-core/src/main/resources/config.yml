@@ -93,7 +93,9 @@ follow-quiting: true
 follow-quiting-force: false
 
 # 立即清理前延迟多少秒
+# 创建者在这段时间内重新上线 (快速重连 / 切服返回) 则不会清理其假人
 # Delay in seconds before the immediate cleanup runs
+# If the creator is back online within this delay, their fake players are kept
 follow-quiting-force-delay: 3
 
 # 假人被移除时是否丢弃背包物品
