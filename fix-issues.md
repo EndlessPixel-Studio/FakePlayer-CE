@@ -28,7 +28,7 @@
 - [tanyaofei/minecraft-fakeplayer Issue #199](https://github.com/tanyaofei/minecraft-fakeplayer/issues/199)
 - [tanyaofei/minecraft-fakeplayer Issue #200](https://github.com/tanyaofei/minecraft-fakeplayer/issues/200)
 - [tanyaofei/minecraft-fakeplayer Issue #201](https://github.com/tanyaofei/minecraft-fakeplayer/issues/201)
-- 
+
 ## xiplugin/FakePlayer
 - [xiplugin/FakePlayer commit 9d21b2c](https://github.com/xiplugin/FakePlayer/commit/9d21b2c8f410729c5d2e30ff71d3bf972c34dcbe)
 - [xiplugin/FakePlayer commit 7162822](https://github.com/xiplugin/FakePlayer/commit/716282294dfbdd097ec831c75482ea1a6e5e9fc2)
