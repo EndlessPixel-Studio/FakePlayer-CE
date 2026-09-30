@@ -7,6 +7,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.DiscardedPayload;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
@@ -16,6 +17,8 @@ import org.bukkit.plugin.messaging.StandardMessenger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Logger;
+import java.util.EnumSet;
+import java.util.List;
 
 public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerImpl implements NMSServerGamePacketListener {
 
@@ -68,6 +71,29 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
         var message = new byte[data.readableBytes()];
         data.getBytes(data.readerIndex(), message);
         recipient.sendPluginMessage(Main.getInstance(), BUNGEE_CORD_CHANNEL, message);
+    }
+
+
+    /**
+     * 自定义延迟 (ping), 负数表示使用服务端计算出的真实值
+     */
+    private int fakePing = -1;
+
+    @Override
+    public int latency() {
+        return this.fakePing >= 0 ? this.fakePing : super.latency();
+    }
+
+    @Override
+    public void setPing(int ping, boolean broadcast) {
+        this.fakePing = ping;
+        if (broadcast) {
+            // 原版每 30 秒才广播一次延迟, 这里主动广播让 Tab 列表立刻刷新
+            this.server.getPlayerList().broadcastAll(new ClientboundPlayerInfoUpdatePacket(
+                    EnumSet.of(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY),
+                    List.of(this.player)
+            ));
+        }
     }
 
 }
