@@ -107,6 +107,7 @@ FakePlayer CE 以**單一通用 jar**（`fakeplayer-fp.buildX.jar`）形式發�
 | /fp tphere | 將假人傳送至自身位置 | fakeplayer.command.tphere | |
 | /fp tps | 與假人互換位置 | fakeplayer.command.tps | |
 | /fp set | 修改單一假人獨立設定 | fakeplayer.command.set | |
+| /fp setping | 設定假人顯示的延遲 | fakeplayer.command.setping | 0 表示不模擬，使用真實值 |
 | /fp config | 修改自身建立假人的預設設定 | fakeplayer.command.config | |
 | /fp expme | 提取假人經驗值至自身 | fakeplayer.command.expme | |
 | /fp attack | 假人發起攻擊 | fakeplayer.command.attack | |
@@ -334,6 +335,7 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 - `fakeplayer.command.respawn` — 復活假人
 - `fakeplayer.command.config` — 修改預設設定
 - `fakeplayer.command.set` — 修改單一假人設定
+- `fakeplayer.command.setping` — 設定假人顯示的延遲
 
 ### 權限組 `fakeplayer.tp`
 

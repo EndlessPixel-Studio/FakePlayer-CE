@@ -35,6 +35,7 @@ import java.net.InetAddress;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.translatable;
@@ -90,6 +91,16 @@ public class Fakeplayer {
     private NMSNetwork network;
 
     /**
+     * 初始延迟 (ping), 负数表示不模拟
+     */
+    private volatile int firstPing = -1;
+
+    /**
+     * 当前延迟, 会在初始值附近小幅波动 (仅用于显示)
+     */
+    private volatile int currentPing = -1;
+
+    /**
      * @param creator      创建者
      * @param creatorIp    创建者 IP
      * @param sequenceName 序列名
@@ -125,6 +136,60 @@ public class Fakeplayer {
         this.player.setSleepingIgnored(true);
         this.handle.setPlayBefore(); // 可避免一些插件的第一次入服欢迎信息
         this.handle.disableAdvancements(Main.getInstance()); // 不提示成就信息
+    }
+
+    /**
+     * 按配置为假人设置初始延迟 (ping)
+     */
+    private void applyConfiguredPing() {
+        var pings = config.getCustomPing();
+        if (pings == null || pings.isEmpty()) {
+            return;
+        }
+
+        var ping = pings.size() == 1
+                ? pings.get(0)
+                : ThreadLocalRandom.current().nextInt(pings.get(0), pings.get(1) + 1);
+        this.setPing(ping);
+    }
+
+    /**
+     * 设置假人显示使用的延迟 (ping)
+     *
+     * @param ping 延迟 (毫秒), 负数表示改回使用服务端计算出的真实值
+     */
+    public void setPing(int ping) {
+        this.firstPing = ping;
+        this.currentPing = ping;
+        this.pushPing(ping, true);
+    }
+
+    /**
+     * 让延迟在设定值附近小幅波动, 避免 Tab 列表里一直显示同一个固定值
+     */
+    public void updateDynamicPing() {
+        var base = this.firstPing;
+        if (base < 0) {
+            return;
+        }
+
+        var next = Math.max(0, this.currentPing + ThreadLocalRandom.current().nextInt(-2, 3));
+        next = Math.min(base + 8, Math.max(base - 8, next));
+        if (next == this.currentPing) {
+            return;
+        }
+
+        this.currentPing = next;
+        this.pushPing(next, false);
+    }
+
+    private void pushPing(int ping, boolean broadcast) {
+        var network = this.network;
+        if (network == null) {
+            return;
+        }
+
+        network.getServerGamePacketListener().setPing(ping, broadcast);
     }
 
     /**
@@ -196,6 +261,7 @@ public class Fakeplayer {
 
                     this.network = bridge.createNetwork(address);
                     this.network.placeNewPlayer(Bukkit.getServer(), this.player);
+                    this.applyConfiguredPing();
                     this.player.setHealth(Optional.ofNullable(this.player.getAttribute(Attributes.maxHealth()))
                                                   .map(AttributeInstance::getValue)
                                                   .orElse(20D));    // 恢复生命值

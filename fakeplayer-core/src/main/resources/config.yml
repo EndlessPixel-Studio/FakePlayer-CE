@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 23
+version: 24
 
 
 # ============================================================
@@ -206,6 +206,20 @@ replenish:
 # Enabled per fake player with `/fp config set replace_tools true`
 tool-replacement:
   remaining-durability-threshold: 10
+
+# 假人在 Tab 列表里显示的延迟 (ping)
+# 单个值表示固定延迟; 用 "20,50" 表示在 20~50 ms 之间随机; 留空或负数表示不模拟, 使用真实值
+# Fake player ping shown on the tab list
+# A single value is fixed; "20,50" picks a random value in that range; empty or negative disables it
+custom-ping: ''
+
+# 是否让延迟在设定值上下小幅波动 (±8ms, 看起来更自然)
+# Whether to let the ping drift slightly around the configured value (±8ms)
+custom-ping-dynamic: false
+
+# 延迟波动的更新间隔 (tick)
+# Interval in ticks between dynamic ping updates
+custom-ping-dynamic-interval: 200
 
 # Invsee 实现:
 #   AUTO: 自动选择 (目前支持 OpenInv)
