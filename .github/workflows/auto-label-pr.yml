@@ -1,0 +1,32 @@
+name: Auto Label PR
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 先清理受管标签，避免旧分类残留
+      - uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: |
+            documentation | 文档
+            core | 核心
+            api | 接口
+            nms | 版本适配
+            dist | 构建发布
+            ci | 持续集成
+            locale | 本地化
+            config | 配置
+
+      # 2. 再按 .github/labeler.yml 重新计算
+      - uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
