@@ -154,6 +154,22 @@ public class FakeplayerConfig extends PluginConfig {
     private boolean checkForUpdates;
 
     /**
+     * 假人在 Tab 列表里显示的延迟 (ping)
+     * <p>空表示不模拟; 1 个元素表示固定值, 2 个元素表示在 [最小值, 最大值] 之间随机</p>
+     */
+    private List<Integer> customPing;
+
+    /**
+     * 是否让延迟在设定值附近小幅波动, 避免看起来像写死的
+     */
+    private boolean customPingDynamic;
+
+    /**
+     * 延迟波动任务的执行间隔 (tick)
+     */
+    private int customPingDynamicInterval;
+
+    /**
      * 默认假人存活时间
      */
     @Nullable
@@ -440,6 +456,9 @@ public class FakeplayerConfig extends PluginConfig {
         this.httpAdminRequestsPerMinute = Math.max(1, file.getInt("http-admin.rate-limit.requests-per-minute", 120));
         this.httpAdminAuthFailures = Math.max(0, file.getInt("http-admin.rate-limit.auth-failures", 10));
         this.httpAdminLockoutSeconds = Math.max(1, file.getInt("http-admin.rate-limit.lockout-seconds", 60));
+        this.customPing = parseCustomPing(file.getString("custom-ping"));
+        this.customPingDynamic = file.getBoolean("custom-ping-dynamic", false);
+        this.customPingDynamicInterval = Math.max(20, file.getInt("custom-ping-dynamic-interval", 200));
         this.nameStyleColor = this.getNameStyleColor(file);
         this.nameStyleDecorations = this.getNameStyleDecorations(file);
 
@@ -463,6 +482,36 @@ public class FakeplayerConfig extends PluginConfig {
             this.postQuitCommands.addAll(destroyCommands);
         }
 
+    }
+
+    /**
+     * 解析 {@code custom-ping} 配置
+     *
+     * @param raw 形如 {@code 30} 或 {@code 20,50} 的字符串; 留空或负数表示不模拟
+     * @return 1 个元素表示固定值, 2 个元素表示 [最小值, 最大值]; 不模拟时为空列表
+     */
+    private static @NotNull List<Integer> parseCustomPing(@Nullable String raw) {
+        if (raw == null || raw.isBlank()) {
+            return List.of();
+        }
+
+        var values = new ArrayList<Integer>(2);
+        for (var part : raw.split(",")) {
+            try {
+                values.add(Integer.parseInt(part.trim()));
+            } catch (NumberFormatException ignored) {
+                return List.of();
+            }
+        }
+
+        if (values.isEmpty() || values.stream().anyMatch(value -> value < 0)) {
+            return List.of();
+        }
+        if (values.size() == 1) {
+            return List.of(values.get(0));
+        }
+
+        return List.of(Math.min(values.get(0), values.get(1)), Math.max(values.get(0), values.get(1)));
     }
 
     private @Nullable Duration getLifespan(@NotNull FileConfiguration file) {

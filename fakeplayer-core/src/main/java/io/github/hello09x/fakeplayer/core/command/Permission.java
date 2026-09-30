@@ -28,6 +28,7 @@ public interface Permission {
     String tphere = "fakeplayer.command.tphere";
     String tps = "fakeplayer.command.tps";
     String set = "fakeplayer.command.set";
+    String setping = "fakeplayer.command.setping";
     String config = "fakeplayer.command.config";
     String mine = "fakeplayer.command.mine";
     String attack = "fakeplayer.command.attack";

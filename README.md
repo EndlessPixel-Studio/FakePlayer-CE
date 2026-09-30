@@ -109,6 +109,7 @@ On first launch, FakePlayer generates a template file `config.tmpl.yml`. Rename 
 | /fp tphere    | Teleport a fake player to you             | fakeplayer.command.tphere    |                                                                 |
 | /fp tps       | Swap positions with fake player           | fakeplayer.command.tps       |                                                                 |
 | /fp set       | Change the configuration of a fake player | fakeplayer.command.set       |                                                                 |
+| /fp setping   | Set the ping displayed for a fake player  | fakeplayer.command.setping   | `0` means no simulation (the real value is used)                |
 | /fp config    | Change default configuration              | fakeplayer.command.config    |                                                                 |
 | /fp expme     | Transfer exp to you                       | fakeplayer.command.expme     |                                                                 |
 | /fp attack    | Attack                                    | fakeplayer.command.attack    |                                                                 |
@@ -336,6 +337,7 @@ Includes basic spawn management permissions:
 - `fakeplayer.command.respawn` — Respawn fake player
 - `fakeplayer.command.config` — Set default options
 - `fakeplayer.command.set` — Set per-player options
+- `fakeplayer.command.setping` — Set the ping displayed for a fake player
 
 ### Permission Group `fakeplayer.tp`
 

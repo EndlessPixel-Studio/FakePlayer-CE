@@ -66,6 +66,8 @@ permissions:
     description: 'Allow player to run /fp config'
   fakeplayer.command.set:
     description: 'Allow player to run /fp set'
+  fakeplayer.command.setping:
+    description: 'Allow player to run /fp setping'
   fakeplayer.command.attack:
     description: 'Allow player to run /fp attack'
   fakeplayer.command.mine:
@@ -132,6 +134,7 @@ permissions:
       - fakeplayer.command.respawn
       - fakeplayer.command.config
       - fakeplayer.command.set
+      - fakeplayer.command.setping
 
   fakeplayer.tp:
     description: 'Includes all permissions about teleport'

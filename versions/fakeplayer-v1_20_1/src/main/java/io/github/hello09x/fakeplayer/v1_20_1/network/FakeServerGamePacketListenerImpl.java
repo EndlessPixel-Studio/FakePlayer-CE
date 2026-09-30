@@ -55,4 +55,28 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
         recipient.sendPluginMessage(Main.getInstance(), BUNGEE_CORD_CHANNEL, message);
     }
 
+
+    /**
+     * 自定义延迟 (ping)
+     * <p>1.20.1 的延迟还是 {@link ServerGamePacketListenerImpl} 上的字段 (没有 {@code latency()} 方法),
+     * 因此这里通过反射写入; 原版每 30 秒会广播一次延迟, 写入后最迟 30 秒内会在 Tab 列表生效</p>
+     *
+     * @param ping      延迟 (毫秒), 负数表示不修改
+     * @param broadcast 该版本无法立即广播, 忽略该参数
+     */
+    @Override
+    public void setPing(int ping, boolean broadcast) {
+        if (ping < 0) {
+            return;
+        }
+
+        try {
+            var field = ServerGamePacketListenerImpl.class.getDeclaredField("latency");
+            field.setAccessible(true);
+            field.setInt(this, ping);
+        } catch (ReflectiveOperationException e) {
+            Main.getInstance().getLogger().warning("Failed to set the ping: " + e.getMessage());
+        }
+    }
+
 }

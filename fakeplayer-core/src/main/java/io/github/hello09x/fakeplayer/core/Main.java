@@ -17,6 +17,7 @@ import io.github.hello09x.fakeplayer.core.listener.FakeplayerListener;
 import io.github.hello09x.fakeplayer.core.listener.PlayerListener;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerAutofishManager;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
+import io.github.hello09x.fakeplayer.core.manager.FakeplayerPingSetter;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerReplenishManager;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerRestoreManager;
 import io.github.hello09x.fakeplayer.core.http.HttpAdminService;
@@ -82,6 +83,7 @@ public final class Main extends JavaPlugin {
         }
 
         injector.getInstance(LoginCompatManager.class).onEnable();
+        injector.getInstance(FakeplayerPingSetter.class).restart();
 
         {
             var placeholderExpansion = injector.getInstance(FakeplayerPlaceholderExpansion.class);
