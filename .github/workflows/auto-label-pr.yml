@@ -27,6 +27,6 @@ jobs:
             config | 配置
 
       # 2. 再按 .github/labeler.yml 重新计算
-      - uses: actions/labeler@v5
+      - uses: actions/labeler@v7
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
