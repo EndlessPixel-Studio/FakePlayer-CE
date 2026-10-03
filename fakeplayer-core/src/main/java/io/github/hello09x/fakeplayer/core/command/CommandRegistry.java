@@ -5,7 +5,6 @@ import com.google.inject.Singleton;
 import dev.jorel.commandapi.CommandPermission;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
-import dev.jorel.commandapi.arguments.StringArgument;
 import io.github.hello09x.devtools.command.HelpCommand;
 import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
@@ -504,20 +503,20 @@ public class CommandRegistry {
                                         command("once")
                                                 .withShortDescription("fakeplayer.command.say.once")
                                                 .withOptionalArguments(
-                                                        new StringArgument("name"),
+                                                        fakeplayerName("name"),
                                                         new GreedyStringArgument("message"))
                                                 .executes(sayCommand.say(ActionSetting.once())),
                                         command("continuous")
                                                 .withShortDescription("fakeplayer.command.say.continuous")
                                                 .withOptionalArguments(
-                                                        new StringArgument("name"),
+                                                        fakeplayerName("name"),
                                                         new GreedyStringArgument("message"))
                                                 .executes(sayCommand.say(ActionSetting.continuous())),
                                         command("interval")
                                                 .withShortDescription("fakeplayer.command.say.interval")
                                                 .withOptionalArguments(
                                                         int32("ticks", 1),
-                                                        new StringArgument("name"),
+                                                        fakeplayerName("name"),
                                                         new GreedyStringArgument("message"))
                                                 .executes((sender, args) -> {
                                                     int interval = (int) args.getOptional("ticks").orElse(1);
