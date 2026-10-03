@@ -110,7 +110,7 @@ On first launch, FakePlayer generates a template file `config.tmpl.yml`. Rename 
 | /fp tps       | Swap positions with fake player           | fakeplayer.command.tps       |                                                                 |
 | /fp set       | Change the configuration of a fake player | fakeplayer.command.set       |                                                                 |
 | /fp setping   | Set the ping displayed for a fake player  | fakeplayer.command.setping   | `0` means no simulation (the real value is used)                |
-| /fp config    | Change default configuration              | fakeplayer.command.config    |                                                                 |
+| /fp config    | Change default configuration              | fakeplayer.command.config    | Also available from the console; `list` / `set` accept an optional `[player]` to target someone else |
 | /fp expme     | Transfer exp to you                       | fakeplayer.command.expme     |                                                                 |
 | /fp attack    | Attack                                    | fakeplayer.command.attack    |                                                                 |
 | /fp mine      | Mine                                      | fakeplayer.command.mine      |                                                                 |

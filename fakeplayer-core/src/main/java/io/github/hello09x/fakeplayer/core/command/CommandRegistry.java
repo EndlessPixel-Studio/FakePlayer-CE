@@ -223,11 +223,18 @@ public class CommandRegistry {
                                                 .withArguments(
                                                         configKey("feature"),
                                                         configValue("feature", "option"))
-                                                .executesPlayer(configCommand::setConfig),
+                                                .withOptionalArguments(offlinePlayer("player"))
+                                                .executes(configCommand::setConfig),
                                         command("list")
-                                                .executesPlayer(configCommand::listConfig)
+                                                .withOptionalArguments(offlinePlayer("player"))
+                                                .executes(configCommand::listConfig),
+                                        command("help")
+                                                .withShortDescription("fakeplayer.command.config.help")
+                                                .executes((sender, args) -> {
+                                                    sender.sendMessage(translatable("fakeplayer.command.config.help"));
+                                                })
                                 )
-                                .executesPlayer(configCommand::listConfig),
+                                .executes(configCommand::listConfig),
 
                         command("expme")
                                 .withPermission(Permission.expme)

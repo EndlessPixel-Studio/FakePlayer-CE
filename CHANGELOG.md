@@ -18,6 +18,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **Fake player ping simulation.** The new `custom-ping` option sets the ping displayed for fake players on the tab list — either a fixed value (`30`) or a random range (`20,50`); `custom-ping-dynamic` lets that value drift slightly around it, so it does not look hard-coded; leave it empty to keep using the real (server-computed) value. It can also be changed at runtime with the new `/fp setping <ping> [name]` command (permission `fakeplayer.command.setping`).
 - `config.yml` reordered into themed sections with condensed comments; bumped to version 24.
 - Fixed `follow-quiting-force` removing a creator's fake players even when the creator reconnected within the configured delay (quick reconnect, or coming back from another server) — the fake players are now kept when the creator is online again.
+- `/fp config` (including `config list` and `config set`) now works from the console — previously it failed with CommandAPI's internal error `This command has no implementations for terminalconsolecommandsender`, because the command was player-only. On the console `list` shows the global defaults, and operators / the console can target a specific player with the new optional `[player]` argument (e.g. `/fp config set autofish true <player>`), while regular players can still only configure themselves. `/fp config help` was added as well — it previously printed nothing at all.
 - Fixed `/fp say` (and `say continuous` / `say interval`) rejecting the name of a fake player owned by someone else with "you haven't spawned a fake player yet" — from the console this made it impossible to address any fake player by name at all. An explicitly given name is now resolved with the same rules as every other command: operators and the console may target any fake player, regular players only their own.
 
 ### 中文
@@ -28,6 +29,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **新增假人延迟（ping）模拟。** 新配置 `custom-ping` 用于设置假人在 Tab 列表里显示的延迟——可以是固定值（`30`）或随机范围（`20,50`）；`custom-ping-dynamic` 会让该数值在其上下小幅波动，避免看起来是写死的；留空则继续使用服务端计算出的真实值。也可用新命令 `/fp setping <ping> [name]` 在运行时修改（权限 `fakeplayer.command.setping`）。
 - `config.yml` 按主题重新分组并精简注释，版本提升至 24。
 - 修复 `follow-quiting-force` 在创建者于延迟内重新上线（快速重连，或从其他服务器返回）时仍会清理其假人的问题；创建者已回到服务器时现在会保留假人。
+- `/fp config`（含 `config list` 与 `config set`）现在可以在控制台使用——此前会报 CommandAPI 的内部错误 `This command has no implementations for terminalconsolecommandsender`，因为该命令只注册了玩家执行器。控制台下 `list` 展示全局默认值；op / 控制台可用新增的可选 `[player]` 参数指定目标玩家（如 `/fp config set autofish true <玩家>`），普通玩家仍然只能配置自己。同时补上了 `/fp config help`——此前执行它完全没有输出。
 - 修复 `/fp say`（及 `say continuous` / `say interval`）指定「他人的假人名称」时报「你还没召唤假人呢」的问题——在控制台里这会导致完全无法按名字指定假人。显式给出的名字现按与其他命令一致的规则解析：op 与控制台可指定任意假人，普通玩家只能指定自己召唤的假人。
 
 ## fp.build12 - 2026-09-26

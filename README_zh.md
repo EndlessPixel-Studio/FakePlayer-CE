@@ -108,7 +108,7 @@ FakePlayer CE 以**单一通用 jar**（`fakeplayer-fp.buildX.jar`）形式发�
 | /fp tps | 与假人互换位置 | fakeplayer.command.tps | |
 | /fp set | 修改单个假人独立配置 | fakeplayer.command.set | |
 | /fp setping | 设置假人显示的延迟 | fakeplayer.command.setping | 0 表示不模拟，使用真实值 |
-| /fp config | 修改自身创建假人默认配置 | fakeplayer.command.config | |
+| /fp config | 修改自身创建假人默认配置 | fakeplayer.command.config | 控制台也可用；`list` / `set` 可用可选 `[玩家]` 指定他人 |
 | /fp expme | 提取假人经验至自身 | fakeplayer.command.expme | |
 | /fp attack | 假人发起攻击 | fakeplayer.command.attack | |
 | /fp mine | 假人挖掘方块 | fakeplayer.command.mine | |
