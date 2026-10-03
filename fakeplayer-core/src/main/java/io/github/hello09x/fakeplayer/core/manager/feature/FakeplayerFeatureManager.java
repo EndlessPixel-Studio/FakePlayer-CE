@@ -7,6 +7,7 @@ import io.github.hello09x.fakeplayer.core.manager.FakeplayerList;
 import io.github.hello09x.fakeplayer.core.repository.UserConfigRepository;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import io.github.hello09x.fakeplayer.core.repository.model.UserConfig;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -80,7 +81,7 @@ public class FakeplayerFeatureManager {
         return configs;
     }
 
-    public void setFeature(@NotNull Player player, @NotNull Feature key, @NotNull String value) {
+    public void setFeature(@NotNull OfflinePlayer player, @NotNull Feature key, @NotNull String value) {
         this.repository.saveOrUpdate(new UserConfig(
                 null,
                 player.getUniqueId(),
