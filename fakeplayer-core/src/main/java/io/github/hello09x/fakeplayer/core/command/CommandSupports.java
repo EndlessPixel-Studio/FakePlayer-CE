@@ -101,6 +101,28 @@ public abstract class CommandSupports {
         return fakeplayer(nodeName, null);
     }
 
+    /**
+     * 与 {@link #fakeplayer(String)} 相同的假人名字补全, 但参数底层类型保持字符串。
+     * <p>供 `/fp say once|continuous|interval` 使用: 这些子命令的「单参数回退成消息」
+     * (如 {@code /fp say once 1234}) 依赖 name 是字符串, 不能换成 {@link CustomArgument}
+     * 那种假人参数 (否则 1234 会因为解析不出假人而直接报错), 所以这里只额外挂上 TAB 补全。</p>
+     */
+    public static @NotNull Argument<String> fakeplayerName(@NotNull String nodeName) {
+        return new StringArgument(nodeName).replaceSuggestions(ArgumentSuggestions.strings(info -> {
+            var sender = info.sender();
+            var arg = info.currentArg().toLowerCase(Locale.ROOT);
+
+            var targets = sender.isOp()
+                    ? manager().getAll()
+                    : manager().getAll(sender);
+
+            return targets.stream()
+                    .map(Player::getName)
+                    .filter(name -> name.toLowerCase(Locale.ROOT).contains(arg))
+                    .toArray(String[]::new);
+        }));
+    }
+
     public static @NotNull Argument<List<Player>> fakeplayers(@NotNull String nodeName) {
         return new CustomArgument<List<Player>, String>(new StringArgument(nodeName), info -> {
             var sender = info.sender();
