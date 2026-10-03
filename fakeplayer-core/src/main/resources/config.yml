@@ -39,12 +39,6 @@ player-limit: 1
 # Players sharing an IP share the player-limit
 detect-ip: true
 
-# 假人存活时间, 0 表示永久
-# 单位: 分钟
-# Fake player lifespan, 0 means permanent
-# Unit: minute
-lifespan: 0
-
 
 # ============================================================
 # 名称 / Naming
@@ -77,11 +71,32 @@ name-style: gray, italic
 
 
 # ============================================================
-# 生命周期 / Lifecycle
+# 存活与存档 / Lifespan & persistence
+# ============================================================
+
+# 假人存活时间, 0 表示永久
+# 单位: 分钟
+# Fake player lifespan, 0 means permanent
+# Unit: minute
+lifespan: 0
+
+# 是否保存假人存档 (背包、位置等)
+# 设为 false 时建议把「移除与死亡」中的 drop-inventory-on-quiting 也设为 true
+# Whether to persist fake player data
+# When false, consider enabling drop-inventory-on-quiting (see "Removal & death")
+persistent-data: true
+
+# 记录在线假人, 并在下次服务器启动时自动恢复 (含原位置与创建者)
+# Record online fake players and restore them (with position and creator) on the next server start
+restore-on-start: false
+
+
+# ============================================================
+# 跟随下线 / Follow quitting
 # ============================================================
 
 # 创建者下线时假人跟随下线
-# 玩家只是切换服务器时不会触发跟随下线
+# 玩家只是切换服务器时不会触发
 # Remove fake players when their creator quits
 # Merely switching servers does not trigger this
 follow-quiting: true
@@ -92,38 +107,47 @@ follow-quiting: true
 # NOTE: this bypasses the "server switching" guard above
 follow-quiting-force: false
 
-# 立即清理前延迟多少秒
-# 创建者在这段时间内重新上线 (快速重连 / 切服返回) 则不会清理其假人
-# Delay in seconds before the immediate cleanup runs
+# 立即清理前的延迟 (秒)
+# 创建者在这段时间内重新上线 (快速重连) 则不会清理其假人
+# Delay in seconds before the immediate cleanup
 # If the creator is back online within this delay, their fake players are kept
 follow-quiting-force-delay: 3
+
+
+# ============================================================
+# 移除与死亡 / Removal & death
+# ============================================================
 
 # 假人被移除时是否丢弃背包物品
 # Drop inventory items when a fake player is removed
 drop-inventory-on-quiting: false
 
-# 是否保存假人存档
-# 设为 false 时建议将 drop-inventory-on-quiting 也设为 true
-# Whether to persist fake player data
-# When set to false, consider enabling drop-inventory-on-quiting as well
-persistent-data: true
-
 # 死亡时是否踢出, 设为 false 时玩家可以通过 /fp respawn 重生
 # Kick the fake player on death; when false it can be respawned with /fp respawn
 kick-on-dead: true
 
-# 记录在线假人, 并在下次服务器启动时自动恢复 (含原位置与创建者)
-# Record online fake players and restore them (with position and creator) on the next server start
-restore-on-start: false
+
+# ============================================================
+# 兼容性 / Compatibility
+# ============================================================
 
 # 防止假人被其他插件或 /kick 踢出
 # 可选项:
 #   NEVER: 不处理
 #   ON_SPAWNING: 仅在创建时防止被踢出
-#   ALWAYS: 始终防止 (注意: 某些登录插件会在下 1 tick 踢人, 这种情况请用 ALWAYS)
+#   ALWAYS: 始终防止 (某些登录插件会在下 1 tick 踢人, 这种情况请用 ALWAYS)
 # Prevent fake players from being kicked by other plugins or /kick
 # Options: NEVER / ON_SPAWNING / ALWAYS
 prevent-kicking: ON_SPAWNING
+
+# 在不支持的版本强制运行 (忽略 NMSBridge 版本检查, 可能因 NMS 不兼容而崩溃)
+# Force running on unsupported Minecraft versions by ignoring the NMSBridge version check
+forced-execution: false
+
+
+# ============================================================
+# 性能保护 / TPS protection
+# ============================================================
 
 # 服务器最近 5 分钟平均 TPS 低于此值时清除所有假人, 0 表示关闭
 # 不推荐开启, 移除假人可能导致玩家的红石机器出问题
@@ -177,11 +201,11 @@ after-quit-commands:
 
 
 # ============================================================
-# 假人特性 / Fake player features
+# 默认特性 / Default features
 # ============================================================
 
-# 默认特性: 玩家未通过 /fp config 修改过配置或没有权限时生效
-# Default features, applied when the player never changed them via /fp config or has no permission
+# 玩家未通过 /fp config 修改过配置或没有权限时生效
+# Applied when the player never changed them via /fp config or has no permission
 default-features:
   collidable: true
   pickup_items: true
@@ -192,6 +216,11 @@ default-features:
   replace_tools: false
   autofish: false
   wolverine: false
+
+
+# ============================================================
+# 自动补货与工具替换 / Replenish & tool replacement
+# ============================================================
 
 # 自动补货时工具的自动修复阈值
 # 取值 0-100, 表示工具磨损达到该百分比时修复; 0 表示不自动修复
@@ -207,6 +236,26 @@ replenish:
 tool-replacement:
   remaining-durability-threshold: 10
 
+
+# ============================================================
+# 背包查看 / Inventory viewing
+# ============================================================
+
+# Invsee 实现:
+#   AUTO: 自动选择 (目前支持 OpenInv)
+#   SIMPLE: 内置实现, 无法查看或编辑装备栏
+# Invsee implementation: AUTO (auto-detect, currently OpenInv) or SIMPLE (cannot view or edit equipment)
+invsee-implement: AUTO
+
+# 允许非 OP 玩家打开假人背包
+# Allow non-OP players to open fake player inventories
+allow-non-op-open-inv: false
+
+
+# ============================================================
+# 延迟显示 / Ping display
+# ============================================================
+
 # 假人在 Tab 列表里显示的延迟 (ping)
 # 单个值表示固定延迟; 用 "20,50" 表示在 20~50 ms 之间随机; 留空或负数表示不模拟, 使用真实值
 # Fake player ping shown on the tab list
@@ -220,16 +269,6 @@ custom-ping-dynamic: false
 # 延迟波动的更新间隔 (tick)
 # Interval in ticks between dynamic ping updates
 custom-ping-dynamic-interval: 200
-
-# Invsee 实现:
-#   AUTO: 自动选择 (目前支持 OpenInv)
-#   SIMPLE: 内置实现, 无法查看或编辑装备栏
-# Invsee implementation: AUTO (auto-detect, currently OpenInv) or SIMPLE (cannot view or edit equipment)
-invsee-implement: AUTO
-
-# 允许非 OP 玩家打开假人背包
-# Allow non-OP players to open fake player inventories
-allow-non-op-open-inv: false
 
 
 # ============================================================
@@ -261,18 +300,14 @@ change-password: "/changepassword %oldpassword% %newpassword% %newpassword%"
 
 
 # ============================================================
-# 其他 / Misc
+# 更新检查 / Update check
 # ============================================================
 
-# 检测更新: 与本仓库 GitHub Releases 的最新 `fp.buildN` 比较
+# 与本仓库 GitHub Releases 的最新 `fp.buildN` 比较
 # 仅仅是检测, 不会自动下载
 # Check for updates against the latest `fp.buildN` GitHub release of this repository
 # Detection only, nothing is downloaded automatically
 check-for-updates: true
-
-# 在不支持的版本强制运行 (忽略 NMSBridge 版本检查, 可能因 NMS 不兼容而崩溃)
-# Force running on unsupported Minecraft versions by ignoring the NMSBridge version check
-forced-execution: false
 
 
 # ============================================================
