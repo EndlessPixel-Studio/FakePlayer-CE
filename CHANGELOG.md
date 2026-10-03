@@ -20,6 +20,8 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - Fixed `follow-quiting-force` removing a creator's fake players even when the creator reconnected within the configured delay (quick reconnect, or coming back from another server) — the fake players are now kept when the creator is online again.
 - `/fp config` (including `config list` and `config set`) now works from the console — previously it failed with CommandAPI's internal error `This command has no implementations for terminalconsolecommandsender`, because the command was player-only. On the console `list` shows the global defaults, and operators / the console can target a specific player with the new optional `[player]` argument (e.g. `/fp config set autofish true <player>`), while regular players can still only configure themselves. `/fp config help` was added as well — it previously printed nothing at all.
 - Fixed `/fp say` (and `say continuous` / `say interval`) rejecting the name of a fake player owned by someone else with "you haven't spawned a fake player yet" — from the console this made it impossible to address any fake player by name at all. An explicitly given name is now resolved with the same rules as every other command: operators and the console may target any fake player, regular players only their own.
+- `/fp say once` / `continuous` / `interval` now TAB-complete fake player names — the name argument previously offered no suggestions at all (unlike every other command), because it is parsed as a plain string so that a single argument still falls back to being the message.
+- Fixed `/fp say stop` being entirely unusable: with a fake-player name it threw a `ClassCastException` ("An unexpected error occurred"), and without one it complained about an empty message instead of stopping. `stop` no longer requires a message; the single-argument message fallback of the other subcommands is unchanged.
 
 ### 中文
 
@@ -31,6 +33,8 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - 修复 `follow-quiting-force` 在创建者于延迟内重新上线（快速重连，或从其他服务器返回）时仍会清理其假人的问题；创建者已回到服务器时现在会保留假人。
 - `/fp config`（含 `config list` 与 `config set`）现在可以在控制台使用——此前会报 CommandAPI 的内部错误 `This command has no implementations for terminalconsolecommandsender`，因为该命令只注册了玩家执行器。控制台下 `list` 展示全局默认值；op / 控制台可用新增的可选 `[player]` 参数指定目标玩家（如 `/fp config set autofish true <玩家>`），普通玩家仍然只能配置自己。同时补上了 `/fp config help`——此前执行它完全没有输出。
 - 修复 `/fp say`（及 `say continuous` / `say interval`）指定「他人的假人名称」时报「你还没召唤假人呢」的问题——在控制台里这会导致完全无法按名字指定假人。显式给出的名字现按与其他命令一致的规则解析：op 与控制台可指定任意假人，普通玩家只能指定自己召唤的假人。
+- `/fp say once` / `continuous` / `interval` 的假人名字现在支持 TAB 补全——此前该参数没有任何补全（与其他命令不同），因为为了保留「单参数即消息」的回退，它按字符串解析。
+- 修复 `/fp say stop` 完全不可用的问题：带假人名字时会抛 `ClassCastException`（提示发生意外错误），不带名字时则报「消息不能为空」而不执行停止。`stop` 不再要求消息；其余子命令的「单参数回退成消息」行为不变。
 
 ## fp.build12 - 2026-09-26
 

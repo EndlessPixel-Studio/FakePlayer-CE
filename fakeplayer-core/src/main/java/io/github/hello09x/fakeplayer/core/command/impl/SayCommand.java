@@ -7,6 +7,7 @@ import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import static net.kyori.adventure.text.Component.translatable;
@@ -29,17 +30,25 @@ public class SayCommand extends AbstractCommand {
      */
     public @NotNull CommandExecutor say(@NotNull ActionSetting setting) {
         return (sender, args) -> {
-            var name = (String) args.get("name");
+            // name 在 once / continuous / interval 里是字符串 (为了兼容单参数回退成消息),
+            // 在 stop 里则来自假人参数 (Player), 所以这里不能直接强转 String
+            var rawName = args.get("name");
+            var name = rawName instanceof Player player ? player.getName() : (String) rawName;
             var message = (String) args.get("message");
-            // 单参数回退: fp say once 1234 -> 把 1234 当作消息, 作用于默认假人
-            if (message == null || message.isBlank()) {
-                if (name != null && !name.isBlank()) {
-                    message = name;
-                } else {
-                    sender.sendMessage(translatable("fakeplayer.command.say.error.empty"));
-                    return;
+
+            // stop 只是停止动作, 不需要消息
+            if (!setting.equals(ActionSetting.stop())) {
+                // 单参数回退: fp say once 1234 -> 把 1234 当作消息, 作用于默认假人
+                if (message == null || message.isBlank()) {
+                    if (name != null && !name.isBlank()) {
+                        message = name;
+                    } else {
+                        sender.sendMessage(translatable("fakeplayer.command.say.error.empty"));
+                        return;
+                    }
                 }
             }
+
             var fake = super.getFakeplayer(sender, args);
             var copy = setting.clone();
             copy.message = message;
