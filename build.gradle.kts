@@ -9,7 +9,7 @@ plugins {
 
 allprojects {
     group = "io.github.hello09x.fakeplayer"
-    version = "fp.build13"
+    version = "fp.build14"
 
     repositories {
         mavenCentral()
