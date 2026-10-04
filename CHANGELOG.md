@@ -10,8 +10,6 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ## fp.build14 - (Not published | 未发布)
 
-## fp.build14 - (Not published | 未发布)
-
 ### English
 
 - **Invincible mode now really blocks damage.** A fake player with `invulnerable` enabled could still be hurt by players in **creative mode**: vanilla explicitly lets creative attackers bypass invulnerability, so admins testing in creative saw the fake take damage even though the feature was on (`/fp config` showed `true`, and the entity flag was set correctly). Damage dealt by a creative-mode attacker to an invulnerable fake player is now cancelled; sources that are supposed to bypass invulnerability (the void, `/kill`) still work (#67).
