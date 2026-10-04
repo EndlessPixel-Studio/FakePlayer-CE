@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 24
+version: 25
 
 
 # ============================================================
@@ -211,7 +211,7 @@ default-features:
   pickup_items: true
   skin: true
   look_at_entity: false
-  invulnerable: false
+  invulnerable: true
   replenish: false
   replace_tools: false
   autofish: false

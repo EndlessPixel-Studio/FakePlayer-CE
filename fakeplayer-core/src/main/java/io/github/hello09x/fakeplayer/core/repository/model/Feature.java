@@ -45,7 +45,7 @@ public enum Feature implements Translatable, Singletons {
             "fakeplayer.config.invulnerable",
             List.of(Permission.config),
             List.of("true", "false"),
-            "false",
+            "true",
             faker -> String.valueOf(faker.isInvulnerable()),
             (faker, value) -> faker.setInvulnerable(Boolean.parseBoolean(value))
     ),
