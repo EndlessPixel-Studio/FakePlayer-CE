@@ -297,10 +297,13 @@ public class FakeplayerManager {
             return false;
         }
 
-        target.kick(textOfChildren(
-                text("[fakeplayer] "),
-                reason == null ? text("removed") : reason
-        ));
+        if (target.isConnected()) {
+            // 仅在仍处于连接状态时踢出, 避免对已断开的假人重复触发断开/移除流程
+            target.kick(textOfChildren(
+                    text("[fakeplayer] "),
+                    reason == null ? text("removed") : reason
+            ));
+        }
         this.cleanup(target);
         return true;
     }
@@ -338,7 +341,9 @@ public class FakeplayerManager {
         }
 
         for (var target : targets) {
-            target.kick(text(REMOVAL_REASON_PREFIX + (reason == null ? "removed" : reason)));
+            if (target.isConnected()) {
+                target.kick(text(REMOVAL_REASON_PREFIX + (reason == null ? "removed" : reason)));
+            }
             this.cleanup(target);
         }
         return targets.size();

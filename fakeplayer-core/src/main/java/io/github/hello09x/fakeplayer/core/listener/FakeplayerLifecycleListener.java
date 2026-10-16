@@ -94,11 +94,14 @@ public class FakeplayerLifecycleListener implements Listener {
         var uuid = player.getUniqueId();
         if (!pendingFakeQuits.containsKey(uuid)) return;
         Schedulers.globalLater(Main.getInstance(), 1, () -> {
+            // 原子取出: 同一假人连续触发两次退出事件时, 仅第一次派发 after-quit 命令
+            var creatorName = pendingFakeQuits.remove(uuid);
             try {
-                manager.dispatchCommands(new FakeplayerManager.DispatchCommandArgs(player.getName(),uuid.toString(),pendingFakeQuits.get(uuid)), config.getAfterQuitCommands());
+                if (creatorName != null) {
+                    manager.dispatchCommands(new FakeplayerManager.DispatchCommandArgs(player.getName(), uuid.toString(), creatorName), config.getAfterQuitCommands());
+                }
             } finally {
                 loginCompatManager.cleanup(player);
-                pendingFakeQuits.remove(uuid);
             }
         });
     }

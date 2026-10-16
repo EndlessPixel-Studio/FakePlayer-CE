@@ -30,7 +30,12 @@ public class Commands {
 
             if (!args.isEmpty()) {
                 for (var entry : args.entrySet()) {
-                    cmd = cmd.replace(entry.getKey(), entry.getValue());
+                    var value = entry.getValue();
+                    if (value == null) {
+                        // 占位符变量值为空时跳过替换, 避免 String.replace 抛 NPE
+                        continue;
+                    }
+                    cmd = cmd.replace(entry.getKey(), value);
                 }
             }
 
