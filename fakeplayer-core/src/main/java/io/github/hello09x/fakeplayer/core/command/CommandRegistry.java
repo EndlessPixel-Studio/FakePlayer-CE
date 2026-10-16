@@ -5,7 +5,6 @@ import com.google.inject.Singleton;
 import dev.jorel.commandapi.CommandPermission;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
-import io.github.hello09x.devtools.command.HelpCommand;
 import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
@@ -570,7 +569,7 @@ public class CommandRegistry {
                 helpLocalizer.translate("fakeplayer.command.fp.full-description")
         );
         helpLocalizer.localizeDescriptions(root);
-        HelpCommand.generateHelpCommand(root, false);
+        CommandHelpGenerator.generate(root, helpLocalizer);
         root.register();
     }
 
