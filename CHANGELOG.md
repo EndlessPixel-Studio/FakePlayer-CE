@@ -12,15 +12,19 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **The plugin now requires Java 25 to run.** The build target was raised from Java 21 to Java 25 because Paper 26.x's `paper-api` is compiled for Java 25; servers still running Java 21 must upgrade their runtime before installing this build.
 - **Invincible mode now really blocks damage.** A fake player with `invulnerable` enabled could still be hurt by players in **creative mode**: vanilla explicitly lets creative attackers bypass invulnerability, so admins testing in creative saw the fake take damage even though the feature was on (`/fp config` showed `true`, and the entity flag was set correctly). Damage dealt by a creative-mode attacker to an invulnerable fake player is now cancelled; sources that are supposed to bypass invulnerability (the void, `/kill`) still work (#67).
 - **`invulnerable` is enabled by default again**, matching the documentation ("fake players spawn with invincible mode enabled by default"). It had silently defaulted to disabled since an upstream commit, which the changelog never recorded. `config.yml` bumped to 25 (#68).
 - **Command help now accepts subcommand names.** `/fp help <name>` (e.g. `/fp help config`, `/fp help look north`) prints that command's description, usage, aliases and subcommands — permission-filtered, localized with the configured locale, with subcommand names offered as tab completions; `/fp help <page> [size]` still pages through the full command list. Typing an unknown name now shows a friendly hint instead of `Expected integer` (#62).
+- **Fixed duplicate quit events when removing a fake player.** On Leaf/Folia-based servers, removing a fake player could fire the quit/death flow twice: after-quit commands were dispatched a second time (throwing an NPE), the second disconnect threw `Already retired` from the entity scheduler, and login plugins logged errors. Removal is now idempotent — after-quit commands fire once, and already-disconnected fake players only have their internal records cleaned up (#70).
 
 ### 中文
 
+- **运行要求升至 Java 25。** 编译目标由 Java 21 提升至 Java 25——Paper 26.x 的 `paper-api` 以 Java 25 编译，引用它必须 target ≥ 25；仍以 Java 21 运行的服务端需要先升级运行环境再安装本版本。
 - **无敌模式现在真的免伤。** 开启 `invulnerable` 的假人此前仍会被**创造模式**玩家打伤：原版对创造模式攻击显式放行无敌判定，导致管理员在创造模式下测试时看到假人掉血——尽管特性确实开着（`/fp config` 显示 `true`，实体标记也已正确设置）。现在创造模式玩家对无敌假人造成的伤害会被取消；原版本就该绕过无敌的来源（虚空、`/kill`）仍然可用（#67）。
 - **`invulnerable` 默认值改回开启**，与文档「假人默认开启无敌模式」一致。此前默认关闭是上游某次提交悄悄改的，更新日志从未记录过。`config.yml` 版本提升至 25（#68）。
 - **命令帮助支持子命令名查询。** `/fp help <子命令名>`（如 `/fp help config`、`/fp help look north`）直接输出该命令的描述、用法、别名与子命令列表（按发送者权限过滤、按配置语言本地化，子命令名提供 Tab 补全）；`/fp help <页码> [每页数]` 仍按原方式翻页。输入未知名称时给出友好提示，不再报 `Expected integer`（#62）。
+- **修复移除假人时的重复退出 / 二次移除。** 在 Leaf/Folia 系服务端上，移除假人可能二次触发退出/死亡流程：after-quit 命令被重复派发（第二次空指针报错）、二次断开时实体调度器抛 `Already retired`、登录插件在其间报错。移除流程现为幂等——after-quit 命令只派发一次，已断开的假人仅做内部记录清理（#70）。
 
 ## fp.build13 - 2026-10-03
 
