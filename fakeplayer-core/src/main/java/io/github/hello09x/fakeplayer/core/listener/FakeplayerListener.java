@@ -121,6 +121,10 @@ public class FakeplayerListener implements Listener {
         if (manager.isNotFake(player)) {
             return;
         }
+        // 已断开连接的假人说明移除流程已在进行中 (例如踢出引发的二次死亡事件), 不再重复处理
+        if (!player.isConnected()) {
+            return;
+        }
         if (!config.isKickOnDead()) {
             var creator = manager.getCreator(player);
             if (creator != null) {
