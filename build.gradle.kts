@@ -2,8 +2,7 @@ plugins {
     java
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21" apply false
     // 静态分析: pmd 是 Gradle 核心插件 (无需声明版本), spotbugs 只对
-    // fakeplayer-api / fakeplayer-core 启用; 版本模块是 NMS 代码且编译到 Java 25,
-    // SpotBugs 读不了那么新的 class 文件
+    // fakeplayer-api / fakeplayer-core 启用; 其余模块 (版本模块) 未启用
     id("com.github.spotbugs") version "6.5.12" apply false
 }
 
@@ -26,10 +25,12 @@ subprojects {
     apply(plugin = "java")
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        // Java 25: Paper 26.x 的 paper-api 以 class file 69 (Java 25) 发布,
+        // 引用它必须将编译目标提升至 25; 各版本模块可在此基础上覆盖
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
         toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
+            languageVersion.set(JavaLanguageVersion.of(25))
         }
     }
 
