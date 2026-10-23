@@ -3,7 +3,7 @@ plugins {
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21" apply false
     // 静态分析: pmd 是 Gradle 核心插件 (无需声明版本), spotbugs 只对
     // fakeplayer-api / fakeplayer-core 启用; 其余模块 (版本模块) 未启用
-    id("com.github.spotbugs") version "6.5.12" apply false
+    id("com.github.spotbugs") version "6.5.13" apply false
 }
 
 allprojects {
