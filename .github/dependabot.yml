@@ -12,6 +12,14 @@ updates:
     commit-message:
       prefix: "build"
       include: "scope"
+    ignore:
+      # fakeplayer-api / fakeplayer-core 的 paper-api 钉在最低支持版本 (1.21),
+      # 作为整个插件的最低兼容编译面; 升级到 26.x 会破坏 1.20.x/1.21.x 兼容
+      # 并导致构建失败 (见 #44 回退记录, 以及 #46/#57/#73/#74/#79 等被关闭的 PR)。
+      # 高版本 API 差异由 versions/ 下各版本模块的 paperweight dev bundle 处理。
+      - dependency-name: "io.papermc.paper:paper-api"
+      # 版本模块的 dev bundle 版本同样需人工评估后才调整
+      - dependency-name: "io.papermc.paperweight.userdev"
 
   # GitHub Actions 工作流使用的 action 版本
   - package-ecosystem: "github-actions"
