@@ -118,6 +118,7 @@ FakePlayer CE 以**單一通用 jar**（`fakeplayer-fp.buildX.jar`）形式發�
 | /fp turn | 假人原地轉向 | fakeplayer.command.turn | |
 | /fp look | 假人看向指定座標 | fakeplayer.command.look | |
 | /fp move | 假人定向移動 | fakeplayer.command.move | |
+| /fp goto | 讓假人尋路前往指定座標 | fakeplayer.command.goto | 自動尋路（會跳障礙、游水）；無法抵達的目標會拒絕；`/fp stop` 可中止 |
 | /fp ride | 假人騎乘實體 | fakeplayer.command.ride | |
 | /fp sneak | 假人進入潛行模式 | fakeplayer.command.sneak | |
 | /fp sprint | 假人疾跑 | fakeplayer.command.sprint | |

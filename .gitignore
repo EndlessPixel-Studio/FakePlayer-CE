@@ -29,6 +29,8 @@ replay_pid*
 
 # ⚠️ 必须放在 *.jar 之后，否则会被重新忽略
 !gradle/wrapper/gradle-wrapper.jar
+# vendors 的 PlaceholderAPI (官方仓库不稳定, 见 fakeplayer-core/libs/README.md)
+!fakeplayer-core/libs/*.jar
 
 ######################
 # Paper / Spigot 插件开发

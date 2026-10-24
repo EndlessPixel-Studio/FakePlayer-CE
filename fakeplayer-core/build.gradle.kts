@@ -53,7 +53,9 @@ dependencies {
     // Other dependencies
     compileOnly("commons-io:commons-io:2.22.0")
     compileOnly("com.github.lishid:openinv:4.1.8")
-    compileOnly("me.clip:placeholderapi:2.12.3")
+    // PlaceholderAPI: 官方仓库 (repo.helpch.at) 为单点且故障频繁, 直接使用 vendors 的 jar。
+    // 升级时到 github.com/PlaceholderAPI/PlaceholderAPI/releases 下载替换 libs/ 下的文件
+    compileOnly(files("libs/placeholderapi-2.12.3.jar"))
 }
 
 val pluginRevision: String = version.toString()

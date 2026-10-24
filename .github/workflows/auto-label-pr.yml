@@ -17,14 +17,13 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: |
-            documentation | 文档
-            core | 核心
-            api | 接口
-            nms | 版本适配
-            dist | 构建发布
-            ci | 持续集成
-            locale | 本地化
-            config | 配置
+            documentation
+            core
+            api
+            nms
+            dist
+            dependency
+            feature
 
       # 2. 再按 .github/labeler.yml 重新计算
       - uses: actions/labeler@v7

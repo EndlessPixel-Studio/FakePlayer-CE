@@ -17,13 +17,6 @@ allprojects {
         maven("https://oss.sonatype.org/content/groups/public/")
         maven("https://repo.dmulloy2.net/repository/public/")
         maven("https://jitpack.io")
-        // 该仓库会重定向至 repo.helpch.at, 列举动态版本 (如 dev-bundle) 时会被其 502 中断,
-        // 限定只从这里解析 PlaceholderAPI
-        maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") {
-            content {
-                includeModule("me.clip", "placeholderapi")
-            }
-        }
     }
 }
 

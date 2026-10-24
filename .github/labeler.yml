@@ -1,31 +1,42 @@
-"documentation | 文档":
+# PR 自动贴标规则 (规范见 LABELS.md)
+# 可从文件路径推导的功能域自动贴; 推不出不的域 (action/command/spawn/login/appearance/compat) 由人工补
+
+"documentation":
   - changed-files:
       - any-glob-to-any-file: ['**/*.md']
 
-"core | 核心":
+"core":
   - changed-files:
       - any-glob-to-any-file: ['fakeplayer-core/**']
 
-"api | 接口":
+"api":
   - changed-files:
       - any-glob-to-any-file: ['fakeplayer-api/**']
 
-"nms | 版本适配":
+"nms":
   - changed-files:
       - any-glob-to-any-file: ['versions/**']
 
-"dist | 构建发布":
+"dist":
   - changed-files:
       - any-glob-to-any-file: ['fakeplayer-dist/**']
 
-"ci | 持续集成":
+"dependency":
   - changed-files:
       - any-glob-to-any-file: ['.github/**']
 
-"locale | 本地化":
+"locale":
   - changed-files:
       - any-glob-to-any-file: ['fakeplayer-core/src/main/resources/message/**']
 
-"config | 配置":
+"config":
   - changed-files:
       - any-glob-to-any-file: ['fakeplayer-core/src/main/resources/config.yml']
+
+"http-api":
+  - changed-files:
+      - any-glob-to-any-file: ['fakeplayer-core/src/main/java/**/http/**']
+
+"placeholder":
+  - changed-files:
+      - any-glob-to-any-file: ['fakeplayer-core/src/main/java/**/placeholder/**']

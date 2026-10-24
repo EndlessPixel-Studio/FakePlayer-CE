@@ -120,6 +120,7 @@ On first launch, FakePlayer generates a template file `config.tmpl.yml`. Rename 
 | /fp turn      | Turn around                               | fakeplayer.command.turn      |                                                                 |
 | /fp look      | Look at specified location                | fakeplayer.command.look      |                                                                 |
 | /fp move      | Move                                      | fakeplayer.command.move      | Typo fix: original typo `mvoe` corrected                        |
+| /fp goto      | Walk to the specified coordinates         | fakeplayer.command.goto      | Pathfinds on its own (steps up, swims); unreachable destinations are rejected; `/fp stop` cancels the trip |
 | /fp ride      | Ride                                      | fakeplayer.command.ride      |                                                                 |
 | /fp sneak     | Sneak                                     | fakeplayer.command.sneak     |                                                                 |
 | /fp sprint    | Sprinting                                 | fakeplayer.command.sprint    |                                                                 |
