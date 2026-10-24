@@ -28,6 +28,7 @@ public class ActionTickerImpl extends BaseActionTicker implements ActionTicker {
                 case JUMP, LOOK_AT_NEAREST_ENTITY, DROP_INVENTORY, DROP_STACK, DROP_ITEM ->
                         throw new UnsupportedOperationException();
                 case SAY -> this.action;
+                case GOTO -> this.action;
             };
         }
     }
