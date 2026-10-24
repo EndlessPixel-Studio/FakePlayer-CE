@@ -15,6 +15,7 @@ softdepend:
   - AuthMe
   - LibreLogin
   - LibreLoginNext
+  - SkinsRestorer
 
 permissions:
   fakeplayer.command.spawn:

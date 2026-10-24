@@ -95,7 +95,7 @@ FakePlayer CE 以**单一通用 jar**（`fakeplayer-fp.buildX.jar`）形式发�
 | /fp drop | 假人丢弃手中单个物品 | fakeplayer.command.drop | |
 | /fp dropstack | 假人丢弃手中整组物品 | fakeplayer.command.dropstack | |
 | /fp dropinv | 假人清空全部背包物品 | fakeplayer.command.dropinv | |
-| /fp skin | 复制其他玩家皮肤 | fakeplayer.command.skin | 离线玩家复制存在60秒冷却 |
+| /fp skin | 复制其他玩家皮肤 | fakeplayer.command.skin | 离线玩家复制存在 60 秒冷却；装有 SkinsRestorer 时走其 API（支持正版玩家名） |
 | /fp invsee | 打开假人背包界面 | fakeplayer.command.invsee | 右键假人可触发同等效果 |
 | /fp enderchest | 打开假人末影箱 | fakeplayer.command.enderchest | 别名 `/fp ec`；潜行右键假人可触发同等效果，需与假人处于同一世界 |
 | /fp sleep | 假人进入睡觉状态 | fakeplayer.command.sleep | |
