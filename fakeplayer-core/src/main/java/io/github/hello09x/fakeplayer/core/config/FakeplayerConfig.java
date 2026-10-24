@@ -357,6 +357,31 @@ public class FakeplayerConfig extends PluginConfig {
     private boolean httpAdminBatch;
 
     /**
+     * 是否启用 goto 接口
+     */
+    private boolean httpAdminGoto;
+
+    /**
+     * 是否启用 setping 接口
+     */
+    private boolean httpAdminSetPing;
+
+    /**
+     * 是否启用 sneak 接口
+     */
+    private boolean httpAdminSneak;
+
+    /**
+     * 是否启用 sprint 接口
+     */
+    private boolean httpAdminSprint;
+
+    /**
+     * 是否启用 reload 接口
+     */
+    private boolean httpAdminReload;
+
+    /**
      * 是否允许 GET 请求。关闭后仅接受 POST
      */
     private boolean httpAdminAllowGet;
@@ -455,6 +480,11 @@ public class FakeplayerConfig extends PluginConfig {
         this.httpAdminRespawn = file.getBoolean("http-admin.interface.respawn", true);
         this.httpAdminCmd = file.getBoolean("http-admin.interface.cmd", true);
         this.httpAdminBatch = file.getBoolean("http-admin.interface.batch", true);
+        this.httpAdminGoto = file.getBoolean("http-admin.interface.goto", true);
+        this.httpAdminSetPing = file.getBoolean("http-admin.interface.setping", true);
+        this.httpAdminSneak = file.getBoolean("http-admin.interface.sneak", true);
+        this.httpAdminSprint = file.getBoolean("http-admin.interface.sprint", true);
+        this.httpAdminReload = file.getBoolean("http-admin.interface.reload", true);
         this.httpAdminAllowGet = file.getBoolean("http-admin.allow-get", true);
         this.httpAdminAllowedHosts = file.getStringList("http-admin.allowed-hosts")
                                          .stream()

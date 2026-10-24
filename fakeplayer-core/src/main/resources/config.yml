@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 25
+version: 26
 
 
 # ============================================================
@@ -384,6 +384,11 @@ http-admin:
     look: true          # GET /look         设置朝向              set the look direction
     hold: true          # GET /hold         切换主手槽位          switch the main hand slot
     swap: true          # GET /swap         交换主副手物品        swap main and off hand
+    goto: true          # GET /goto         寻路前往坐标          walk to coordinates (rejects unreachable targets)
+    setping: true       # GET /setping      设置 Tab 列表延迟     set the tab list ping
+    sneak: true         # GET /sneak        切换潜行              toggle / set sneaking
+    sprint: true        # GET /sprint       切换疾跑              toggle / set sprinting
     # 其他 / Others
     cmd: true           # GET /cmd          以假人身份执行命令    run a command as the fake player
+    reload: true        # GET /reload       重载配置与语言        reload config and translations
     batch: true         # GET /kickall /killall /sayall            批量操作 batch operations

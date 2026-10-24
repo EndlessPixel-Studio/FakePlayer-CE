@@ -59,9 +59,8 @@ FakePlayer CE ships as a **single universal jar** (`fakeplayer-fp.buildX.jar`) t
 
 ### 1. Stable release (recommended)
 
-Download the latest stable build from Modrinth or the GitHub Releases page:
+Download the latest stable build from the GitHub Releases page:
 
-- 🔷 [Modrinth](https://modrinth.com/plugin/fpce)
 - 📦 [Release Downloads](https://github.com/EndlessPixel/FakePlayer-CE/releases)
 
 Each release includes the pre-built `fakeplayer-fp.buildX.jar`. Place it into your server's `plugins/` folder.
@@ -168,8 +167,13 @@ http-admin:
     look: true           # Enable GET /look
     hold: true           # Enable GET /hold
     swap: true           # Enable GET /swap
+    goto: true           # Enable GET /goto
+    setping: true        # Enable GET /setping
+    sneak: true          # Enable GET /sneak
+    sprint: true         # Enable GET /sprint
     # Misc
     cmd: true            # Enable GET /cmd
+    reload: true         # Enable GET /reload
     batch: true          # Enable GET /kickall, /killall and /sayall
 ```
 
@@ -195,6 +199,11 @@ Paths are matched **exactly**: only the paths listed below are handled, and `/li
 | `GET /look?name=<name>&yaw=<yaw>&pitch=<pitch>` | Set the fake player's rotation directly | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /hold?name=<name>&slot=<1-9>` | Switch the fake player's hotbar slot | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /swap?name=<name>` | Swap the fake player's main hand and off hand items | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /goto?name=<name>&x=&y=&z=[&world=]` | Make a fake player walk to the coordinates (pathfinds on its own; unreachable targets are rejected) | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /setping?name=<name>&ping=<ms>` | Set the ping shown for the fake player in the tab list | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /sneak?name=<name>[&state=true\|false]` | Toggle (or set) sneaking | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /sprint?name=<name>[&state=true\|false]` | Toggle (or set) sprinting | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /reload` | Reload `config.yml` and translations | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /cmd?name=<name>&command=<command>` | Run a command as the fake player | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /kickall` | Remove every fake player on the server | `{"status":"success","count":n}` | — |
 | `GET /killall` | Kill every fake player on the server | `{"status":"success","count":n}` | — |
@@ -204,7 +213,7 @@ Parameters of `/action`:
 
 | Parameter | Default | Description |
 |---|---|---|
-| `action` | required | Action name, case insensitive, `-` and `_` are equivalent. Available: `ATTACK` `MINE` `USE` `JUMP` `LOOK_AT_NEAREST_ENTITY` `DROP_ITEM` `DROP_STACK` `DROP_INVENTORY` `SAY` |
+| `action` | required | Action name, case insensitive, `-` and `_` are equivalent. Available: `ATTACK` `MINE` `USE` `JUMP` `LOOK_AT_NEAREST_ENTITY` `DROP_ITEM` `DROP_STACK` `DROP_INVENTORY` `SAY`. Use `/goto` for `GOTO` (it needs a destination) |
 | `count` | `1` | Number of executions; `-1` means keep running |
 | `interval` | `0` | Ticks between two executions; supplying only `interval` (without `count`) keeps the action running |
 | `wait` | `0` | Ticks to wait before the first execution |

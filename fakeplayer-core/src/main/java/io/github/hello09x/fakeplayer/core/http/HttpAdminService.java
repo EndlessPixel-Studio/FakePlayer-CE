@@ -8,14 +8,18 @@ import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerPlayer;
+import io.github.hello09x.devtools.core.translation.PluginTranslator;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.constant.MetadataKeys;
 import io.github.hello09x.fakeplayer.core.entity.FakeplayerTicker;
+import io.github.hello09x.fakeplayer.core.manager.FakeplayerList;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
+import io.github.hello09x.fakeplayer.core.manager.FakeplayerPingSetter;
 import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
 import io.github.hello09x.fakeplayer.core.util.LookUtils;
+import io.github.hello09x.fakeplayer.core.util.WalkUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -64,6 +68,8 @@ public class HttpAdminService {
 
     private final static int WORKER_QUEUE_SIZE = 64;
 
+    private final static double MAX_GOTO_DISTANCE = 1024;
+
     @FunctionalInterface
     private interface Endpoint {
         void handle(HttpExchange ex) throws IOException;
@@ -73,6 +79,9 @@ public class HttpAdminService {
     private final FakeplayerConfig config;
     private final ActionManager actionManager;
     private final NMSBridge bridge;
+    private final FakeplayerList playerList;
+    private final FakeplayerPingSetter pingSetter;
+    private final PluginTranslator translator;
 
     private final Map<String, Endpoint> routes = new LinkedHashMap<>();
 
@@ -83,11 +92,15 @@ public class HttpAdminService {
     private String token;
 
     @Inject
-    public HttpAdminService(FakeplayerManager manager, FakeplayerConfig config, ActionManager actionManager, NMSBridge bridge) {
+    public HttpAdminService(FakeplayerManager manager, FakeplayerConfig config, ActionManager actionManager, NMSBridge bridge,
+                            FakeplayerList playerList, FakeplayerPingSetter pingSetter, PluginTranslator translator) {
         this.manager = manager;
         this.config = config;
         this.actionManager = actionManager;
         this.bridge = bridge;
+        this.playerList = playerList;
+        this.pingSetter = pingSetter;
+        this.translator = translator;
     }
 
     public void start() {
@@ -123,6 +136,11 @@ public class HttpAdminService {
         routes.put("/look", this::handleLook);
         routes.put("/hold", this::handleHold);
         routes.put("/swap", this::handleSwap);
+        routes.put("/goto", this::handleGoto);
+        routes.put("/setping", this::handleSetPing);
+        routes.put("/sneak", this::handleSneak);
+        routes.put("/sprint", this::handleSprint);
+        routes.put("/reload", this::handleReload);
         routes.put("/cmd", this::handleCmd);
         routes.put("/kickall", this::handleKickAll);
         routes.put("/killall", this::handleKillAll);
@@ -811,6 +829,168 @@ public class HttpAdminService {
                 return null;
             });
             sendJson(ex, 200, "success", null);
+        } catch (Exception e) {
+            sendJson(ex, 500, "failure", rootMsg(e));
+        }
+    }
+
+    private void handleGoto(HttpExchange ex) throws IOException {
+        if (!preflight(ex, config.isHttpAdminGoto())) {
+            return;
+        }
+        var fake = requireFake(ex, query(ex, "name"));
+        if (fake == null) {
+            return;
+        }
+
+        final Double x;
+        final Double y;
+        final Double z;
+        try {
+            x = doubleQuery(ex, "x");
+            y = doubleQuery(ex, "y");
+            z = doubleQuery(ex, "z");
+        } catch (IllegalArgumentException e) {
+            sendJson(ex, 400, "failure", e.getMessage());
+            return;
+        }
+        if (x == null || y == null || z == null) {
+            sendJson(ex, 400, "failure", "x, y and z are required");
+            return;
+        }
+
+        var world = fake.getWorld();
+        var worldName = query(ex, "world");
+        if (worldName != null && !worldName.isBlank()) {
+            var requested = Bukkit.getWorld(worldName);
+            if (requested == null) {
+                sendJson(ex, 400, "failure", "Unknown world: " + worldName);
+                return;
+            }
+            if (requested != world) {
+                sendJson(ex, 400, "failure", "The fake player cannot walk to another world");
+                return;
+            }
+        }
+
+        var target = new Location(world, x, y, z);
+        if (!WalkUtils.withinHeight(world, y)) {
+            sendJson(ex, 400, "failure", "Target is outside the world height range");
+            return;
+        }
+        if (!world.getWorldBorder().isInside(target)) {
+            sendJson(ex, 400, "failure", "This location is unreachable");
+            return;
+        }
+        if (target.distance(fake.getLocation()) > MAX_GOTO_DISTANCE) {
+            sendJson(ex, 400, "failure", "Target is too far away (max " + (int) MAX_GOTO_DISTANCE + " blocks)");
+            return;
+        }
+        var stand = WalkUtils.findStandLocation(fake, target.getBlock());
+        if (stand == null) {
+            sendJson(ex, 400, "failure", "This location is unreachable (no safe footing nearby)");
+            return;
+        }
+
+        var setting = ActionSetting.continuous();
+        setting.targetX = stand.getX();
+        setting.targetY = stand.getY();
+        setting.targetZ = stand.getZ();
+        try {
+            callSync(() -> {
+                actionManager.setAction(fake, ActionType.GOTO, setting);
+                return null;
+            });
+            sendJson(ex, 200, "success", null);
+        } catch (Exception e) {
+            sendJson(ex, 500, "failure", rootMsg(e));
+        }
+    }
+
+    private void handleSetPing(HttpExchange ex) throws IOException {
+        if (!preflight(ex, config.isHttpAdminSetPing())) {
+            return;
+        }
+        var fake = requireFake(ex, query(ex, "name"));
+        if (fake == null) {
+            return;
+        }
+        final Integer ping;
+        try {
+            ping = intQuery(ex, "ping");
+        } catch (IllegalArgumentException e) {
+            sendJson(ex, 400, "failure", e.getMessage());
+            return;
+        }
+        if (ping == null || ping < 0) {
+            sendJson(ex, 400, "failure", "ping must be greater than or equal to 0");
+            return;
+        }
+        var target = playerList.getByUUID(fake.getUniqueId());
+        if (target == null) {
+            sendJson(ex, 400, "failure", "The dummy does not exist.");
+            return;
+        }
+        target.setPing(ping);
+        sendJson(ex, 200, "success", null);
+    }
+
+    private void handleSneak(HttpExchange ex) throws IOException {
+        if (!preflight(ex, config.isHttpAdminSneak())) {
+            return;
+        }
+        setSneakOrSprint(ex, query(ex, "name"), true);
+    }
+
+    private void handleSprint(HttpExchange ex) throws IOException {
+        if (!preflight(ex, config.isHttpAdminSprint())) {
+            return;
+        }
+        setSneakOrSprint(ex, query(ex, "name"), false);
+    }
+
+    private void setSneakOrSprint(HttpExchange ex, String name, boolean sneak) throws IOException {
+        var fake = requireFake(ex, name);
+        if (fake == null) {
+            return;
+        }
+        var rawState = query(ex, "state");
+        final boolean state;
+        if (rawState == null || rawState.isBlank()) {
+            state = sneak ? !fake.isSneaking() : !fake.isSprinting();
+        } else if (rawState.trim().equalsIgnoreCase("true")) {
+            state = true;
+        } else if (rawState.trim().equalsIgnoreCase("false")) {
+            state = false;
+        } else {
+            sendJson(ex, 400, "failure", "state must be true or false");
+            return;
+        }
+        try {
+            callSync(() -> {
+                if (sneak) {
+                    fake.setSneaking(state);
+                } else {
+                    fake.setSprinting(state);
+                }
+                return null;
+            });
+            sendJson(ex, 200, "success", null);
+        } catch (Exception e) {
+            sendJson(ex, 500, "failure", rootMsg(e));
+        }
+    }
+
+    private void handleReload(HttpExchange ex) throws IOException {
+        if (!preflight(ex, config.isHttpAdminReload())) {
+            return;
+        }
+        try {
+            config.reload();
+            pingSetter.restart();
+            translator.reload();
+            sendJson(ex, 200, "success",
+                    config.isConfigFileOutOfDate() ? "Config reloaded, but config.yml is out of date" : null);
         } catch (Exception e) {
             sendJson(ex, 500, "failure", rootMsg(e));
         }

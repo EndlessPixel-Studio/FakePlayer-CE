@@ -58,9 +58,8 @@ FakePlayer CE 以**单一通用 jar**（`fakeplayer-fp.buildX.jar`）形式发�
 
 ### 1. 稳定版发布（推荐）
 
-从 Modrinth 或 GitHub Releases 页面下载最新稳定构建：
+从 GitHub Releases 页面下载最新稳定构建：
 
-- 🔷 [Modrinth](https://modrinth.com/plugin/fpce)
 - 📦 [Release 发布下载](https://github.com/EndlessPixel/FakePlayer-CE/releases)
 
 每个 Release 均包含预构建的 `fakeplayer-fp.buildX.jar`，将其放入服务端的 `plugins/` 目录即可。
@@ -166,8 +165,13 @@ http-admin:
     look: true           # 启用 GET /look
     hold: true           # 启用 GET /hold
     swap: true           # 启用 GET /swap
+    goto: true           # 启用 GET /goto
+    setping: true        # 启用 GET /setping
+    sneak: true          # 启用 GET /sneak
+    sprint: true         # 启用 GET /sprint
     # 其他
     cmd: true            # 启用 GET /cmd
+    reload: true         # 启用 GET /reload
     batch: true          # 启用 GET /kickall、/killall、/sayall
 ```
 
@@ -193,6 +197,11 @@ http-admin:
 | `GET /look?name=<名字>&yaw=<角度>&pitch=<角度>` | 直接设置假人朝向 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /hold?name=<名字>&slot=<1-9>` | 切换假人主手槽位 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /swap?name=<名字>` | 交换假人主副手物品 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /goto?name=<名字>&x=&y=&z=[&world=]` | 让假人寻路前往指定坐标（无法抵达的目标会被拒绝） | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /setping?name=<名字>&ping=<毫秒>` | 设置假人在 Tab 列表显示的延迟 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /sneak?name=<名字>[&state=true\|false]` | 切换（或设置）潜行状态 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /sprint?name=<名字>[&state=true\|false]` | 切换（或设置）疾跑状态 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /reload` | 重载 `config.yml` 与语言文件 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /cmd?name=<名字>&command=<命令>` | 以假人身份执行一条命令 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /kickall` | 移除服务器全部假人 | `{"status":"success","count":n}` | — |
 | `GET /killall` | 杀死服务器全部假人 | `{"status":"success","count":n}` | — |

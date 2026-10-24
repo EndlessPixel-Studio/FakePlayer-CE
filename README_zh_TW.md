@@ -58,9 +58,8 @@ FakePlayer CE 以**單一通用 jar**（`fakeplayer-fp.buildX.jar`）形式發�
 
 ### 1. 穩定版發布（推薦）
 
-從 Modrinth 或 GitHub Releases 頁面下載最新穩定建置：
+從 GitHub Releases 頁面下載最新穩定建置：
 
-- 🔷 [Modrinth](https://modrinth.com/plugin/fpce)
 - 📦 [Release 發布下載](https://github.com/EndlessPixel/FakePlayer-CE/releases)
 
 每個 Release 均包含預先建置的 `fakeplayer-fp.buildX.jar`，將其放入伺服器端的 `plugins/` 目錄即可。
@@ -166,8 +165,13 @@ http-admin:
     look: true           # 啟用 GET /look
     hold: true           # 啟用 GET /hold
     swap: true           # 啟用 GET /swap
+    goto: true           # 啟用 GET /goto
+    setping: true        # 啟用 GET /setping
+    sneak: true          # 啟用 GET /sneak
+    sprint: true         # 啟用 GET /sprint
     # 其他
     cmd: true            # 啟用 GET /cmd
+    reload: true         # 啟用 GET /reload
     batch: true          # 啟用 GET /kickall、/killall、/sayall
 ```
 
@@ -193,6 +197,11 @@ http-admin:
 | `GET /look?name=<名字>&yaw=<角度>&pitch=<角度>` | 直接設定假人朝向 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /hold?name=<名字>&slot=<1-9>` | 切換假人主手欄位 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /swap?name=<名字>` | 交換假人主副手物品 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /goto?name=<名字>&x=&y=&z=[&world=]` | 讓假人尋路前往指定座標（無法抵達的目標會被拒絕） | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /setping?name=<名字>&ping=<毫秒>` | 設定假人在 Tab 列表顯示的延遲 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /sneak?name=<名字>[&state=true\|false]` | 切換（或設定）潛行狀態 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /sprint?name=<名字>[&state=true\|false]` | 切換（或設定）疾跑狀態 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
+| `GET /reload` | 重新載入 `config.yml` 與語言檔 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /cmd?name=<名字>&command=<指令>` | 以假人身份執行一條指令 | `{"status":"success"}` | `{"status":"failure","msg":"..."}` |
 | `GET /kickall` | 移除伺服器全部假人 | `{"status":"success","count":n}` | — |
 | `GET /killall` | 殺死伺服器全部假人 | `{"status":"success","count":n}` | — |
