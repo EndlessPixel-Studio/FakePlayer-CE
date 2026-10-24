@@ -498,6 +498,9 @@ public class CommandRegistry {
                                 .withShortDescription("fakeplayer.command.say.description")
                                 .withRequirement(CommandSupports::hasFakeplayer)
                                 .withPermission(Permission.say)
+                                .executes((sender, args) -> {
+                                    sender.sendMessage(translatable("fakeplayer.command.say.help"));
+                                })
                                 .withSubcommands(
                                         command("once")
                                                 .withShortDescription("fakeplayer.command.say.once")
