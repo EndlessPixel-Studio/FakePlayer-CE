@@ -227,7 +227,7 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
         var option = new ServerboundClientInformationPacket(
                 "en_us",
                 Bukkit.getViewDistance(),
-                ChatVisiblity.SYSTEM,
+                ChatVisiblity.FULL,
                 false,
                 ConstantPool.MODEL_CUSTOMISATION,
                 HumanoidArm.RIGHT,
