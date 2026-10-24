@@ -1,44 +1,66 @@
 package io.github.hello09x.fakeplayer.core.command;
 
 import dev.jorel.commandapi.CommandAPICommand;
-import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import org.bukkit.plugin.Plugin;
 
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** Resolves command help text once with the locale configured by the plugin. */
 final class CommandHelpLocalizer {
 
-    private static final String BUNDLE_NAME = "message.message";
-    private static final ResourceBundle.Control CONTROL =
-            ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_DEFAULT);
+    private static final String BUNDLE_PATH = "message/message";
+    private static final String EXTENSION = ".properties";
+    private static final Map<String, Properties> CACHE = new ConcurrentHashMap<>();
 
     private final Locale locale;
-    private final ClassLoader dataFolderClassLoader;
-    private final ClassLoader pluginClassLoader;
-    private final ClassLoader[] classLoaders;
+    private final ClassLoader classLoader;
 
     CommandHelpLocalizer(Plugin plugin, Locale locale) {
         this.locale = locale;
-        this.dataFolderClassLoader = TranslatorUtils.getDataFolderClassLoader(plugin);
-        this.pluginClassLoader = TranslatorUtils.getJarClassLoader(plugin);
-        this.classLoaders = new ClassLoader[]{dataFolderClassLoader, pluginClassLoader};
+        var pluginClassLoader = plugin.getClass().getClassLoader();
+        this.classLoader = pluginClassLoader != null
+                ? pluginClassLoader
+                : ClassLoader.getSystemClassLoader();
+    }
+
+    private Properties loadProperties(Locale locale) {
+        return CACHE.computeIfAbsent(locale.toLanguageTag(), key -> {
+            var props = new Properties();
+
+            // Load locale-specific resource: e.g., message/message_zh_CN.properties
+            if (!locale.getCountry().isEmpty()) {
+                loadResource(props, BUNDLE_PATH + "_" + locale.getLanguage() + "_" + locale.getCountry() + EXTENSION);
+            }
+
+            // Load language-specific resource: e.g., message/message_zh.properties
+            loadResource(props, BUNDLE_PATH + "_" + locale.getLanguage() + EXTENSION);
+
+            // Load base resource: message/message.properties (as fallback)
+            loadResource(props, BUNDLE_PATH + EXTENSION);
+
+            return props;
+        });
+    }
+
+    private void loadResource(Properties props, String resourcePath) {
+        try (var is = classLoader.getResourceAsStream(resourcePath)) {
+            if (is != null) {
+                try (var reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+                    props.load(reader);
+                }
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     String translate(String key) {
-        for (var classLoader : classLoaders) {
-            try {
-                var bundle = ResourceBundle.getBundle(BUNDLE_NAME, locale, classLoader, CONTROL);
-                if (bundle.containsKey(key)) {
-                    return bundle.getString(key);
-                }
-            } catch (MissingResourceException ignored) {
-                // Try the next resource location, then leave unknown keys unchanged.
-            }
-        }
-        return key;
+        var props = loadProperties(locale);
+        return props.getProperty(key, key);
     }
 
     void localizeDescriptions(CommandAPICommand command) {
