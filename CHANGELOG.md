@@ -12,6 +12,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **`/fp skin` now supports premium players through SkinsRestorer.** When SkinsRestorer is installed, the skin is resolved through its official API (`SkinStorage.findOrCreateSkinData`), the choice is persisted with `PlayerStorage.setSkinIdOfPlayer` so it survives reconnects, and the resolved property is applied through the platform skin applier — lookup and storage run off-thread, applying runs on the entity thread (Folia-safe). Unresolvable names now report a clear error. Without SkinsRestorer the previous Mojang-API path is used.
 - **Auto-login config reorganised.** The auto-login settings were flattened at the top level (`auto-login`, `register`, `login`, `random-password`, ...), where `auto-login: false` looked like a master switch even though it only drove command-template login. They now live under a single tree with the two mechanisms documented side by side: `auto-login.command.enabled` (run register/login commands) and the automatic login-plugin API exemption (AuthMe / CatSeedLogin / LibreLogin, no configuration needed). Old flat keys are still read as a fallback, so existing configs keep working; `config.yml` bumped to 27.
 - **HTTP Admin API: five new endpoints.** `/goto` (pathfind to coordinates, unreachable targets rejected), `/setping` (tab list ping), `/sneak` and `/sprint` (toggle or set, `state=true|false`), and `/reload` (reload `config.yml` and translations). Each has its own switch under `http-admin.interface`; `config.yml` bumped to 26.
 - **Removed all Modrinth integration** (`sync-modrinth.yml`, `sync_modrinth.py` and the download links in the READMEs): the project could not pass Modrinth's review (6.2b, excessive AI-generated content) and has been deleted there. Releases are distributed via GitHub Releases only.
@@ -23,6 +24,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
+- **`/fp skin` 现支持正版玩家（通过 SkinsRestorer）。** 装有 SkinsRestorer 时按官方 API 解析皮肤（`SkinStorage.findOrCreateSkinData`），用 `PlayerStorage.setSkinIdOfPlayer` 持久化选择以便下次进服恢复，再通过平台 applier 应用解析出的属性——解析与存储全在异步线程，应用在实体线程（Folia 安全）。名称无效或查询失败会给出明确提示。未安装 SkinsRestorer 时仍走原有的 Mojang API 路径。
 - **自动登录配置重排。** 原先把 `auto-login`、`register`、`login`、`random-password` 等平铺在最外层，`auto-login: false` 看着像总开关，实际只控制命令模板登录。现统一收进一个配置树，并把两套机制并列说明：`auto-login.command.enabled`（执行注册/登录命令）与登录插件 API 免登录（AuthMe / CatSeedLogin / LibreLogin，无需配置）。旧平铺键仍会读取，现有配置继续有效；`config.yml` 版本提升至 27。
 - **HTTP 管理接口新增五个端点。** `/goto`（寻路前往坐标，无法抵达的目标直接拒绝）、`/setping`（Tab 列表延迟）、`/sneak` 与 `/sprint`（切换或设置，`state=true|false`）、`/reload`（重载 `config.yml` 与语言文件）。每个端点都在 `http-admin.interface` 下有独立开关；`config.yml` 版本提升至 26。
 - **移除全部 Modrinth 集成**（`sync-modrinth.yml`、`sync_modrinth.py` 及 README 中的下载链接）：项目因未通过 Modrinth 审核（6.2b，AI 生成内容比例超标）无法上架，资源已删除。发布统一通过 GitHub Releases。

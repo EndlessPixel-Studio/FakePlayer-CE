@@ -97,7 +97,7 @@ On first launch, FakePlayer generates a template file `config.tmpl.yml`. Rename 
 | /fp drop      | Drop held item                            | fakeplayer.command.drop      |                                                                 |
 | /fp dropstack | Drop entire stack of the held item        | fakeplayer.command.dropstack |                                                                 |
 | /fp dropinv   | Drop all items in the inventory           | fakeplayer.command.dropinv   |                                                                 |
-| /fp skin      | Copy skin from another player             | fakeplayer.command.skin      | 60 seconds cooldown if copy from a offline player               |
+| /fp skin      | Copy skin from another player             | fakeplayer.command.skin      | 60 seconds cooldown if copy from a offline player; uses SkinsRestorer when installed (supports premium names) |
 | /fp invsee    | Open an inventory of a fake player        | fakeplayer.command.invsee    | Right-clicking on fake players has the same effect              |
 | /fp enderchest | Open the ender chest of a fake player    | fakeplayer.command.enderchest | Alias `/fp ec`; shift-right-clicking a fake player has the same effect; must be in the same world |
 | /fp sleep     | Sleep                                     | fakeplayer.command.sleep     |                                                                 |
