@@ -55,7 +55,16 @@ public abstract class AbstractCommand {
      * @throws WrapperCommandSyntaxException 找不到唯一的假人时抛出次异常
      */
     protected @NotNull Player getFakeplayer(@NotNull CommandSender sender, @NotNull CommandArguments args, @Nullable Predicate<Player> predicate) throws WrapperCommandSyntaxException {
-        var raw = args.get("name");
+        return this.getFakeplayer(sender, args, predicate, false);
+    }
+
+    /**
+     * say 的单参数形式把 name 当作消息；此时必须忽略该参数并正常使用已选假人。
+     */
+    protected @NotNull Player getFakeplayer(@NotNull CommandSender sender, @NotNull CommandArguments args,
+                                             @Nullable Predicate<Player> predicate, boolean ignoreName)
+            throws WrapperCommandSyntaxException {
+        var raw = ignoreName ? null : args.get("name");
         Player fake = null;
         if (raw instanceof Player p) {
             fake = p;
@@ -65,7 +74,7 @@ public abstract class AbstractCommand {
             // 普通玩家只能指定自己召唤的假人。此前只查自己召唤的假人, 导致控制台无法按名字操作别人召唤的假人
             fake = sender.isOp() ? manager.get(s) : manager.get(sender, s);
         }
-        if (fake == null && sender instanceof Player p && args.getRaw("name") == null) {
+        if (fake == null && sender instanceof Player p && (ignoreName || args.getRaw("name") == null)) {
             fake = manager.getSelection(p);
         }
         if (fake != null) {

@@ -35,13 +35,15 @@ public class SayCommand extends AbstractCommand {
             var rawName = args.get("name");
             var name = rawName instanceof Player player ? player.getName() : (String) rawName;
             var message = (String) args.get("message");
+            boolean messageOnly = false;
 
             // stop 只是停止动作, 不需要消息
             if (!setting.equals(ActionSetting.stop())) {
-                // 单参数回退: fp say once 1234 -> 把 1234 当作消息, 作用于默认假人
+                // 单参数是消息而非假人名，必须让选中假人的回退逻辑正常运行
                 if (message == null || message.isBlank()) {
                     if (name != null && !name.isBlank()) {
                         message = name;
+                        messageOnly = true;
                     } else {
                         sender.sendMessage(translatable("fakeplayer.command.say.error.empty"));
                         return;
@@ -49,7 +51,7 @@ public class SayCommand extends AbstractCommand {
                 }
             }
 
-            var fake = super.getFakeplayer(sender, args);
+            var fake = super.getFakeplayer(sender, args, null, messageOnly);
             var copy = setting.clone();
             copy.message = message;
             actionManager.setAction(fake, ActionType.SAY, copy);

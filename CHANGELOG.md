@@ -10,6 +10,16 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ## fp.build15 - (Not published | 未发布)
 
+### English
+
+- Fixed `/fp say once` / `continuous` / `interval` silently doing nothing on Paper: fake players had `ChatVisiblity.SYSTEM`, which causes `ServerGamePacketListenerImpl.chat()` to return before `ChatProcessor` can fire chat events. Fake players now use full chat visibility; unsigned chat still goes through the existing chat event pipeline, including formatting plugins.
+- `/fp say` without a subcommand now displays usage instead of silently failing. Fixed message-only invocation (`/fp say once hello`) ignoring the selected fake player when more than one exists.
+
+### 中文
+
+- 修复 `/fp say once` / `continuous` / `interval` 在 Paper 上执行成功却不发消息：假人原先设置了 `ChatVisiblity.SYSTEM`，导致 `ServerGamePacketListenerImpl.chat()` 在进入 `ChatProcessor` 前直接返回。现在允许完整聊天，继续通过原有未签名消息与聊天事件管线发送，兼容格式化插件。
+- 直接输入 `/fp say` 现在会显示用法。修复只输入消息（如 `/fp say once hello`）时，在多个假人且已选择目标的情况下无法正确使用已选假人的问题。
+
 ## fp.build14 - 2026-10-16
 
 ### English
