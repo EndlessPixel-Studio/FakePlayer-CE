@@ -9,6 +9,7 @@ public interface Permission {
 
     String select = "fakeplayer.command.select";
     String selection = "fakeplayer.command.selection";
+    String goto_ = "fakeplayer.command.goto";
 
     String kick = "fakeplayer.command.kick";
     String kill = "fakeplayer.command.kill";

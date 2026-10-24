@@ -55,7 +55,12 @@ enum ActionType implements Translatable {
     /**
      * 发送聊天消息
      */
-    SAY("fakeplayer.action.say");
+    SAY("fakeplayer.action.say"),
+
+    /**
+     * 前往指定坐标
+     */
+    GOTO("fakeplayer.action.goto");
 
     final String translationKey;
 
