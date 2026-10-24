@@ -25,7 +25,6 @@
   - changed-files:
       - any-glob-to-any-file: ['.github/**']
 
-# 功能域: 可由路径推导的
 "locale":
   - changed-files:
       - any-glob-to-any-file: ['fakeplayer-core/src/main/resources/message/**']
