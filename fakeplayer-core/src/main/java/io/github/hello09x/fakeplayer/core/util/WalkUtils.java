@@ -58,7 +58,8 @@ public final class WalkUtils {
                     // 只接受目标附近 (水平距离平方 <= 14) 的落点, 同高度优先
                     var score = candidate.distanceSquared(targetCenter);
                     if (score > 14) {
-                        break;
+                        // 垂直过远不应过早放弃该方向: continue 继续向下查找更近的落点
+                        continue;
                     }
                     if (Math.abs(candidate.getY() - playerLoc.getY()) > 1.5) {
                         score += 100;
