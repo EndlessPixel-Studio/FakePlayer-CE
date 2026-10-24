@@ -17,8 +17,20 @@ allprojects {
         maven("https://oss.sonatype.org/content/groups/public/")
         maven("https://repo.dmulloy2.net/repository/public/")
         maven("https://jitpack.io")
-        // 该仓库会重定向至 repo.helpch.at, 列举动态版本 (如 dev-bundle) 时会被其 502 中断,
-        // 限定只从这里解析 PlaceholderAPI
+        // PlaceholderAPI 官方仓库 (repo.helpch.at) 为单点且故障频繁 (502 时整个构建中断),
+        // 优先从 GitHub Releases 拉取同一份 jar; 官方仓库保留作后备
+        ivy {
+            url = uri("https://github.com/PlaceholderAPI/PlaceholderAPI/releases/download/")
+            patternLayout {
+                artifact("[revision]/PlaceholderAPI-[revision].[ext]")
+            }
+            metadataSources {
+                artifact()
+            }
+            content {
+                includeModule("me.clip", "placeholderapi")
+            }
+        }
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") {
             content {
                 includeModule("me.clip", "placeholderapi")
