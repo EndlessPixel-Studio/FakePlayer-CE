@@ -1,31 +1,31 @@
-"documentation | 文档":
+"documentation":
   - changed-files:
       - any-glob-to-any-file: ['**/*.md']
 
-"core | 核心":
+"core":
   - changed-files:
       - any-glob-to-any-file: ['fakeplayer-core/**']
 
-"api | 接口":
+"api":
   - changed-files:
       - any-glob-to-any-file: ['fakeplayer-api/**']
 
-"nms | 版本适配":
+"nms":
   - changed-files:
       - any-glob-to-any-file: ['versions/**']
 
-"dist | 构建发布":
+"dist":
   - changed-files:
       - any-glob-to-any-file: ['fakeplayer-dist/**']
 
-"ci | 持续集成":
+# 仓库配置 / 工作流变更归入 dependency (版本与工程依赖面)
+"dependency":
   - changed-files:
       - any-glob-to-any-file: ['.github/**']
 
-"locale | 本地化":
+# 功能域: 消息文案与配置项的变更都面向最终用户行为
+"feature":
   - changed-files:
-      - any-glob-to-any-file: ['fakeplayer-core/src/main/resources/message/**']
-
-"config | 配置":
-  - changed-files:
-      - any-glob-to-any-file: ['fakeplayer-core/src/main/resources/config.yml']
+      - any-glob-to-any-file:
+          - 'fakeplayer-core/src/main/resources/message/**'
+          - 'fakeplayer-core/src/main/resources/config.yml'
