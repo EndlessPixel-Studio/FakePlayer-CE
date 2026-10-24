@@ -144,6 +144,12 @@ public class FakeplayerConfig extends PluginConfig {
     private boolean restoreOnStart;
 
     /**
+     * 是否使用确定性 UUID (基于假人名称), 使不同玩家能共享同一个假人
+     * <p>开启后同一名称始终生成相同 UUID, 关闭则每次生成随机 UUID</p>
+     */
+    private boolean shareFakeplayer;
+
+    /**
      * 自定义名称规则
      */
     private Pattern namePattern;
@@ -404,6 +410,7 @@ public class FakeplayerConfig extends PluginConfig {
         this.persistData = file.getBoolean("persist-data", true);
         this.kickOnDead = file.getBoolean("kick-on-dead", true);
         this.restoreOnStart = file.getBoolean("restore-on-start", false);
+        this.shareFakeplayer = file.getBoolean("share-fakeplayer", false);
         this.checkForUpdates = file.getBoolean("check-for-updates", true);
         this.namePattern = getNamePattern(file);
         this.preventKicking = this.getPreventKicking(file);

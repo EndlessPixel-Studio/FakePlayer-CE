@@ -146,6 +146,18 @@ forced-execution: false
 
 
 # ============================================================
+# 共享假人 / Share fake players
+# ============================================================
+
+# 是否允许不同玩家共享同一个假人 (同一名称始终使用相同 UUID)
+# 关闭: 每次召唤同一名称的假人可能使用不同 UUID (usercache 会累积多个记录)
+# 开启: 同一名称始终使用相同 UUID, 不同玩家可以轮流控制同一个假人
+# Allow different players to share the same fake player (same name = same UUID)
+# OFF: each spawn of the same name may get a different UUID (usercache accumulates entries)
+# ON: the same name always gets the same UUID, different players can share the same fake player
+share-fakeplayer: false
+
+# ============================================================
 # 性能保护 / TPS protection
 # ============================================================
 
