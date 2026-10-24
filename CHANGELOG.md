@@ -15,12 +15,14 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - Fixed `/fp say once` / `continuous` / `interval` silently doing nothing on Paper: fake players had `ChatVisiblity.SYSTEM`, which causes `ServerGamePacketListenerImpl.chat()` to return before `ChatProcessor` can fire chat events. Fake players now use full chat visibility; unsigned chat still goes through the existing chat event pipeline, including formatting plugins.
 - `/fp say` without a subcommand now displays usage instead of silently failing. Fixed message-only invocation (`/fp say once hello`) ignoring the selected fake player when more than one exists.
 - **New command `/fp goto <x> <y> <z>`: make a fake player walk to a location.** The fake player pathfinds on its own — it steps up 1-block obstacles, swims through water, and if it gets stuck (e.g. behind a fence) for more than 1.25 seconds it teleports to a safe footing near the target and continues. Destinations that cannot be stood on (floating in mid-air, buried inside blocks, no ground nearby) are rejected up front with a clear error instead of sending the fake player somewhere it will fall or suffocate; out-of-height, out-of-border and over-1024-blocks targets are rejected as well. `/fp stop` cancels an ongoing trip.
+- **Fixed `/fp goto` rejecting reachable destinations.** The footing search used to give up on a direction as soon as its first candidate was too far, missing closer footings lower down (slopes, stairs) and refusing targets that were actually standable; it now scans every layer and picks the best candidate (#77, thanks to @lldxlzy for the fix).
 
 ### 中文
 
 - 修复 `/fp say once` / `continuous` / `interval` 在 Paper 上执行成功却不发消息：假人原先设置了 `ChatVisiblity.SYSTEM`，导致 `ServerGamePacketListenerImpl.chat()` 在进入 `ChatProcessor` 前直接返回。现在允许完整聊天，继续通过原有未签名消息与聊天事件管线发送，兼容格式化插件。
 - 直接输入 `/fp say` 现在会显示用法。修复只输入消息（如 `/fp say once hello`）时，在多个假人且已选择目标的情况下无法正确使用已选假人的问题。
 - **新命令 `/fp goto <x> <y> <z>`：让假人走到指定坐标。** 假人自行寻路——会跳上一格高障碍、在水中游动；若卡住（如被栅栏挡住）超过 1.25 秒，会自动传送到目标附近的安全落点继续走。无法站立的目标（悬空、埋在方块里、周围没有实地）会**在出发前直接拒绝并提示**，不会把假人送过去摔死或卡住；超出世界高度、超出世界边界、距离超过 1024 格的目标同样拒绝。执行 `/fp stop` 可中止行程。
+- **修复 `/fp goto` 误拒可抵达目标。** 落点搜索原先在某方向首个候选过远时就放弃整个方向，会漏掉更低处更近的落点（斜坡、阶梯地形），导致实际可站立的目标被拒绝；现逐层继续查找，找完全部候选取最优（#77，感谢 @lldxlzy 的修复）。
 
 ## fp.build14 - 2026-10-16
 
