@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """把 README 转成 TipTap JSON 并 PATCH 到 NexusMC 资源正文。
 
-与 sync_modrinth.py 的区别:
-- Modrinth 收 Markdown 纯文本, NexusMC 的 content 必须收 TipTap JSON 对象
+注意:
+- NexusMC 的 content 必须收 TipTap JSON 对象 (README 需先由 Markdown 转换)
   (传纯 Markdown 会被当成无效正文, 报「资源正文至少需要 20 个字」)。
 - NexusMC 会校验正文里的不可见/控制字符 (UNICODE_RISK_DETECTED), 需先净化。
 """
