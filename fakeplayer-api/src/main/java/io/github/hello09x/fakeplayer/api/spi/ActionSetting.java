@@ -35,6 +35,15 @@ class ActionSetting implements Cloneable {
      */
     public String message;
 
+    /**
+     * GOTO 动作的目标坐标, 未设置时为 null
+     */
+    public Double targetX;
+
+    public Double targetY;
+
+    public Double targetZ;
+
     public ActionSetting(int maximum, int interval) {
         this(maximum, interval, 0);
     }

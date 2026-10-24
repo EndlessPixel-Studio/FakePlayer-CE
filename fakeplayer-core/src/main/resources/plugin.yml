@@ -86,6 +86,8 @@ permissions:
     description: 'Allow player to run /fp turn'
   fakeplayer.command.move:
     description: 'Allow player to run /fp move'
+  fakeplayer.command.goto:
+    description: 'Allow player to run /fp goto'
   fakeplayer.command.ride:
     description: 'Allow player to run /fp ride'
   fakeplayer.command.swap:
@@ -160,6 +162,7 @@ permissions:
       - fakeplayer.command.look
       - fakeplayer.command.turn
       - fakeplayer.command.move
+      - fakeplayer.command.goto
       - fakeplayer.command.ride
       - fakeplayer.command.swap
       - fakeplayer.command.sleep

@@ -37,6 +37,8 @@ public class CommandRegistry {
     @Inject
     private ExpmeCommand expmeCommand;
     @Inject
+    private GotoCommand gotoCommand;
+    @Inject
     private HoldCommand holdCommand;
     @Inject
     private InvseeCommand invseeCommand;
@@ -240,6 +242,14 @@ public class CommandRegistry {
                                 .withRequirement(CommandSupports::hasFakeplayer)
                                 .withOptionalArguments(fakeplayer("name"))
                                 .executesPlayer(expmeCommand::expme),
+
+                        command("goto")
+                                .withPermission(Permission.goto_)
+                                .withShortDescription("fakeplayer.command.goto.description")
+                                .withRequirement(CommandSupports::hasFakeplayer)
+                                .withArguments(location("location"))
+                                .withOptionalArguments(fakeplayer("name"))
+                                .executes(gotoCommand::goTo),
 
                         command("tp")
                                 .withAliases("tpto")
