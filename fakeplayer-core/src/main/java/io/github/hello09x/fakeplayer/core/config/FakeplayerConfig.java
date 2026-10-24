@@ -451,13 +451,20 @@ public class FakeplayerConfig extends PluginConfig {
         this.debug = file.getBoolean("debug", false);
         this.replenishToolsDurabilityThreshold = file.getInt("replenish.tools.durability-threshold", 0);
         this.toolReplacementRemainingDurabilityThreshold = Math.max(0, file.getInt("tool-replacement.remaining-durability-threshold", 10));
-        this.autoLogin = file.getBoolean("auto-login", false);
-        this.registerCommand = file.getString("register", "/reg %password% %password%");
-        this.loginCommand = file.getString("login", "/login %password%");
-        this.randomPasswordCharset = file.getString("random-password", "");
-        var randomLength = file.getInt("random-password-length", 12);
+        // 新版树形键优先; 兼容旧版平铺键 (auto-login / register / login / random-password*)
+        this.autoLogin = file.getBoolean("auto-login.command.enabled",
+                file.isBoolean("auto-login") && file.getBoolean("auto-login"));
+        this.registerCommand = file.getString("auto-login.command.register",
+                file.getString("register", "/reg %password% %password%"));
+        this.loginCommand = file.getString("auto-login.command.login",
+                file.getString("login", "/login %password%"));
+        this.randomPasswordCharset = file.getString("auto-login.random-password.charset",
+                file.getString("random-password", ""));
+        var randomLength = file.getInt("auto-login.random-password.length",
+                file.getInt("random-password-length", 12));
         this.randomPasswordLength = randomLength <= 0 ? 12 : randomLength;
-        this.changePasswordCommand = file.getString("change-password", "/changepassword %oldpassword% %newpassword% %newpassword%");
+        this.changePasswordCommand = file.getString("auto-login.command.change-password",
+                file.getString("change-password", "/changepassword %oldpassword% %newpassword% %newpassword%"));
         this.forcedExecution = file.getBoolean("forced-execution", false);
 
         this.httpAdminEnabled = file.getBoolean("http-admin.enabled", false);

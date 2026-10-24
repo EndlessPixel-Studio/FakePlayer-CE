@@ -125,7 +125,7 @@ FakePlayer CE 以**单一通用 jar**（`fakeplayer-fp.buildX.jar`）形式发�
 | /fp hold | 切换快捷栏指定格子物品 | fakeplayer.command.hold | |
 | /fp cmd | 让假人执行控制台指令 | fakeplayer.command.cmd | |
 | /fp say | 让假人发送聊天消息 | fakeplayer.command.say | |
-| /fp password | 设置假人登录密码 (存入插件数据库) | fakeplayer.command.password | 需配合 auto-login 使用 |
+| /fp password | 设置假人登录密码 (存入插件数据库) | fakeplayer.command.password | 配合 `auto-login.command`（命令模板登录）使用 |
 | /fp changepassword | 修改假人登录密码 (旧密码可省略, 留空则使用已保存密码) | fakeplayer.command.changepassword | |
 | /fp reload | 重载插件配置文件 | OP | |
 
@@ -448,19 +448,33 @@ FakePlayer CE 会自动兼容主流登录插件，在假人加入时将其标记
 - **可选 API**：AuthMe 与 LibreLogin 通过反射调用对应插件 API；CatSeedLogin 使用其专用登录辅助类。FakePlayer CE 不添加这些插件的编译期依赖。
 - **相关 Issue / PR**：登录插件兼容见 #17，CatSeedLogin 见 #18，AuthMe 见 #19，LibreLogin 见 #26。
 
-### 自动登录（self-commands / 密码）
+### 自动登录（两套独立机制）
 
-除内置的登录插件兼容外，也可在 `config.yml` 的 `self-commands` 中填写注册 / 登录指令作为兜底（适用于任意登录插件）：
+假人通过登录插件有两套互不影响的方式：
+
+| 机制 | 配置 | 需要密码 |
+|---|---|---|
+| **登录插件 API 免登录**（推荐） | 无需配置——装有 AuthMe / CatSeedLogin / LibreLogin / LibreLoginNext 时自动生效 | 否 |
+| **命令模板登录** | `auto-login.command.enabled: true` | 是（`/fp password` 设置，或自动生成） |
+
+第一种直接通过登录插件自身的 API 把假人标记为已登录，假人不会进入登录界面；第二种以假人身份执行配置的命令，适用于没有 API 兼容的登录插件：
 
 ```yaml
-self-commands:
-  - '/register abc123! abc123!'
-  - '/login abc123!'
+auto-login:
+  command:
+    enabled: true
+    register: "/reg %password% %password%"
+    login: "/login %password%"
+    change-password: "/changepassword %oldpassword% %newpassword% %newpassword%"
+  random-password:
+    charset: "abcdefghijklmnopqrstuvwxyz0123456789"   # 留空表示不自动生成
+    length: 12
 ```
 
-还可配合 `/fp password`、`/fp changepassword` 由插件代为保存密码，并在假人生成时自动登录。
+密码来自 `/fp password <名称> <密码>`（保存在插件数据库），或在首次生成时由 `random-password.charset` 自动生成；`/fp changepassword` 使用 `change-password` 模板。
 
-> 若服务器装有登录插件但未启用对应内置兼容，假人可能因长时间未登录被踢出，此时用上面的 `self-commands` 规避即可。
+> 两套机制可以同时开启；若登录插件已被 API 免登录放行，命令模板通常不再需要。
+> 若你的登录插件不在 API 兼容列表内，假人可能因长时间未登录被踢出——开启命令模板登录即可规避。
 
 ### 聊天事件兼容（/fp say）
 
