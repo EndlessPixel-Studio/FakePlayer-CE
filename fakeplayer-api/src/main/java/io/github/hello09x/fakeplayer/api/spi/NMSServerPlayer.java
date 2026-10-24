@@ -207,7 +207,9 @@ public interface NMSServerPlayer {
     void setPlayBefore();
 
     /**
-     * 设置客户端选项
+     * 设置客户端选项。聊天可见性必须是 FULL：
+     * Paper 的 ServerGamePacketListenerImpl.chat() 会对 SYSTEM/HIDDEN 提前返回，
+     * 导致 /fp say 无法进入 ChatProcessor，也不会触发聊天格式化事件。
      */
     void setupClientOptions();
 
