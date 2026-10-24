@@ -1,3 +1,5 @@
+# PR 自动贴标规则 (规范见 LABELS.md)
+# 注意: feature 是 issue 侧的功能域标签, PR 不贴; 消息文案与配置项在 fakeplayer-core 下, 自动归入 core
 "documentation":
   - changed-files:
       - any-glob-to-any-file: ['**/*.md']
@@ -22,10 +24,3 @@
 "dependency":
   - changed-files:
       - any-glob-to-any-file: ['.github/**']
-
-# 功能域: 消息文案与配置项的变更都面向最终用户行为
-"feature":
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'fakeplayer-core/src/main/resources/message/**'
-          - 'fakeplayer-core/src/main/resources/config.yml'
