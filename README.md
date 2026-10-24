@@ -127,7 +127,7 @@ On first launch, FakePlayer generates a template file `config.tmpl.yml`. Rename 
 | /fp hold      | Hold corresponding hotbar item            | fakeplayer.command.hold      |                                                                 |
 | /fp cmd       | Execute command                           | fakeplayer.command.cmd       |                                                                 |
 | /fp say       | Send chat message                         | fakeplayer.command.say       |                                                                 |
-| /fp password  | Set fake player login password (stored in plugin database) | fakeplayer.command.password | Used with auto-login                                           |
+| /fp password  | Set fake player login password (stored in plugin database) | fakeplayer.command.password | Used with `auto-login.command` (command-template login)         |
 | /fp changepassword | Change fake player login password (old password optional) | fakeplayer.command.changepassword |                                                          |
 | /fp reload    | Reload config file                        | OP                           |                                                                 |
 
@@ -450,19 +450,33 @@ FakePlayer CE automatically stays compatible with mainstream login plugins, mark
 - **Optional APIs**: AuthMe and LibreLogin use their plugin APIs through reflection, while CatSeedLogin uses its plugin-specific login helper. FakePlayer CE does not add compile-time dependencies on these plugins.
 - **Related issues / PRs**: login-plugin compatibility in #17, CatSeedLogin in #18, AuthMe in #19, LibreLogin in #26.
 
-### Auto-login (self-commands / password)
+### Auto-login (two independent mechanisms)
 
-Besides the built-in login plugin compatibility, you can also fill in register / login commands in `self-commands` in `config.yml` as a fallback (works with any login plugin):
+Fake players can get past a login plugin in two independent ways:
+
+| Mechanism | Configuration | Password needed |
+|---|---|---|
+| **Login-plugin API exemption** (recommended) | None — applied automatically when AuthMe / CatSeedLogin / LibreLogin / LibreLoginNext is installed | No |
+| **Command-template login** | `auto-login.command.enabled: true` | Yes (set with `/fp password`, or generated) |
+
+The first marks the fake player as logged in through the plugin's own API, so it never enters the login screen. The second runs the configured commands as the fake player and works with any login plugin that has no API compatibility here:
 
 ```yaml
-self-commands:
-  - '/register abc123! abc123!'
-  - '/login abc123!'
+auto-login:
+  command:
+    enabled: true
+    register: "/reg %password% %password%"
+    login: "/login %password%"
+    change-password: "/changepassword %oldpassword% %newpassword% %newpassword%"
+  random-password:
+    charset: "abcdefghijklmnopqrstuvwxyz0123456789"   # empty disables generation
+    length: 12
 ```
 
-You can also pair this with `/fp password` and `/fp changepassword` so the plugin stores the password and auto-logs-in on spawn.
+The password comes from `/fp password <name> <password>` (stored in the plugin database) or is generated from `random-password.charset` on first spawn. `/fp changepassword` uses the `change-password` template.
 
-> If your server has a login plugin but no built-in compatibility is enabled, fake players may be kicked for being idle too long; use the `self-commands` above to work around it.
+> Both mechanisms can be active at once; if the API exemption already passes the fake player through, the command templates are usually unnecessary.
+> If your login plugin is not covered by the API exemption, fake players may be kicked for being idle too long — enable command-template login to work around it.
 
 ### Chat event compatibility (`/fp say`)
 

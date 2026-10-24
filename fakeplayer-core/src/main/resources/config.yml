@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 26
+version: 27
 
 
 # ============================================================
@@ -286,29 +286,65 @@ custom-ping-dynamic-interval: 200
 # ============================================================
 # 自动登录 / Auto login
 # ============================================================
+#
+# 假人登录有两套互不影响的机制:
+#
+#   1. 登录插件 API 免登录 —— 无需任何配置 (推荐)
+#      服务端装有 AuthMe / CatSeedLogin / LibreLogin / LibreLoginNext 时自动生效:
+#      插件直接调用其 API 把假人标记为已登录, 不需要密码, 也不执行任何命令。
+#
+#   2. 命令模板登录 —— 由下方 `command.enabled` 控制
+#      假人生成后由自身执行注册 / 登录命令, 密码保存在插件数据库中。
+#      适用于没有 API 兼容的登录插件。
+#
+# 两者可以同时存在; 若登录插件已被第 1 种方式放行, 通常不需要再开启第 2 种。
+#
+# There are two independent login mechanisms for fake players:
+#
+#   1. Login-plugin API exemption — no configuration needed (recommended)
+#      Applied automatically when AuthMe / CatSeedLogin / LibreLogin /
+#      LibreLoginNext is installed: the fake player is marked as logged in
+#      through the plugin's own API, with no password and no commands.
+#
+#   2. Command-template login — controlled by `command.enabled` below
+#      The fake player runs register / login commands, with the password
+#      stored in the plugin database. Use it when no API compatibility exists.
+#
+# Both may be active; if mechanism 1 already passes the fake player through,
+# mechanism 2 is usually unnecessary.
+auto-login:
 
-# 假人生成后是否自动执行注册/登录命令
-# 需先通过 `/fp password <名称> <密码>` 为假人设置密码, 密码保存在插件数据库中
-# 模板中的 %password% 会替换为数据库中的密码, %p %u %c 同上
-# Automatically run the register/login commands after spawning
-# Set a password first with `/fp password <name> <password>` (stored in the plugin database)
-# %password% is replaced with the stored password, %p %u %c as above
-auto-login: false
-register: "/reg %password% %password%"
-login: "/login %password%"
+  # 命令模板登录 / Command-template login
+  command:
 
-# 随机密码字符集; 留空表示不自动生成 (必须手动设置密码后才能自动登录)
-# Random password charset; leave empty to disable generation (a password must be set manually)
-random-password: ""
+    # 总开关: 假人生成后是否执行下方 register / login 命令
+    # Master switch: run the register / login commands after spawning
+    enabled: false
 
-# 随机密码长度
-# Random password length
-random-password-length: 12
+    # 注册命令模板, %password% 会替换为数据库中的密码
+    # Register command template; %password% is replaced with the stored password
+    register: "/reg %password% %password%"
 
-# 修改密码命令模板, %oldpassword% 与 %newpassword% 会被替换
-# 默认为 AuthMe 风格, 若你的登录插件使用 /changepw 请按需修改
-# Change password command template; %oldpassword% and %newpassword% are replaced
-change-password: "/changepassword %oldpassword% %newpassword% %newpassword%"
+    # 登录命令模板, %password% 会替换为数据库中的密码
+    # Login command template; %password% is replaced with the stored password
+    login: "/login %password%"
+
+    # 修改密码命令模板 (供 /fp changepassword 使用), %oldpassword% / %newpassword% 会被替换
+    # 默认为 AuthMe 风格; 若你的登录插件使用 /changepw 请按需修改
+    # Change password command template; %oldpassword% and %newpassword% are replaced
+    change-password: "/changepassword %oldpassword% %newpassword% %newpassword%"
+
+  # 随机密码 / Random password (仅命令模板登录使用)
+  # Used by command-template login only
+  random-password:
+
+    # 随机密码字符集; 留空表示不自动生成 (此时必须先用 /fp password 手动设置密码)
+    # Charset for generated passwords; leave empty to disable generation
+    charset: ""
+
+    # 随机密码长度
+    # Generated password length
+    length: 12
 
 
 # ============================================================
