@@ -89,6 +89,13 @@ public class NameManager {
             }
         }
 
+        // 共享假人模式: 使用名称生成确定性 UUID, 使不同玩家共享同一个假人
+        if (config.isShareFakeplayer()) {
+            var uuid = UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8));
+            profileRepository.insert(name, uuid);
+            return uuid;
+        }
+
         // 老数据迁移
         {
             var base = serverId + ":" + name;
