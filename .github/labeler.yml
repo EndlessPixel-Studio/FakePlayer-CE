@@ -1,5 +1,6 @@
 # PR 自动贴标规则 (规范见 LABELS.md)
-# 注意: feature 是 issue 侧的功能域标签, PR 不贴; 消息文案与配置项在 fakeplayer-core 下, 自动归入 core
+# 可从文件路径推导的功能域自动贴; 推不出不的域 (action/command/spawn/login/appearance/compat) 由人工补
+
 "documentation":
   - changed-files:
       - any-glob-to-any-file: ['**/*.md']
@@ -20,7 +21,23 @@
   - changed-files:
       - any-glob-to-any-file: ['fakeplayer-dist/**']
 
-# 仓库配置 / 工作流变更归入 dependency (版本与工程依赖面)
 "dependency":
   - changed-files:
       - any-glob-to-any-file: ['.github/**']
+
+# 功能域: 可由路径推导的
+"locale":
+  - changed-files:
+      - any-glob-to-any-file: ['fakeplayer-core/src/main/resources/message/**']
+
+"config":
+  - changed-files:
+      - any-glob-to-any-file: ['fakeplayer-core/src/main/resources/config.yml']
+
+"http-api":
+  - changed-files:
+      - any-glob-to-any-file: ['fakeplayer-core/src/main/java/**/http/**']
+
+"placeholder":
+  - changed-files:
+      - any-glob-to-any-file: ['fakeplayer-core/src/main/java/**/placeholder/**']
