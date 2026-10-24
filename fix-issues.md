@@ -14,6 +14,7 @@
 - [tanyaofei/minecraft-fakeplayer Issue #137](https://github.com/tanyaofei/minecraft-fakeplayer/issues/137)
 - [tanyaofei/minecraft-fakeplayer Issue #138](https://github.com/tanyaofei/minecraft-fakeplayer/issues/138)
 - [tanyaofei/minecraft-fakeplayer Issue #150](https://github.com/tanyaofei/minecraft-fakeplayer/issues/150)
+- [tanyaofei/minecraft-fakeplayer Issue #169](https://github.com/tanyaofei/minecraft-fakeplayer/issues/169)
 - [tanyaofei/minecraft-fakeplayer Issue #172](https://github.com/tanyaofei/minecraft-fakeplayer/issues/172)
 - [tanyaofei/minecraft-fakeplayer Issue #178](https://github.com/tanyaofei/minecraft-fakeplayer/issues/178)
 - [tanyaofei/minecraft-fakeplayer Issue #181](https://github.com/tanyaofei/minecraft-fakeplayer/issues/181)
