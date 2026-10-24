@@ -16,17 +16,6 @@ import static net.kyori.adventure.text.event.ClickEvent.runCommand;
 import static net.kyori.adventure.text.event.ClickEvent.suggestCommand;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 
-/**
- * 生成 /fp help 命令树，替代 devtools 的 HelpCommand（其只接受页码参数，无法查询子命令用法）。
- * <p>
- * 支持的用法：
- * <ul>
- *     <li>{@code /fp help} —— 第 1 页命令列表</li>
- *     <li>{@code /fp help <页码> [每页数]} —— 翻页（向后兼容原行为）</li>
- *     <li>{@code /fp help <命令名> [更多层级...]} —— 查看指定命令的详情，如 {@code /fp help config}、{@code /fp help look north}</li>
- * </ul>
- * 条目按发送者权限过滤，描述按配置语言本地化，子命令名提供 Tab 补全。
- */
 final class CommandHelpGenerator {
 
     private static final int DEFAULT_PAGE = 1;
@@ -49,7 +38,7 @@ final class CommandHelpGenerator {
             return;
         }
 
-        // 已有手写 help 的命令（如 /fp say help、/fp config help）保留原文案，不重复生成 help
+        // say / config 等已有手写 help, 不重复生成
         if (subcommands.stream().anyMatch(CommandHelpGenerator::isHelpSubcommand)) {
             for (var sub : subcommands) {
                 if (!isHelpSubcommand(sub)) {
@@ -121,7 +110,7 @@ final class CommandHelpGenerator {
                     var fullName = path + " " + usage.command().getName();
                     var hasChildren = usage.command().getSubcommands().stream().anyMatch(sub -> !isHelpSubcommand(sub));
                     if (hasChildren) {
-                        // 有子命令的命令必然存在 help（自动生成的或手写的），可直接跳转查看
+                        // 有子命令的命令必然存在 help, 可直接跳转
                         var more = "/" + fullName + " help";
                         return row.append(text(" " + more, DARK_GRAY).clickEvent(runCommand(more)));
                     }
@@ -198,10 +187,7 @@ final class CommandHelpGenerator {
         return joinLines(lines);
     }
 
-    /**
-     * 组装该命令的用法行：优先复用手写 help 文案（如 fakeplayer.command.say.help），
-     * 其次显式设置的 usage，再次由参数/子命令拼装。
-     */
+    // 优先复用手写 help 的文案 (如 fakeplayer.command.say.help), 其次显式 usage, 最后按参数拼装
     private static String usageOf(CommandAPICommand command, String fullPath) {
         var handWritten = command.getSubcommands().stream()
                 .filter(CommandHelpGenerator::isHelpSubcommand)

@@ -47,32 +47,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-/**
- * 通过 HTTP 接口远程管理假人。
- * <p>接口 (均要求 GET):
- * <ul>
- *     <li>GET /list     -> {"fakeplayer":["name",...]}</li>
- *     <li>GET /status?name=xxx -> {"fakeplayer":[{...}]}, 省略 name 时返回全部假人</li>
- *     <li>GET /info     -> {"plugin":...,"minecraft":...,"fakeplayer":...}</li>
- *     <li>GET /spawn?name=xxx -> {"status":"success"} | {"status":"failure","msg":"..."}</li>
- *     <li>GET /kick?name=xxx  -> {"status":"success"} | {"status":"failure","msg":"..."}</li>
- *     <li>GET /kill?name=xxx  -> {"status":"success"} | {"status":"failure","msg":"..."}</li>
- *     <li>GET /respawn?name=xxx -> {"status":"success"} | {"status":"failure","msg":"..."}</li>
- *     <li>GET /say?name=xxx&amp;message=yyy -> {"status":"success"} | {"status":"failure","msg":"..."}</li>
- *     <li>GET /action?name=xxx&amp;action=yyy[&amp;count=&amp;interval=&amp;wait=&amp;message=] -> {"status":"success"} | {"status":"failure","msg":"..."}</li>
- *     <li>GET /stop?name=xxx -> {"status":"success"} | {"status":"failure","msg":"..."}</li>
- *     <li>GET /teleport?name=xxx[&amp;world=&amp;x=&amp;y=&amp;z=&amp;yaw=&amp;pitch=] -> {"status":"success"} | {"status":"failure","msg":"..."}</li>
- *     <li>GET /look?name=xxx[&amp;direction=|&amp;at=x,y,z|&amp;yaw=&amp;pitch=] -> {"status":"success"} | {"status":"failure","msg":"..."}</li>
- *     <li>GET /hold?name=xxx&amp;slot=1-9 -> {"status":"success"} | {"status":"failure","msg":"..."}</li>
- *     <li>GET /swap?name=xxx -> {"status":"success"} | {"status":"failure","msg":"..."}</li>
- *     <li>GET /cmd?name=xxx&amp;command=yyy -> {"status":"success"} | {"status":"failure","msg":"..."}</li>
- *     <li>GET /kickall -> {"status":"success","count":n}</li>
- *     <li>GET /killall -> {"status":"success","count":n}</li>
- *     <li>GET /sayall?message=yyy -> {"status":"success","count":n}</li>
- * </ul>
- * 所有接口都需要通过 {@code Authorization: Bearer <token>} 请求头携带令牌 (不支持 ?token=),
- * token 为空时启动时随机生成。每个接口可通过 config.yml 中的 http-admin.interface.&lt;名字&gt; 单独关闭。
- */
 @Singleton
 public class HttpAdminService {
 
@@ -80,31 +54,16 @@ public class HttpAdminService {
 
     private final static List<String> LOOK_DIRECTIONS = List.of("NORTH", "SOUTH", "EAST", "WEST", "UP", "DOWN");
 
-    /**
-     * 日志中路径与 query 的最大长度, 超出部分截断, 避免被超长请求撑爆日志
-     */
     private final static int MAX_LOG_LENGTH = 512;
 
-    /**
-     * 请求 URI 的最大长度, 超出直接拒绝, 避免解析超长 query 消耗资源
-     */
     private final static int MAX_REQUEST_URI_LENGTH = 4096;
 
-    /**
-     * 被跟踪的客户端数量上限, 防止限流状态无界增长
-     */
     private final static int MAX_TRACKED_CLIENTS = 1024;
 
-    /**
-     * 处理线程数 / 排队上限, 队列满时由调用线程直接执行形成反压
-     */
     private final static int WORKER_THREADS = 4;
 
     private final static int WORKER_QUEUE_SIZE = 64;
 
-    /**
-     * 一个接口: 精确路径 + 处理逻辑
-     */
     @FunctionalInterface
     private interface Endpoint {
         void handle(HttpExchange ex) throws IOException;
@@ -115,15 +74,8 @@ public class HttpAdminService {
     private final ActionManager actionManager;
     private final NMSBridge bridge;
 
-    /**
-     * 精确路径 -> 处理逻辑。使用精确匹配而非 createContext 的前缀匹配,
-     * 避免 /listfoo 之类路径被 /list 命中, 绕过外部基于精确路径的 ACL / WAF
-     */
     private final Map<String, Endpoint> routes = new LinkedHashMap<>();
 
-    /**
-     * 按来源 IP 记录的限流与失败计数状态
-     */
     private final Map<String, ClientState> clients = new ConcurrentHashMap<>();
 
     private HttpServer server;
@@ -176,10 +128,7 @@ public class HttpAdminService {
         routes.put("/killall", this::handleKillAll);
         routes.put("/sayall", this::handleSayAll);
 
-        // 所有请求统一走 "/" 上下文, 再按精确路径分发 (见 routes 的说明)
         server.createContext("/", this::handleRequest);
-        // 有界队列 + 反压: 队列满时由 dispatcher 线程直接执行, 避免任务无限堆积吃内存;
-        // 线程设为 daemon, 避免影响服务端退出
         this.executor = new ThreadPoolExecutor(
                 WORKER_THREADS,
                 WORKER_THREADS,
@@ -211,12 +160,6 @@ public class HttpAdminService {
         clients.clear();
     }
 
-    /**
-     * 统一入口: 精确路由 -&gt; 限流 -&gt; 主机/同源校验 -&gt; 方法校验 -&gt; 鉴权 -&gt; 交给具体接口。
-     *
-     * <p>鉴权刻意排在接口开关之前: 未授权的调用方一律得到 401,
-     * 无法通过 401 / 403 的差异枚举出哪些接口被启用。</p>
-     */
     private void handleRequest(HttpExchange ex) throws IOException {
         var endpoint = routes.get(ex.getRequestURI().getPath());
         if (endpoint == null) {
@@ -276,10 +219,6 @@ public class HttpAdminService {
         return clients.computeIfAbsent(ip, key -> new ClientState());
     }
 
-    /**
-     * Host 校验: 配置了 {@code http-admin.allowed-hosts} 时, Host 必须命中白名单。
-     * <p>用于缓解 DNS rebinding —— 恶意网页把自己的域名解析到本机时, Host 会是那个域名。</p>
-     */
     private boolean checkHost(HttpExchange ex) {
         var allowed = config.getHttpAdminAllowedHosts();
         if (allowed == null || allowed.isEmpty()) {
@@ -289,10 +228,6 @@ public class HttpAdminService {
         return host != null && isAllowedHost(allowed, host);
     }
 
-    /**
-     * 同源校验: 浏览器发起的跨源请求一定带 Origin, 其主机必须与 Host 相同或在白名单内。
-     * <p>这样即使恶意网页能连到本机端口, 也无法驱动接口执行操作。</p>
-     */
     private boolean checkOrigin(HttpExchange ex) {
         var origin = ex.getRequestHeaders().getFirst("Origin");
         if (origin == null || origin.isBlank()) {
@@ -313,11 +248,6 @@ public class HttpAdminService {
         return allowed != null && isAllowedHost(allowed, originHost);
     }
 
-    /**
-     * GET 允许的前提是 {@code http-admin.allow-get} 为 true (默认), POST 始终允许。
-     * <p>令牌统一走请求头后, GET 已不会被浏览器预取或爬虫意外触发,
-     * 对公网可达的实例仍建议关闭 GET (所有接口都有副作用)。</p>
-     */
     private boolean isMethodAllowed(HttpExchange ex) {
         var method = ex.getRequestMethod();
         if ("POST".equalsIgnoreCase(method)) {
@@ -344,9 +274,6 @@ public class HttpAdminService {
         return false;
     }
 
-    /**
-     * 从 {@code scheme://host[:port]} 或 {@code host[:port]} 中取出小写主机名 (去掉端口)
-     */
     private static @Nullable String hostOf(@Nullable String value) {
         if (value == null) {
             return null;
@@ -376,14 +303,8 @@ public class HttpAdminService {
         return (colon < 0 ? host : host.substring(0, colon)).toLowerCase(Locale.ROOT);
     }
 
-    /**
-     * 单个来源 IP 的限流与鉴权失败状态
-     */
     private static final class ClientState {
 
-        /**
-         * 最近一分钟内的请求时间戳
-         */
         private final ArrayDeque<Long> requests = new ArrayDeque<>();
 
         private int failures;
@@ -415,9 +336,6 @@ public class HttpAdminService {
             return true;
         }
 
-        /**
-         * @return 本次失败是否触发了锁定
-         */
         synchronized boolean recordFailure(long now, int maxFailures, long lockMillis) {
             if (maxFailures <= 0) {
                 return false;
@@ -458,13 +376,11 @@ public class HttpAdminService {
             return;
         }
 
-        // 与真实玩家重名
         var online = Bukkit.getPlayerExact(name);
         if (online != null && manager.get(name) == null) {
             sendJson(ex, 400, "failure", "The dummy's name conflicts with that of an actual player.");
             return;
         }
-        // 假人已在线
         if (manager.get(name) != null) {
             sendJson(ex, 400, "failure", "The dummy is already online.");
             return;
@@ -618,9 +534,6 @@ public class HttpAdminService {
         }
     }
 
-    /**
-     * 触发任意动作, 参数映射到 {@link ActionSetting}
-     */
     private void handleAction(HttpExchange ex) throws IOException {
         if (!preflight(ex, config.isHttpAdminAction())) {
             return;
@@ -763,9 +676,6 @@ public class HttpAdminService {
         }
     }
 
-    /**
-     * 设置朝向, 支持直接指定方向、看向坐标或指定角度
-     */
     private void handleLook(HttpExchange ex) throws IOException {
         if (!preflight(ex, config.isHttpAdminLook())) {
             return;
@@ -929,9 +839,6 @@ public class HttpAdminService {
         }
     }
 
-    /**
-     * 以假人身份执行命令
-     */
     private void handleCmd(HttpExchange ex) throws IOException {
         if (!preflight(ex, config.isHttpAdminCmd())) {
             return;
@@ -1016,9 +923,6 @@ public class HttpAdminService {
         }
     }
 
-    /**
-     * 收集假人的详细状态, 必须在主线程调用
-     */
     private Map<String, Object> statusOf(Player fake) {
         var location = fake.getLocation();
         var inventory = fake.getInventory();
@@ -1059,14 +963,6 @@ public class HttpAdminService {
         return status;
     }
 
-    /**
-     * 接口自身的校验: 请求方法与接口开关。
-     *
-     * <p>鉴权、限流、路由与主机校验都已在 {@link #handleRequest(HttpExchange)} 中完成,
-     * 这里不再重复鉴权 —— 正因为鉴权在前, 未授权调用方才无法通过 401 / 403 枚举接口开关。</p>
-     *
-     * @return 校验通过返回 true; 否则已输出错误响应并返回 false
-     */
     private boolean preflight(HttpExchange ex, boolean enabled) throws IOException {
         if (!isMethodAllowed(ex)) {
             sendJson(ex, 405, "failure", "Method not allowed");
@@ -1079,9 +975,6 @@ public class HttpAdminService {
         return true;
     }
 
-    /**
-     * 校验假人名并返回对应假人, 不存在时已输出错误响应
-     */
     private @Nullable Player requireFake(HttpExchange ex, @Nullable String name) throws IOException {
         if (name == null || name.isBlank()) {
             sendJson(ex, 400, "failure", "Name is required");
@@ -1135,22 +1028,12 @@ public class HttpAdminService {
         return payload;
     }
 
-    /**
-     * 在主线程执行并等待结果 (HTTP 处理线程不能直接操作 Bukkit API)
-     */
     private static <T> T callSync(Callable<T> callable) throws Exception {
         return Schedulers.callGlobal(Main.getInstance(), callable).get(10, TimeUnit.SECONDS);
     }
 
-    /**
-     * 鉴权: 令牌统一通过 {@code Authorization: Bearer <token>} 请求头传递。
-     *
-     * <p>不再支持 {@code ?token=} 查询参数: 令牌出现在 URL 里会进入代理日志、浏览器历史与
-     * Referer, 且每个接口都要重复拼一遍参数, 因此统一为请求头这一种方式。</p>
-     */
     private boolean authorize(HttpExchange ex) {
         var auth = ex.getRequestHeaders().getFirst("Authorization");
-        // Bearer 认证方案大小写不敏感 (RFC 7235)
         if (auth == null || !auth.regionMatches(true, 0, "Bearer ", 0, 7)) {
             return false;
         }
@@ -1158,7 +1041,6 @@ public class HttpAdminService {
         if (token == null || provided.isEmpty()) {
             return false;
         }
-        // 定长比较, 避免通过响应时间逐字节推断 token
         return MessageDigest.isEqual(
                 token.getBytes(StandardCharsets.UTF_8),
                 provided.getBytes(StandardCharsets.UTF_8)
@@ -1166,23 +1048,13 @@ public class HttpAdminService {
     }
 
     private void sendUnauthorized(HttpExchange ex) throws IOException {
-        // 未授权的请求不把 query 写进日志
         sendJsonNoQuery(ex, 401, "failure", "Unauthorized: pass the token via the Authorization: Bearer header");
     }
 
-    /**
-     * 打印 HTTP 调用日志, 记录 query (其中的 token 已脱敏)
-     */
     private static void logCall(HttpExchange ex, int code, String status, String detail) {
         logCall(ex, code, status, detail, true);
     }
 
-    /**
-     * 打印 HTTP 调用日志。
-     * <p>记录 query 时: token 会被脱敏, 控制字符会被替换并截断长度,
-     * 避免调用方通过换行等内容伪造日志或撑爆日志文件。
-     * 未授权请求不应把 query 持久化, 此时传 {@code withQuery = false}。</p>
-     */
     private static void logCall(HttpExchange ex, int code, String status, String detail, boolean withQuery) {
         var uri = ex.getRequestURI();
         var sb = new StringBuilder(uri.getPath());
@@ -1202,9 +1074,6 @@ public class HttpAdminService {
         ));
     }
 
-    /**
-     * 参数名中包含 token 的一律打码 (不区分大小写与参数名写法)
-     */
     private static String redactParam(String param) {
         var eq = param.indexOf('=');
         if (eq >= 0 && param.substring(0, eq).toLowerCase(Locale.ROOT).contains("token")) {
@@ -1213,9 +1082,6 @@ public class HttpAdminService {
         return param;
     }
 
-    /**
-     * 去掉会破坏单行日志的控制字符, 并限制长度
-     */
     private static String sanitize(String s) {
         var truncated = s.length() > MAX_LOG_LENGTH;
         var end = truncated ? MAX_LOG_LENGTH : s.length();
@@ -1232,9 +1098,6 @@ public class HttpAdminService {
         writeJson(ex, code, status, msg);
     }
 
-    /**
-     * 输出错误响应, 且日志中不记录 query
-     */
     private void sendJsonNoQuery(HttpExchange ex, int code, String status, String msg) throws IOException {
         logCall(ex, code, status, msg, false);
         writeJson(ex, code, status, msg);
@@ -1247,9 +1110,6 @@ public class HttpAdminService {
         send(ex, code, "application/json", body);
     }
 
-    /**
-     * 输出带附加字段的 JSON 响应
-     */
     private void sendJson(HttpExchange ex, int code, Map<String, Object> payload) throws IOException {
         logCall(ex, code, String.valueOf(payload.getOrDefault("status", "success")), null);
         send(ex, code, "application/json", toJson(payload));
@@ -1259,7 +1119,6 @@ public class HttpAdminService {
         var bytes = body.getBytes(StandardCharsets.UTF_8);
         var headers = ex.getResponseHeaders();
         headers.add("Content-Type", contentType + "; charset=utf-8");
-        // 管理接口的响应不应被浏览器或中间层缓存
         headers.add("Cache-Control", "no-store");
         headers.add("X-Content-Type-Options", "nosniff");
         ex.sendResponseHeaders(code, bytes.length);
@@ -1297,9 +1156,6 @@ public class HttpAdminService {
         return sb.append("]").toString();
     }
 
-    /**
-     * 极简 JSON 序列化, 支持 {@link Map} / {@link Iterable} / 数字 / 布尔 / 字符串 / null
-     */
     private static String toJson(@Nullable Object value) {
         if (value == null) {
             return "null";
@@ -1351,7 +1207,6 @@ public class HttpAdminService {
                 case '\t' -> sb.append("\\t");
                 case '\b' -> sb.append("\\b");
                 case '\f' -> sb.append("\\f");
-                // 其余控制字符一律转义, 保证输出始终是合法 JSON
                 default -> {
                     if (c < 0x20 || c == 0x7f) {
                         sb.append(String.format("\\u%04x", (int) c));
