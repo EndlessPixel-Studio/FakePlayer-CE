@@ -1,4 +1,4 @@
-*.kts linguist-language=Kotlin
-*.kt linguist-language=Kotlin
-*.py linguist-language=Python
-*.md linguist-language=Markdown
+*.kts linguist-language=Kotlin linguist-detectable=true
+*.kt linguist-language=Kotlin linguist-detectable=true
+*.py linguist-language=Python linguist-detectable=true
+*.md linguist-language=Markdown linguist-detectable=true
