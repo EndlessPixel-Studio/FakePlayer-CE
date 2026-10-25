@@ -1,0 +1,37 @@
+name: Triage
+
+# 新建 issue 默认贴 needs-triage（待确认）；issue 一旦补上「功能域」标签（=已人工分类）即自动移除。
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  issues: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const TRIAGE = 'needs-triage';
+            const FUNCTIONAL = ['spawn','action','command','login','appearance','config','locale','compat','http-api','placeholder'];
+            const { owner, repo } = context.repo;
+            const payload = context.payload;
+
+            // 新建 issue：先贴 待确认
+            if (payload.action === 'opened' && payload.issue) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: payload.issue.number, labels: [TRIAGE] });
+              return;
+            }
+
+            // issue 被贴标：已有 功能域 标签说明人工分类完成，移除 待确认
+            if (payload.action === 'labeled' && payload.issue) {
+              const number = payload.issue.number;
+              const { data: labels } = await github.rest.issues.listLabelsOnIssue({ owner, repo, issue_number: number });
+              const names = labels.map(l => l.name);
+              if (names.includes(TRIAGE) && names.some(n => FUNCTIONAL.includes(n))) {
+                await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: TRIAGE });
+              }
+            }
