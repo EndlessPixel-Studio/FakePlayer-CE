@@ -168,6 +168,12 @@ public class FakeplayerManager {
                         throw new IllegalStateException("Plugin is disabled");
                     }
                     var configs = featureManager.getFeatures(creator, userConfigs);
+                    var simulationDistance = -1;
+                    try {
+                        simulationDistance = Integer.parseInt(configs.get(Feature.simulation_distance).asString());
+                    } catch (NumberFormatException ignored) {
+                        // 配置库里的脏数据按“沿用世界设置”处理
+                    }
                     return new SpawnOption(
                             spawnAt,
                             configs.get(Feature.invulnerable).asBoolean(),
@@ -178,7 +184,8 @@ public class FakeplayerManager {
                             configs.get(Feature.replenish).asBoolean(),
                             configs.get(Feature.replace_tools).asBoolean(),
                             configs.get(Feature.autofish).asBoolean(),
-                            configs.get(Feature.wolverine).asBoolean()
+                            configs.get(Feature.wolverine).asBoolean(),
+                            simulationDistance
                     );
                 }))
                 .thenCompose(fp::spawnAsync)

@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * @param pickupItems  是否拾取物品
  * @param replenish    自动补货
  * @param replaceTools 自动替换低耐久工具
+ * @param simulationDistance 假人的模拟距离, 负数表示沿用世界设置
  */
 public record SpawnOption(
 
@@ -33,7 +34,9 @@ public record SpawnOption(
 
         boolean autofish,
 
-        boolean wolverine
+        boolean wolverine,
+
+        int simulationDistance
 
 ) {
 }

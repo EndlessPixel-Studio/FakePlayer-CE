@@ -18,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -98,7 +99,7 @@ public class ConfigCommand extends AbstractCommand {
             var lines = features.values().stream().map(feature -> textOfChildren(
                     translatable(feature.key(), GOLD),
                     text(": ", GRAY),
-                    join(separator(space()), feature.key().getOptions().stream().map(option -> {
+                    join(separator(space()), (feature.key().isNumeric() ? List.of(feature.value()) : feature.key().getOptions()).stream().map(option -> {
                         var style = option.equals(feature.value())
                                 ? Style.style(GREEN, UNDERLINED)
                                 : Style.style(GRAY);

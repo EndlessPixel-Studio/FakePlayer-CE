@@ -36,7 +36,9 @@ public class FakeplayerFeatureManager {
     }
 
     private @NotNull String getDefaultOption(@NotNull Feature key) {
-        return Optional.ofNullable(config.getDefaultFeatures().get(key)).filter(option -> key.getOptions().contains(option)).orElse(key.getDefaultOption());
+        return Optional.ofNullable(config.getDefaultFeatures().get(key))
+                       .filter(option -> key.isNumeric() || key.getOptions().contains(option))
+                       .orElse(key.getDefaultOption());
     }
 
     public @NotNull FeatureInstance getFeature(@NotNull Player player, @NotNull Feature key) {

@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 28
+version: 29
 
 
 # ============================================================
@@ -228,6 +228,9 @@ default-features:
   replace_tools: false
   autofish: false
   wolverine: false
+  # 假人的模拟距离 (以假人为中心的区块半径), -1 表示沿用世界设置
+  # Simulation distance around the fake player in chunks; -1 keeps the world setting
+  simulation_distance: -1
 
 
 # ============================================================

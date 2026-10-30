@@ -31,6 +31,8 @@ import static net.kyori.adventure.text.Component.translatable;
 
 public abstract class CommandSupports {
 
+    private final static List<String> NUMERIC_SUGGESTIONS = List.of("-1", "4", "8", "12", "16");
+
     private static @NotNull FakeplayerManager manager() {
         return Main.getInjector().getInstance(FakeplayerManager.class);
     }
@@ -187,6 +189,19 @@ public abstract class CommandSupports {
                 throw CustomArgument.CustomArgumentException.fromAdventureComponent(translatable("fakeplayer.command.config.set.error.invalid-key"));
             }
             var arg = info.currentInput();
+            if (key.isNumeric()) {
+                try {
+                    var value = Integer.parseInt(arg);
+                    // -1 表示沿用世界设置; 上限与 /gamerule 的模拟距离一致
+                    if (value < -1 || value > 32) {
+                        throw new NumberFormatException();
+                    }
+                } catch (NumberFormatException e) {
+                    throw CustomArgument.CustomArgumentException.fromAdventureComponent(translatable("fakeplayer.command.config.set.error.invalid-value"));
+                }
+                return arg;
+            }
+
             if (!key.getOptions().contains(arg)) {
                 throw CustomArgument.CustomArgumentException.fromAdventureComponent(translatable("fakeplayer.command.config.set.error.invalid-value"));
             }
@@ -199,11 +214,12 @@ public abstract class CommandSupports {
             }
 
             var arg = info.currentArg().toLowerCase(Locale.ENGLISH);
+            var options = key.isNumeric() ? NUMERIC_SUGGESTIONS : key.getOptions();
             if (arg.isEmpty()) {
-                return key.getOptions();
+                return options;
             }
 
-            return key.getOptions().stream().filter(option -> option.contains(arg)).toList();
+            return options.stream().filter(option -> option.contains(arg)).toList();
         })));
     }
 
