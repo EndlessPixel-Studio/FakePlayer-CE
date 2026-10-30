@@ -17,6 +17,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **Fixed restored fake players no longer performing actions.** With `restore-on-start`, fake players came back online but stopped doing anything because their action state was never persisted. The snapshot now also records active actions (remaining count, interval, message and pathfinding target) and re-applies them after respawn (#84).
 - **Fixed fake players vanishing without a "left the game" message.** On newer server versions the quit message is no longer broadcast automatically when a fake player is removed; it is now sent explicitly, so spawning and removal show matching join / leave lines.
 - **New `death-message` option.** With `kick-on-dead` enabled the death event is cancelled, so no death message was shown; set `death-message: true` to broadcast it anyway. `config.yml` bumped to 30.
+- **New `/fp aichat` command.** Fake players can generate chat lines through an OpenAI-compatible endpoint and either broadcast them (`public`) or whisper a single player (`private`), once or continuously until `/fp aichat stop` (#92). All settings live in a separate `ai-chat.yml` (endpoint, key or environment variable, model, sampling, context length, prompts and interval), so `config.yml` is untouched.
 
 ### 中文
 
@@ -24,6 +25,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **修复恢复后的假人不再执行动作。** 开启 `restore-on-start` 时假人虽然回来了，但动作全部丢失。快照现在同时记录进行中的动作（剩余次数、间隔、消息与寻路目标），并在重生后重新应用（#84）。
 - **修复假人被移除时不显示「离开了游戏」消息。** 新版服务端不再自动广播该消息，现在移除假人时会补发，加入与离开的提示保持一致。
 - **新增 `death-message` 配置项。** 开启 `kick-on-dead` 时死亡事件会被取消，因此不会显示死亡消息；把 `death-message` 设为 `true` 即可照常广播。`config.yml` 版本提升至 30。
+- **新增 `/fp aichat` 命令。** 假人可通过 OpenAI 兼容接口生成聊天内容，可选发到公共聊天（`public`）或只发给某个玩家（`private`），支持说一次或 `continuous` 持续发言直到 `/fp aichat stop`（#92）。设置独立放在 `ai-chat.yml`（接口地址、密钥或环境变量、模型、采样参数、上下文长度、提示词与间隔），`config.yml` 保持不变。
 
 ## fp.build15 - 2026-10-24
 
