@@ -95,6 +95,28 @@ public class AiChatConfig {
         this.systemPrompt = yaml.getString("system-prompt", DEFAULT_SYSTEM_PROMPT);
         this.turnPrompt = yaml.getString("turn-prompt", "说一句话。");
         this.privateFormat = yaml.getString("private-format", "<gray>[{name} -> 你] {message}</gray>");
+
+        this.validate();
+    }
+
+    private void validate() {
+        if (!this.enabled) {
+            return;
+        }
+        if (this.api == null || this.api.isBlank()) {
+            log.warning("ai-chat.yml 已启用但 api 为空, AI 聊天将保持关闭");
+            this.enabled = false;
+            return;
+        }
+        if (this.model == null || this.model.isBlank()) {
+            log.warning("ai-chat.yml 已启用但 model 为空, AI 聊天将保持关闭");
+            this.enabled = false;
+            return;
+        }
+        if (this.resolveApiKey() == null) {
+            log.warning("ai-chat.yml 已启用但未配置密钥, 请填写 api-key 或设置 "
+                    + this.apiKeyEnv + " 环境变量, 否则请求会失败");
+        }
     }
 
     /**

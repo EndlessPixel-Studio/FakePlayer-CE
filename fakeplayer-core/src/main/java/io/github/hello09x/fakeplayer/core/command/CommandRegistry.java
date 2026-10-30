@@ -557,6 +557,7 @@ public class CommandRegistry {
                                 .withSubcommands(
                                         command("public")
                                                 .withShortDescription("fakeplayer.command.aichat.public")
+                                                .executes(aiChatCommand::publicOnce)
                                                 .withSubcommands(
                                                         command("once")
                                                                 .withOptionalArguments(fakeplayer("name"))
@@ -571,6 +572,7 @@ public class CommandRegistry {
                                         command("private")
                                                 .withShortDescription("fakeplayer.command.aichat.private")
                                                 .withArguments(new EntitySelectorArgument.OnePlayer("target"))
+                                                .executes(aiChatCommand::privateOnce)
                                                 .withSubcommands(
                                                         command("once")
                                                                 .withOptionalArguments(fakeplayer("name"))
