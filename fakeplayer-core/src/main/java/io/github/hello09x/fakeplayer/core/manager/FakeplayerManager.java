@@ -422,11 +422,10 @@ public class FakeplayerManager {
                 try {
                     var method = playerList.getClass().getMethod("remove", paramTypes);
                     method.setAccessible(true);
-                    if (paramTypes.length == 1) {
-                        method.invoke(playerList, serverPlayer);
-                    } else {
-                        method.invoke(playerList, serverPlayer, "removed");
-                    }
+                    var leaveMessage = paramTypes.length == 1
+                            ? method.invoke(playerList, serverPlayer)
+                            : method.invoke(playerList, serverPlayer, "removed");
+                    this.broadcastLeaveMessage(playerList, player, leaveMessage);
                     return;
                 } catch (NoSuchMethodException ignored) {
                     // 尝试下一签名
@@ -437,6 +436,59 @@ public class FakeplayerManager {
         } catch (Exception e) {
             log.warning("调用 PlayerList.remove 移除假人 " + player.getName() + " 失败: " + e);
         }
+    }
+
+    /**
+     * 补发假人的退出消息。
+     *
+     * <p>26.x 起 {@code PlayerList.remove} 不再自行广播退出消息, 而是把它作为返回值交给调用方;
+     * 1.20 / 1.21 的 {@code remove} 返回 String 且内部已经广播过。因此返回值是聊天组件时直接广播,
+     * 返回值为空且存在 {@code remove(ServerPlayer, Component)} 重载 (26.x) 时, 用原版的退出消息补发一次。</p>
+     */
+    private void broadcastLeaveMessage(@NotNull Object playerList, @NotNull Player player, @Nullable Object leaveMessage) {
+        if (leaveMessage != null) {
+            this.invokeBroadcastSystemMessage(playerList, leaveMessage);
+            return;
+        }
+        if (this.hasComponentRemoveOverload(playerList)) {
+            Bukkit.getServer().sendMessage(translatable("multiplayer.player.left", player.displayName()));
+        }
+    }
+
+    private void invokeBroadcastSystemMessage(@NotNull Object playerList, @NotNull Object message) {
+        for (var method : playerList.getClass().getMethods()) {
+            var types = method.getParameterTypes();
+            if (!method.getName().equals("broadcastSystemMessage") || types.length != 2 || types[1] != boolean.class) {
+                continue;
+            }
+            if (!types[0].isInstance(message)) {
+                // 旧版本返回的是 String, 与这里的聊天组件参数不匹配, 说明服务器已经广播过
+                continue;
+            }
+            try {
+                method.setAccessible(true);
+                method.invoke(playerList, message, false);
+            } catch (Exception e) {
+                log.warning("广播假人退出消息失败: " + e);
+            }
+            return;
+        }
+    }
+
+    /**
+     * 是否存在 26.x 的 {@code remove(ServerPlayer, Component)} 重载 (第二个参数不是 String)
+     */
+    private boolean hasComponentRemoveOverload(@NotNull Object playerList) {
+        for (var method : playerList.getClass().getMethods()) {
+            if (!method.getName().equals("remove")) {
+                continue;
+            }
+            var types = method.getParameterTypes();
+            if (types.length == 2 && types[1] != String.class && !types[1].isPrimitive()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static @Nullable Object resolvePlayerList(@NotNull org.bukkit.Server server) {

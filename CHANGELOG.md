@@ -15,11 +15,13 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 - **New `simulation_distance` option.** Fake players can now keep a configurable simulation distance (chunk radius): set the default in `default-features`, override per creator with `/fp config set simulation_distance <n>`, or change one fake player on the fly with `/fp set <name> simulation_distance <n>`; `-1` keeps the world setting. Useful for keeping a distant fake player's chunks ticking without raising the server's simulation distance (#83). `config.yml` bumped to 29.
 - **Fixed restored fake players no longer performing actions.** With `restore-on-start`, fake players came back online but stopped doing anything because their action state was never persisted. The snapshot now also records active actions (remaining count, interval, message and pathfinding target) and re-applies them after respawn (#84).
+- **Fixed fake players vanishing without a "left the game" message.** On newer server versions the quit message is no longer broadcast automatically when a fake player is removed; it is now sent explicitly, so spawning and removal show matching join / leave lines.
 
 ### 中文
 
 - **新增 `simulation_distance` 配置项。** 假人现在可以拥有独立的模拟距离（以假人为中心的区块半径）：在 `default-features` 里设全局默认，用 `/fp config set simulation_distance <n>` 按创建者覆盖，或用 `/fp set <假人> simulation_distance <n>` 即时调整单个假人；`-1` 表示沿用世界设置。适合让远处的假人继续刻区块而不必抬高整服模拟距离（#83）。`config.yml` 版本提升至 29。
 - **修复恢复后的假人不再执行动作。** 开启 `restore-on-start` 时假人虽然回来了，但动作全部丢失。快照现在同时记录进行中的动作（剩余次数、间隔、消息与寻路目标），并在重生后重新应用（#84）。
+- **修复假人被移除时不显示「离开了游戏」消息。** 新版服务端不再自动广播该消息，现在移除假人时会补发，加入与离开的提示保持一致。
 
 ## fp.build15 - 2026-10-24
 
