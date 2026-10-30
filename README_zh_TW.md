@@ -47,6 +47,18 @@
 
 首次載入只會生成範本 `config.tmpl.yml`，需手動重新命名為 `config.yml` 後才會生效。此機制便於升級時對照新增設定項，不會覆寫既有設定。範例見 [config.yml](fakeplayer-core/src/main/resources/config.yml)。
 
+## AI 聊天
+
+`/fp aichat` 讓假人透過 OpenAI 相容介面產生聊天內容（與 MCP 無關）。首次使用需在 `plugins/FakePlayer-CE/ai-chat.yml` 填入 `api` 與 `api-key`（或設定 `api-key-env` 指定的環境變數），把 `enabled` 改為 `true`，再執行 `/fp reload`。
+
+| 指令 | 說明 |
+|---|---|
+| `/fp aichat public [once\|continuous\|interval <tick>] [假人]` | 發到公共聊天，`continuous` 持續發言直到 `stop` |
+| `/fp aichat private <玩家> [once\|continuous\|interval <tick>] [假人]` | 只發給指定玩家 |
+| `/fp aichat stop [假人]` | 停止持續發言 |
+
+`ai-chat.yml` 中的 `system-prompt` / `turn-prompt` / `max-context` / `interval-ticks` 分別控制人設、每輪提示、保留的上下文輪數與持續發言間隔。
+
 ## 指令清單
 
 | 指令 | 功能說明 | 權限節點 | 備註 |
@@ -93,6 +105,7 @@
 | /fp hold | 切換快捷欄指定格子物品 | fakeplayer.command.hold | |
 | /fp cmd | 讓假人執行控制台指令 | fakeplayer.command.cmd | 高風險，見「權限分組」 |
 | /fp say | 讓假人發送聊天訊息 | fakeplayer.command.say | 走聊天事件管線，相容格式化插件 |
+| /fp aichat | 讓假人用 AI 產生聊天內容 | fakeplayer.command.aichat | 需設定 `ai-chat.yml`；可選 `public` / `private` / `stop` |
 | /fp password | 設定假人登入密碼（存入插件資料庫） | fakeplayer.command.password | 搭配 `auto-login.command` 使用 |
 | /fp changepassword | 修改假人登入密碼（舊密碼可省略） | fakeplayer.command.changepassword | |
 | /fp reload | 重新載入插件設定檔 | OP | |
