@@ -57,7 +57,7 @@ On first launch only a template `config.tmpl.yml` is generated; rename it to `co
 | `/fp aichat private <player> [once\|continuous\|interval <ticks>] [fake player]` | Send to one player only |
 | `/fp aichat stop [fake player]` | Stop continuous mode |
 
-`system-prompt`, `turn-prompt`, `max-context` and `interval-ticks` in `ai-chat.yml` control the persona, per-turn prompt, retained context and interval.
+`system-prompt`, `turn-prompt`, `max-context` and `interval-ticks` in `ai-chat.yml` control the persona, per-turn prompt, retained context and interval. Setting `recent-chat-lines` above 0 also feeds the last N public chat lines into the prompt, so fake players can pick up what players are talking about.
 
 ## Commands
 
