@@ -137,6 +137,16 @@ public class CommandRegistry {
                                         world("world").withPermission(Permission.spawnLocation),
                                         location("location").withPermission(Permission.spawnLocation))
                                 .executes(spawnCommand::spawn),
+                        command("spawnuuid")
+                                .withPermission(Permission.spawnUUID)
+                                .withShortDescription("fakeplayer.command.spawnuuid.description")
+                                .withArguments(
+                                        text("name").withPermission(Permission.spawnName),
+                                        text("uuid"))
+                                .withOptionalArguments(
+                                        world("world").withPermission(Permission.spawnLocation),
+                                        location("location").withPermission(Permission.spawnLocation))
+                                .executes(spawnCommand::spawnWithUuid),
                         command("kick")
                                 .withPermission(Permission.kick)
                                 .withShortDescription("fakeplayer.command.kick.description")

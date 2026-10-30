@@ -140,6 +140,81 @@ public class NameManager {
      * @return 序列名
      */
     public @NotNull SequenceName getSpecifiedName(@NotNull CommandSender sender, @NotNull String name) {
+        name = this.normalizeName(name);
+
+        var player = Bukkit.getOfflinePlayer(name);
+        var uuid = player.getUniqueId();
+        if (this.isRealPlayerUUID(uuid)) {
+            if (!sender.hasPermission(Permission.spawnNameForceReal)) {
+                throw new IllegalCustomNameException(translatable(
+                        "fakeplayer.spawn.error.name.used",
+                        text(name, GOLD),
+                        text(uuid.toString(), GOLD)
+                ).color(RED));
+            }
+
+            // 有权限: 强行使用该真实玩家的 UUID, 从而读取其玩家数据(背包、末影箱、经验等)
+            return new SequenceName(
+                    "custom",
+                    0,
+                    uuid,
+                    name
+            );
+        }
+
+        return new SequenceName(
+                "custom",
+                0,
+                this.getUUIDFromName(name),
+                name
+        );
+    }
+
+    /**
+     * 用指定 UUID 创建假人
+     *
+     * @param sender 创建者
+     * @param name   自定义名称
+     * @param uuid   指定的 UUID
+     * @return 序列名
+     */
+    public @NotNull SequenceName getSpecifiedName(@NotNull CommandSender sender, @NotNull String name, @NotNull UUID uuid) {
+        var normalized = this.normalizeName(name);
+
+        if (Bukkit.getPlayer(uuid) != null) {
+            throw new IllegalCustomNameException(translatable(
+                    "fakeplayer.spawn.error.uuid.online",
+                    text(uuid.toString(), GOLD)
+            ).color(RED));
+        }
+
+        var boundName = this.profileRepository.selectUUIDByName(normalized);
+        if (boundName != null && !boundName.equals(uuid)) {
+            throw new IllegalCustomNameException(translatable(
+                    "fakeplayer.spawn.error.uuid.name-bound",
+                    text(normalized, GOLD),
+                    text(boundName.toString(), GRAY)
+            ).color(RED));
+        }
+
+        if (this.profileRepository.existsByUUID(uuid) && boundName == null) {
+            throw new IllegalCustomNameException(translatable(
+                    "fakeplayer.spawn.error.uuid.in-use",
+                    text(uuid.toString(), GOLD)
+            ).color(RED));
+        }
+
+        if (boundName == null) {
+            this.profileRepository.insert(normalized, uuid);
+        }
+
+        return new SequenceName("custom", 0, uuid, normalized);
+    }
+
+    /**
+     * 校验并规范化自定义名称 (前缀、长度、字符集、在线冲突)
+     */
+    private @NotNull String normalizeName(@NotNull String name) {
         if (StringUtils.isNotBlank(config.getNamePrefix())) {
             name = config.getNamePrefix().trim() + name;
         }
@@ -168,43 +243,16 @@ public class NameManager {
             throw new IllegalCustomNameException(translatable("fakeplayer.spawn.error.name.invalid", RED));
         }
 
-        {
-            var player = Bukkit.getPlayerExact(name);
-            if (player != null) {
-                throw new IllegalCustomNameException(
-                        player.isDead()
-                                ? translatable("fakeplayer.spawn.error.name.online-dead", text(name, GOLD), text("/fp respawn", DARK_GREEN)).color(RED)
-                                : translatable("fakeplayer.spawn.error.name.online", text(name, GOLD)).color(RED)
-                );
-            }
-        }
-
-        var player = Bukkit.getOfflinePlayer(name);
-        var uuid = player.getUniqueId();
-        if (this.isRealPlayerUUID(uuid)) {
-            if (!sender.hasPermission(Permission.spawnNameForceReal)) {
-                throw new IllegalCustomNameException(translatable(
-                        "fakeplayer.spawn.error.name.used",
-                        text(name, GOLD),
-                        text(uuid.toString(), GOLD)
-                ).color(RED));
-            }
-
-            // 有权限: 强行使用该真实玩家的 UUID, 从而读取其玩家数据(背包、末影箱、经验等)
-            return new SequenceName(
-                    "custom",
-                    0,
-                    uuid,
-                    name
+        var player = Bukkit.getPlayerExact(name);
+        if (player != null) {
+            throw new IllegalCustomNameException(
+                    player.isDead()
+                            ? translatable("fakeplayer.spawn.error.name.online-dead", text(name, GOLD), text("/fp respawn", DARK_GREEN)).color(RED)
+                            : translatable("fakeplayer.spawn.error.name.online", text(name, GOLD)).color(RED)
             );
         }
 
-        return new SequenceName(
-                "custom",
-                0,
-                this.getUUIDFromName(name),
-                name
-        );
+        return name;
     }
 
     /**
