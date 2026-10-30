@@ -10,6 +10,7 @@ import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.aichat.AiChatManager;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.constant.MetadataKeys;
 import io.github.hello09x.fakeplayer.core.entity.Fakeplayer;
@@ -60,6 +61,7 @@ public class FakeplayerManager {
     private final NameManager nameManager;
     private final FakeplayerList playerList;
     private final FakeplayerFeatureManager featureManager;
+    private final AiChatManager aiChatManager;
     private final NMSBridge nms;
     private final FakeplayerConfig config;
     private final ScheduledExecutorService lagMonitor;
@@ -67,12 +69,13 @@ public class FakeplayerManager {
     private int laglevel=0;
 
     @Inject
-    public FakeplayerManager(NameManager nameManager, FakeplayerList playerList, FakeplayerFeatureManager featureManager, NMSBridge nms, FakeplayerConfig config) {
+    public FakeplayerManager(NameManager nameManager, FakeplayerList playerList, FakeplayerFeatureManager featureManager, NMSBridge nms, FakeplayerConfig config, AiChatManager aiChatManager) {
         this.nameManager = nameManager;
         this.playerList = playerList;
         this.featureManager = featureManager;
         this.nms = nms;
         this.config = config;
+        this.aiChatManager = aiChatManager;
 
         this.lagMonitor = Executors.newSingleThreadScheduledExecutor();
         this.lagMonitor.scheduleWithFixedDelay(() -> {
@@ -387,6 +390,7 @@ public class FakeplayerManager {
             return;
         }
         this.nameManager.unregister(fakeplayer.getSequenceName());
+        this.aiChatManager.forget(target);
         if (config.isDropInventoryOnQuiting()) {
             this.nms.createAction(
                     fakeplayer.getPlayer(),
