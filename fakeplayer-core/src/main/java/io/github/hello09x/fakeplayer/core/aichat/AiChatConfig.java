@@ -49,6 +49,8 @@ public class AiChatConfig {
 
     private int maxContext;
 
+    private int recentChatLines;
+
     private int timeoutSeconds;
 
     private int intervalTicks;
@@ -90,6 +92,7 @@ public class AiChatConfig {
         this.frequencyPenalty = yaml.getDouble("frequency-penalty", 0.0D);
         this.maxTokens = yaml.getInt("max-tokens", 0);
         this.maxContext = Math.max(0, yaml.getInt("max-context", 20));
+        this.recentChatLines = Math.max(0, yaml.getInt("recent-chat-lines", 0));
         this.timeoutSeconds = Math.max(1, yaml.getInt("timeout-seconds", 30));
         this.intervalTicks = Math.max(20, yaml.getInt("interval-ticks", 200));
         this.systemPrompt = yaml.getString("system-prompt", DEFAULT_SYSTEM_PROMPT);

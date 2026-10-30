@@ -9,6 +9,7 @@ import io.github.hello09x.devtools.core.translation.TranslationConfig;
 import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import io.github.hello09x.devtools.core.utils.Exceptions;
 import io.github.hello09x.devtools.database.DatabaseModule;
+import io.github.hello09x.fakeplayer.core.aichat.AiChatListener;
 import io.github.hello09x.fakeplayer.core.command.CommandRegistry;
 import io.github.hello09x.fakeplayer.core.compat.login.LoginCompatManager;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
@@ -80,6 +81,7 @@ public final class Main extends JavaPlugin {
             manager.registerEvents(injector.getInstance(FakeplayerAutofishManager.class), this);
             manager.registerEvents(injector.getInstance(FakeplayerReplenishManager.class), this);
             manager.registerEvents(injector.getInstance(InvseeManager.class), this);
+            manager.registerEvents(injector.getInstance(AiChatListener.class), this);
         }
 
         injector.getInstance(LoginCompatManager.class).onEnable();
