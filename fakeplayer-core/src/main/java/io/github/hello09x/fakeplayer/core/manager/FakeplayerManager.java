@@ -68,6 +68,10 @@ public class FakeplayerManager {
     private volatile boolean stopping;
     private int laglevel=0;
 
+    private volatile @Nullable Method removeMethod;
+    private volatile @Nullable Method broadcastMethod;
+    private volatile boolean playerListMethodsResolved;
+
     @Inject
     public FakeplayerManager(NameManager nameManager, FakeplayerList playerList, FakeplayerFeatureManager featureManager, NMSBridge nms, FakeplayerConfig config, AiChatManager aiChatManager) {
         this.nameManager = nameManager;
@@ -415,74 +419,98 @@ public class FakeplayerManager {
      */
     private void removeFromServer(@NotNull Player player) {
         try {
-            var server = Bukkit.getServer();
-            var playerList = resolvePlayerList(server);
+            var playerList = resolvePlayerList(Bukkit.getServer());
             if (playerList == null) {
                 return;
             }
             var serverPlayer = Reflections.getHandle(player);
-            var spClass = serverPlayer.getClass();
-            // 优先尝试 remove(ServerPlayer), 其次 remove(ServerPlayer, String)
-            for (var paramTypes : new Class<?>[][]{new Class<?>[]{spClass}, new Class<?>[]{spClass, String.class}}) {
-                try {
-                    var method = playerList.getClass().getMethod("remove", paramTypes);
-                    method.setAccessible(true);
-                    var leaveMessage = paramTypes.length == 1
-                            ? method.invoke(playerList, serverPlayer)
-                            : method.invoke(playerList, serverPlayer, "removed");
-                    this.broadcastLeaveMessage(playerList, player, method, leaveMessage);
-                    return;
-                } catch (NoSuchMethodException ignored) {
-                    // 尝试下一签名
-                }
+            this.resolvePlayerListMethods(playerList, serverPlayer.getClass());
+
+            var method = this.removeMethod;
+            if (method == null) {
+                log.warning("未能找到 PlayerList.remove(" + serverPlayer.getClass().getName() + ") 方法, 假人 "
+                        + player.getName() + " 可能未被真正移除");
+                return;
             }
-            log.warning("未能找到 PlayerList.remove(" + spClass.getName() + ") 方法, 假人 "
-                    + player.getName() + " 可能未被真正移除");
+
+            // remove(ServerPlayer) 优先, 回退到 remove(ServerPlayer, String)
+            var leaveMessage = method.getParameterCount() == 1
+                    ? method.invoke(playerList, serverPlayer)
+                    : method.invoke(playerList, serverPlayer, "removed");
+            this.broadcastLeaveMessage(playerList, player, leaveMessage);
         } catch (Exception e) {
             log.warning("调用 PlayerList.remove 移除假人 " + player.getName() + " 失败: " + e);
         }
     }
 
     /**
+     * 反射方法只解析一次, 避免每次移除假人都全量扫描方法表
+     */
+    private void resolvePlayerListMethods(@NotNull Object playerList, @NotNull Class<?> serverPlayerClass) {
+        if (this.playerListMethodsResolved) {
+            return;
+        }
+        synchronized (this) {
+            if (this.playerListMethodsResolved) {
+                return;
+            }
+            for (var paramTypes : new Class<?>[][]{new Class<?>[]{serverPlayerClass}, new Class<?>[]{serverPlayerClass, String.class}}) {
+                try {
+                    var method = playerList.getClass().getMethod("remove", paramTypes);
+                    method.setAccessible(true);
+                    this.removeMethod = method;
+                    break;
+                } catch (NoSuchMethodException ignored) {
+                    // 尝试下一签名
+                }
+            }
+            for (var method : playerList.getClass().getMethods()) {
+                var paramTypes = method.getParameterTypes();
+                if (method.getName().equals("broadcastSystemMessage") && paramTypes.length == 2 && paramTypes[1] == boolean.class) {
+                    method.setAccessible(true);
+                    this.broadcastMethod = method;
+                    break;
+                }
+            }
+            this.playerListMethodsResolved = true;
+        }
+    }
+
+    /**
      * 补发假人的退出消息。
      *
-     * <p>1.20 ~ 1.21 的 {@code PlayerList.remove} 自身会广播退出消息; 26.2 起该广播移到了
+     * <p>1.20 ~ 1.21 的 {@code PlayerList.remove} 自身会广播退出消息 (返回 String); 26.2 起该广播移到了
      * {@code ServerGamePacketListenerImpl#removePlayerFromWorld} 中, 而我们移除假人绕过了这条链路,
      * 因此 {@code remove} 返回 void 时需要自己补发一条与取消一致的提示。</p>
      */
     private void broadcastLeaveMessage(
             @NotNull Object playerList,
             @NotNull Player player,
-            @NotNull Method removeMethod,
             @Nullable Object leaveMessage
     ) {
         if (leaveMessage != null && this.invokeBroadcastSystemMessage(playerList, leaveMessage)) {
             return;
         }
-        if (removeMethod.getReturnType() == void.class) {
+        if (this.removeMethod != null && this.removeMethod.getReturnType() == void.class) {
             Bukkit.getServer().sendMessage(translatable("multiplayer.player.left", player.displayName()).color(YELLOW));
         }
     }
 
     private boolean invokeBroadcastSystemMessage(@NotNull Object playerList, @NotNull Object message) {
-        for (var method : playerList.getClass().getMethods()) {
-            var types = method.getParameterTypes();
-            if (!method.getName().equals("broadcastSystemMessage") || types.length != 2 || types[1] != boolean.class) {
-                continue;
-            }
-            if (!types[0].isInstance(message)) {
-                // 旧版本返回的是 String, 与这里的聊天组件参数不匹配, 说明服务器已经广播过
-                continue;
-            }
-            try {
-                method.setAccessible(true);
-                method.invoke(playerList, message, false);
-            } catch (Exception e) {
-                log.warning("广播假人退出消息失败: " + e);
-            }
-            return true;
+        var method = this.broadcastMethod;
+        if (method == null) {
+            return false;
         }
-        return false;
+        if (!method.getParameterTypes()[0].isInstance(message)) {
+            // 旧版本返回的是 String, 与聊天组件参数不匹配, 说明服务器已经广播过
+            return false;
+        }
+        try {
+            method.invoke(playerList, message, false);
+        } catch (Exception e) {
+            log.warning("广播假人退出消息失败: " + e);
+        }
+        return true;
     }
 
     private static @Nullable Object resolvePlayerList(@NotNull org.bukkit.Server server) {
