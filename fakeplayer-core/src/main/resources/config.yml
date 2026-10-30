@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 29
+version: 30
 
 
 # ============================================================
@@ -125,6 +125,10 @@ drop-inventory-on-quiting: false
 # 死亡时是否踢出, 设为 false 时玩家可以通过 /fp respawn 重生
 # Kick the fake player on death; when false it can be respawned with /fp respawn
 kick-on-dead: true
+
+# 假人死亡时是否广播死亡消息 (仅在 kick-on-dead: true 时生效)
+# Broadcast the fake player's death message (only applies when kick-on-dead is true)
+death-message: false
 
 
 # ============================================================
