@@ -142,6 +142,13 @@ public class FakeplayerListener implements Listener {
         Optional.ofNullable(player.getAttribute(Attribute.GENERIC_MAX_HEALTH))
                 .map(AttributeInstance::getValue)
                 .ifPresent(player::setHealth);
+        // 取消事件后服务端不再广播死亡消息, 需要显示时由插件自己补发
+        if (config.isDeathMessage()) {
+            var message = event.deathMessage();
+            if (message != null) {
+                Bukkit.getServer().sendMessage(message);
+            }
+        }
         event.setCancelled(true);
         manager.remove(event.getPlayer().getName(), event.deathMessage());
     }
