@@ -64,6 +64,7 @@
 | 指令 | 功能說明 | 權限節點 | 備註 |
 |------|---------|---------|------|
 | /fp spawn | 建立假人 | fakeplayer.command.spawn | |
+| /fp spawnuuid | 用指定 UUID 建立假人 | fakeplayer.command.spawn.uuid | 參數 `<名稱> <UUID> [世界] [座標]`；名稱已綁定其他 UUID 時拒絕 |
 | /fp kick | 踢出假人（從伺服器移除） | fakeplayer.command.kick | |
 | /fp kickall | 踢出伺服器所有假人 | OP | |
 | /fp kill | 殺死假人（真實死亡，可能掉落物品） | fakeplayer.command.kill | |

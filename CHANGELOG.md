@@ -20,6 +20,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **New `/fp aichat` command.** Fake players can generate chat lines through an OpenAI-compatible endpoint and either broadcast them (`public`) or whisper a single player (`private`), once or continuously until `/fp aichat stop` (#92). All settings live in a separate `ai-chat.yml` (endpoint, key or environment variable, model, sampling, context length, prompts and interval), so `config.yml` is untouched.
 - **`/fp aichat` can follow the conversation.** Set `recent-chat-lines` in `ai-chat.yml` to feed the last N public chat lines into the prompt, so fake players can pick up what players are talking about.
 - **HTTP Admin API: `/aichat` endpoints.** `GET /aichat?name=<name>&mode=public|private&target=<player>&continuous=true&interval=<ticks>` lets a fake player talk through AI, and `GET /aichat/stop?name=<name>` ends continuous mode. Both are gated by `http-admin.interface.aichat` and need `ai-chat.yml` to be enabled. `config.yml` bumped to 31 (#96).
+- **New `/fp spawnuuid <name> <uuid> [world] [location]`.** Spawns a fake player with a specific UUID, which helps when migrating from another fake-player plugin or keeping an external record in sync. The command is rejected when the name is already bound to a different UUID, when the UUID belongs to an online player, or when another fake player uses it. New permission `fakeplayer.command.spawn.uuid` (default op) (#95).
 
 ### 中文
 
@@ -30,6 +31,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **新增 `/fp aichat` 命令。** 假人可通过 OpenAI 兼容接口生成聊天内容，可选发到公共聊天（`public`）或只发给某个玩家（`private`），支持说一次或 `continuous` 持续发言直到 `/fp aichat stop`（#92）。设置独立放在 `ai-chat.yml`（接口地址、密钥或环境变量、模型、采样参数、上下文长度、提示词与间隔），`config.yml` 保持不变。
 - **`/fp aichat` 现在可以接话。** 在 `ai-chat.yml` 设置 `recent-chat-lines` 后，最近 N 条公共聊天会作为上下文传给模型，假人能够接着玩家正在聊的话题说。
 - **HTTP 管理接口新增 `/aichat` 端点。** `GET /aichat?name=<名字>&mode=public|private&target=<玩家>&continuous=true&interval=<tick>` 让假人通过 AI 发言，`GET /aichat/stop?name=<名字>` 停止持续发言。两者都由 `http-admin.interface.aichat` 控制，且需要先在 `ai-chat.yml` 启用。`config.yml` 版本提升至 31（#96）。
+- **新增 `/fp spawnuuid <名称> <UUID> [世界] [坐标]`。** 用指定 UUID 创建假人，便于从其他假人插件迁移数据或与外部记录保持一致。名称已绑定其他 UUID、UUID 属于在线玩家、或已被其他假人占用时会拒绝。新增权限 `fakeplayer.command.spawn.uuid`（默认 op）（#95）。
 
 ## fp.build15 - 2026-10-24
 

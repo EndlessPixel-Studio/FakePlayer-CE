@@ -64,6 +64,7 @@ On first launch only a template `config.tmpl.yml` is generated; rename it to `co
 | Command | Description | Permission | Note |
 |------|---------|---------|------|
 | /fp spawn | Spawn a fake player | fakeplayer.command.spawn | |
+| /fp spawnuuid | Spawn a fake player with a given UUID | fakeplayer.command.spawn.uuid | `<name> <uuid> [world] [location]`; a name bound to another UUID is rejected |
 | /fp kick | Kick fake players (remove from the server) | fakeplayer.command.kick | |
 | /fp kickall | Kick all fake players on the server | OP | |
 | /fp kill | Kill fake players (real death, may drop loot) | fakeplayer.command.kill | |
