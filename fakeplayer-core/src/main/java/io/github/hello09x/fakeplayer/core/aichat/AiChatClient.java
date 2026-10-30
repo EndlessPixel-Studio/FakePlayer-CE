@@ -41,6 +41,7 @@ public class AiChatClient {
                                  .timeout(Duration.ofSeconds(config.getTimeoutSeconds()))
                                  .header("Content-Type", "application/json")
                                  .header("Authorization", "Bearer " + apiKey)
+                                 .header("User-Agent", "FakePlayer-CE")
                                  .POST(HttpRequest.BodyPublishers.ofString(this.buildBody(config, messages), StandardCharsets.UTF_8))
                                  .build();
 
