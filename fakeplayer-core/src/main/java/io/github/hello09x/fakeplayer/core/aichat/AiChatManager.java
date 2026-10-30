@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -40,6 +41,10 @@ public class AiChatManager {
 
     private final Set<UUID> inFlight = ConcurrentHashMap.newKeySet();
 
+    private final static int MAX_RECENT_CHATS = 50;
+
+    private final Deque<String> recentChats = new ArrayDeque<>();
+
     @Inject
     public AiChatManager(AiChatConfig config, AiChatClient client, NMSBridge bridge) {
         this.config = config;
@@ -52,6 +57,21 @@ public class AiChatManager {
      */
     public void say(@NotNull Player fake, @Nullable Player target) {
         this.generate(fake, target);
+    }
+
+    /**
+     * 记录一条公共聊天, 供后续生成时参考
+     */
+    public void recordChat(@NotNull String speaker, @NotNull String message) {
+        if (config.getRecentChatLines() <= 0 || message.isBlank()) {
+            return;
+        }
+        synchronized (this.recentChats) {
+            this.recentChats.addLast(speaker + ": " + message);
+            while (this.recentChats.size() > MAX_RECENT_CHATS) {
+                this.recentChats.removeFirst();
+            }
+        }
     }
 
     /**
@@ -103,6 +123,12 @@ public class AiChatManager {
 
         var messages = new ArrayList<ChatMessage>();
         messages.add(new ChatMessage(ChatMessage.ROLE_SYSTEM, config.getSystemPrompt().replace("{name}", fake.getName())));
+
+        var recent = this.recentChatSnapshot();
+        if (!recent.isEmpty()) {
+            messages.add(new ChatMessage(ChatMessage.ROLE_SYSTEM, "最近的公共聊天记录:\n" + String.join("\n", recent)));
+        }
+
         synchronized (history) {
             messages.addAll(history);
         }
@@ -126,6 +152,17 @@ public class AiChatManager {
 
             Schedulers.runFor(Main.getInstance(), fake, () -> this.deliver(fake, target, reply));
         });
+    }
+
+    private @NotNull List<String> recentChatSnapshot() {
+        var limit = config.getRecentChatLines();
+        if (limit <= 0) {
+            return List.of();
+        }
+        synchronized (this.recentChats) {
+            var all = new ArrayList<>(this.recentChats);
+            return all.subList(Math.max(0, all.size() - limit), all.size());
+        }
     }
 
     private void trim(@NotNull Deque<ChatMessage> history) {

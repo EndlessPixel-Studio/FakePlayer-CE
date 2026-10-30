@@ -32,6 +32,10 @@ max-tokens: 0
 # Number of turns kept as context, 0 disables history
 max-context: 20
 
+# 生成时参考最近多少条公共聊天, 0 表示不参考
+# How many recent public chat lines are given as context, 0 disables it
+recent-chat-lines: 0
+
 # 单次请求超时 (秒) / Request timeout in seconds
 timeout-seconds: 30
 
