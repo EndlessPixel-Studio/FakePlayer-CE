@@ -23,93 +23,93 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
-- **`/fp skin` now supports premium players through SkinsRestorer.** When SkinsRestorer is installed, the skin is resolved through its official API (`SkinStorage.findOrCreateSkinData`), the choice is persisted with `PlayerStorage.setSkinIdOfPlayer` so it survives reconnects, and the resolved property is applied through the platform skin applier — lookup and storage run off-thread, applying runs on the entity thread (Folia-safe). Unresolvable names now report a clear error. Without SkinsRestorer the previous Mojang-API path is used.
-- **Auto-login config reorganised.** The auto-login settings were flattened at the top level (`auto-login`, `register`, `login`, `random-password`, ...), where `auto-login: false` looked like a master switch even though it only drove command-template login. They now live under a single tree with the two mechanisms documented side by side: `auto-login.command.enabled` (run register/login commands) and the automatic login-plugin API exemption (AuthMe / CatSeedLogin / LibreLogin, no configuration needed). Old flat keys are still read as a fallback, so existing configs keep working.
-- **HTTP Admin API: five new endpoints.** `/goto` (pathfind to coordinates, unreachable targets rejected), `/setping` (tab list ping), `/sneak` and `/sprint` (toggle or set, `state=true|false`), and `/reload` (reload `config.yml` and translations). Each has its own switch under `http-admin.interface`.
+- **`/fp skin` now resolves premium names through SkinsRestorer.** With SkinsRestorer installed the skin is looked up through its API and the choice survives reconnects; without it the Mojang API path is used. Invalid names now report a clear error.
+- **Auto-login config reorganised.** Settings now live under `auto-login`, documenting command-template login (`auto-login.command.enabled`) next to the no-config login-plugin exemption. Old flat keys are still read, so existing configs keep working.
+- **HTTP Admin API: five new endpoints.** `/goto` (pathfind), `/setping` (tab list ping), `/sneak`, `/sprint` and `/reload`, each with its own switch under `http-admin.interface`.
 - **Releases are now distributed through GitHub Releases only.** The Modrinth listing was removed (it did not pass review), and the download links in the READMEs now point to GitHub Releases.
-- **New `share-fakeplayer` option.** When enabled, a fake player's UUID is derived deterministically from its name (`UUID.nameUUIDFromBytes`), so the same name always maps to the same UUID — different players can take turns controlling the same fake player, and `usercache.json` no longer accumulates a fresh entry per spawn. `config.yml` bumped to 28 (#169, thanks to @fuzhulike).
-- **Fixed translations breaking when Nexo is loaded.** `CommandHelpLocalizer` loaded message files through `ResourceBundle.getBundle()`, whose global static cache and SPI lookup can clash with other plugins' class loaders (Nexo), leaving `/fp` help and descriptions as raw keys. It now reads the properties through `ClassLoader.getResourceAsStream` (#150, thanks to @fuzhulike).
-- **Fixed `/fp say once` / `continuous` / `interval` silently doing nothing on Paper.** Fake players had `ChatVisiblity.SYSTEM`, which causes `ServerGamePacketListenerImpl.chat()` to return before `ChatProcessor` can fire chat events. Fake players now use full chat visibility; unsigned chat still goes through the existing chat event pipeline, including formatting plugins.
+- **New `share-fakeplayer` option.** A fake player's UUID is derived from its name, so the same name always maps to the same UUID — players can take turns controlling one fake player and `usercache.json` stays clean. `config.yml` bumped to 28 (#169, thanks to @fuzhulike).
+- **Fixed translations breaking when Nexo is loaded.** `/fp` help and descriptions could show raw keys because message files were loaded through `ResourceBundle`; they are now read directly from the jar (#150, thanks to @fuzhulike).
+- **Fixed `/fp say once` / `continuous` / `interval` silently doing nothing on Paper.** Fake players had a restricted chat visibility that made the server drop the message early; they now use full visibility and send through the normal chat event pipeline.
 - **`/fp say` without a subcommand now displays usage** instead of silently failing. Fixed message-only invocation (`/fp say once hello`) ignoring the selected fake player when more than one exists.
-- **New command `/fp goto <x> <y> <z>`: make a fake player walk to a location.** The fake player pathfinds on its own — it steps up 1-block obstacles, swims through water, and if it gets stuck (e.g. behind a fence) for more than 1.25 seconds it teleports to a safe footing near the target and continues. Destinations that cannot be stood on (floating in mid-air, buried inside blocks, no ground nearby) are rejected up front with a clear error instead of sending the fake player somewhere it will fall or suffocate; out-of-height, out-of-border and over-1024-blocks targets are rejected as well. `/fp stop` cancels an ongoing trip.
-- **Fixed `/fp goto` rejecting reachable destinations.** The footing search used to give up on a direction as soon as its first candidate was too far, missing closer footings lower down (slopes, stairs) and refusing targets that were actually standable; it now scans every layer and picks the best candidate (#77, thanks to @lldxlzy for the fix).
+- **New command `/fp goto <x> <y> <z>`: make a fake player walk to a location.** It pathfinds on its own (steps up obstacles, swims), teleports a short distance when stuck, and rejects targets it cannot stand on. `/fp stop` cancels the trip.
+- **Fixed `/fp goto` rejecting reachable destinations** on slopes and stairs: the footing search no longer gives up on a direction early and now checks every layer (#77, thanks to @lldxlzy).
 
 ### 中文
 
-- **`/fp skin` 现支持正版玩家（通过 SkinsRestorer）。** 装有 SkinsRestorer 时按官方 API 解析皮肤（`SkinStorage.findOrCreateSkinData`），用 `PlayerStorage.setSkinIdOfPlayer` 持久化选择以便下次进服恢复，再通过平台 applier 应用解析出的属性——解析与存储全在异步线程，应用在实体线程（Folia 安全）。名称无效或查询失败会给出明确提示。未安装 SkinsRestorer 时仍走原有的 Mojang API 路径。
-- **自动登录配置重排。** 原先把 `auto-login`、`register`、`login`、`random-password` 等平铺在最外层，`auto-login: false` 看着像总开关，实际只控制命令模板登录。现统一收进一个配置树，并把两套机制并列说明：`auto-login.command.enabled`（执行注册/登录命令）与登录插件 API 免登录（AuthMe / CatSeedLogin / LibreLogin，无需配置）。旧平铺键仍会读取，现有配置继续有效。
-- **HTTP 管理接口新增五个端点。** `/goto`（寻路前往坐标，无法抵达的目标直接拒绝）、`/setping`（Tab 列表延迟）、`/sneak` 与 `/sprint`（切换或设置，`state=true|false`）、`/reload`（重载 `config.yml` 与语言文件）。每个端点都在 `http-admin.interface` 下有独立开关。
+- **`/fp skin` 现可通过 SkinsRestorer 解析正版玩家皮肤。** 装有时经其 API 查询并持久化，重新进服仍生效；未安装时仍走 Mojang API。名称无效或查询失败会给出明确提示。
+- **自动登录配置重排。** 相关配置统一收进 `auto-login`，命令模板登录（`auto-login.command.enabled`）与无需配置的登录插件免登录并列说明。旧平铺键仍会读取，现有配置继续有效。
+- **HTTP 管理接口新增五个端点。** `/goto`（寻路）、`/setping`（Tab 列表延迟）、`/sneak`、`/sprint` 与 `/reload`（重载配置与语言文件），各在 `http-admin.interface` 下有独立开关。
 - **发布渠道统一为 GitHub Releases。** Modrinth 资源已下架（未通过审核），README 中的下载链接现均指向 GitHub Releases。
-- **新增 `share-fakeplayer` 配置项。** 开启后假人 UUID 由名称确定性生成（`UUID.nameUUIDFromBytes`），同一名称始终对应同一 UUID——不同玩家可以轮流控制同一个假人，且 `usercache.json` 不再每次召唤都累积新记录。`config.yml` 版本提升至 28（#169，感谢 @fuzhulike）。
-- **修复与 Nexo 共载时语言文件失效。** `CommandHelpLocalizer` 原先用 `ResourceBundle.getBundle()` 加载消息文件，其全局静态缓存与 SPI 查找会与其他插件（Nexo）的类加载器冲突，导致 `/fp` 帮助与描述显示原始 key；改为 `ClassLoader.getResourceAsStream` 直接读取 properties（#150，感谢 @fuzhulike）。
-- **修复 `/fp say once` / `continuous` / `interval` 在 Paper 上执行成功却不发消息。** 假人原先设置了 `ChatVisiblity.SYSTEM`，导致 `ServerGamePacketListenerImpl.chat()` 在进入 `ChatProcessor` 前直接返回。现在允许完整聊天，继续通过原有未签名消息与聊天事件管线发送，兼容格式化插件。
+- **新增 `share-fakeplayer` 配置项。** 假人 UUID 由名称确定性生成，同一名称始终对应同一 UUID——不同玩家可轮流控制同一假人，`usercache.json` 不再每次召唤累积记录。`config.yml` 版本提升至 28（#169，感谢 @fuzhulike）。
+- **修复与 Nexo 共载时语言文件失效。** 消息文件改用直接读取后，`/fp` 帮助与描述不再显示原始 key（#150，感谢 @fuzhulike）。
+- **修复 `/fp say once` / `continuous` / `interval` 在 Paper 上执行成功却不发消息。** 假人原先的聊天可见性会让服务端提前丢弃消息，现改为完整可见性并走原有聊天事件管线，兼容格式化插件。
 - **直接输入 `/fp say` 现在会显示用法。** 修复只输入消息（如 `/fp say once hello`）时，在多个假人且已选择目标的情况下无法正确使用已选假人的问题。
-- **新命令 `/fp goto <x> <y> <z>`：让假人走到指定坐标。** 假人自行寻路——会跳上一格高障碍、在水中游动；若卡住（如被栅栏挡住）超过 1.25 秒，会自动传送到目标附近的安全落点继续走。无法站立的目标（悬空、埋在方块里、周围没有实地）会**在出发前直接拒绝并提示**，不会把假人送过去摔死或卡住；超出世界高度、超出世界边界、距离超过 1024 格的目标同样拒绝。执行 `/fp stop` 可中止行程。
-- **修复 `/fp goto` 误拒可抵达目标。** 落点搜索原先在某方向首个候选过远时就放弃整个方向，会漏掉更低处更近的落点（斜坡、阶梯地形），导致实际可站立的目标被拒绝；现逐层继续查找，找完全部候选取最优（#77，感谢 @lldxlzy 的修复）。
+- **新命令 `/fp goto <x> <y> <z>`：让假人走到指定坐标。** 假人自行寻路（可跨障碍、游泳），卡住时短暂传送续行；无法站立的目标、超出世界边界或距离过远会直接拒绝。`/fp stop` 可中止行程。
+- **修复 `/fp goto` 误拒可抵达目标**（斜坡、阶梯地形）：落点搜索不再提前放弃某个方向，现逐层查找（#77，感谢 @lldxlzy 的修复）。
 
 ## fp.build14 - 2026-10-16
 
 ### English
 
 - **The plugin now requires Java 25 to run.** The build target was raised from Java 21 to Java 25 because Paper 26.x's `paper-api` is compiled for Java 25; servers still running Java 21 must upgrade their runtime before installing this build.
-- **Invincible mode now really blocks damage.** A fake player with `invulnerable` enabled could still be hurt by players in **creative mode**: vanilla explicitly lets creative attackers bypass invulnerability, so admins testing in creative saw the fake take damage even though the feature was on (`/fp config` showed `true`, and the entity flag was set correctly). Damage dealt by a creative-mode attacker to an invulnerable fake player is now cancelled; sources that are supposed to bypass invulnerability (the void, `/kill`) still work (#67).
+- **Invincible mode now really blocks damage.** A creative-mode attacker could still hurt an `invulnerable` fake player because vanilla lets creative attacks bypass invulnerability; that damage is now cancelled. Sources meant to bypass it (the void, `/kill`) still work (#67).
 - **`invulnerable` is enabled by default again**, matching the documentation ("fake players spawn with invincible mode enabled by default"). It had silently defaulted to disabled since an upstream commit, which the changelog never recorded. `config.yml` bumped to 25 (#68).
-- **Command help now accepts subcommand names.** `/fp help <name>` (e.g. `/fp help config`, `/fp help look north`) prints that command's description, usage, aliases and subcommands — permission-filtered, localized with the configured locale, with subcommand names offered as tab completions; `/fp help <page> [size]` still pages through the full command list. Typing an unknown name now shows a friendly hint instead of `Expected integer` (#62).
-- **Fixed duplicate quit events when removing a fake player.** On Leaf/Folia-based servers, removing a fake player could fire the quit/death flow twice: after-quit commands were dispatched a second time (throwing an NPE), the second disconnect threw `Already retired` from the entity scheduler, and login plugins logged errors. Removal is now idempotent — after-quit commands fire once, and already-disconnected fake players only have their internal records cleaned up (#70).
+- **Command help now accepts subcommand names.** `/fp help <name>` prints that command's description, usage, aliases and subcommands (permission-filtered, localized, with tab completion); `/fp help <page> [size]` still pages the full list (#62).
+- **Fixed duplicate quit events when removing a fake player.** On Leaf/Folia servers the quit flow could run twice, dispatching after-quit commands again and logging login-plugin errors; removal is now idempotent (#70).
 
 ### 中文
 
 - **运行要求升至 Java 25。** 编译目标由 Java 21 提升至 Java 25——Paper 26.x 的 `paper-api` 以 Java 25 编译，引用它必须 target ≥ 25；仍以 Java 21 运行的服务端需要先升级运行环境再安装本版本。
-- **无敌模式现在真的免伤。** 开启 `invulnerable` 的假人此前仍会被**创造模式**玩家打伤：原版对创造模式攻击显式放行无敌判定，导致管理员在创造模式下测试时看到假人掉血——尽管特性确实开着（`/fp config` 显示 `true`，实体标记也已正确设置）。现在创造模式玩家对无敌假人造成的伤害会被取消；原版本就该绕过无敌的来源（虚空、`/kill`）仍然可用（#67）。
+- **无敌模式现在真的免伤。** 创造模式玩家的攻击此前仍能打伤开启 `invulnerable` 的假人（原版对创造攻击放行无敌判定），现该伤害会被取消；虚空、`/kill` 等本应无视无敌的来源仍然有效（#67）。
 - **`invulnerable` 默认值改回开启**，与文档「假人默认开启无敌模式」一致。此前默认关闭是上游某次提交悄悄改的，更新日志从未记录过。`config.yml` 版本提升至 25（#68）。
-- **命令帮助支持子命令名查询。** `/fp help <子命令名>`（如 `/fp help config`、`/fp help look north`）直接输出该命令的描述、用法、别名与子命令列表（按发送者权限过滤、按配置语言本地化，子命令名提供 Tab 补全）；`/fp help <页码> [每页数]` 仍按原方式翻页。输入未知名称时给出友好提示，不再报 `Expected integer`（#62）。
-- **修复移除假人时的重复退出 / 二次移除。** 在 Leaf/Folia 系服务端上，移除假人可能二次触发退出/死亡流程：after-quit 命令被重复派发（第二次空指针报错）、二次断开时实体调度器抛 `Already retired`、登录插件在其间报错。移除流程现为幂等——after-quit 命令只派发一次，已断开的假人仅做内部记录清理（#70）。
+- **命令帮助支持子命令名查询。** `/fp help <子命令名>` 直接输出该命令的描述、用法、别名与子命令（按权限过滤、按配置语言本地化、支持 Tab 补全）；`/fp help <页码> [每页数]` 仍按页浏览全部命令（#62）。
+- **修复移除假人时的重复退出 / 二次移除。** Leaf/Folia 系服务端上退出流程可能触发两次（after-quit 命令重复派发、登录插件报错），现移除流程幂等（#70）。
 
 ## fp.build13 - 2026-10-03
 
 ### English
 
-- **Support for Minecraft 26.3.** A new `fakeplayer-v26_3` module (a full NMS implementation, not a bridge) adapts to the 26.3 API changes: `LivingEntity.swing(InteractionHand)` gained `SwingAnimation`/boolean parameters, `Entity.hurtMarked` was replaced by `syncVelocity`, and `ServerPlayer.drop` now takes a `Prediction`. On 26.3, CommandAPI `12.1.0` or newer is required.
+- **Support for Minecraft 26.3.** A new full `fakeplayer-v26_3` module adapts to the 26.3 API changes. CommandAPI `12.1.0` or newer is required on 26.3.
 - **Removed the deprecated `allow-commands` option.** `/fp cmd` now always requires the `fakeplayer.command.cmd` permission — assign it with a permissions plugin. The option had been deprecated and only printed a removal warning on startup.
 - **`check-for-updates` now checks this repository.** It queries the latest GitHub release of `EndlessPixel-Studio/FakePlayer-CE` and compares the `fp.buildN` build number, instead of the original upstream project (which made the check meaningless for this fork and usually failed).
-- **Fake player ping simulation.** The new `custom-ping` option sets the ping displayed for fake players on the tab list — either a fixed value (`30`) or a random range (`20,50`); `custom-ping-dynamic` lets that value drift slightly around it, so it does not look hard-coded; leave it empty to keep using the real (server-computed) value. It can also be changed at runtime with the new `/fp setping <ping> [name]` command (permission `fakeplayer.command.setping`).
+- **Fake player ping simulation.** The new `custom-ping` option sets the tab-list ping of fake players — a fixed value (`30`) or a range (`20,50`); `custom-ping-dynamic` lets it drift slightly, and leaving it empty keeps the real value. Runtime change: `/fp setping <ping> [name]`.
 - **`config.yml` reordered into themed sections** with condensed comments; bumped to version 24.
 - **Fixed `follow-quiting-force` removing a creator's fake players even when the creator reconnected within the configured delay** (quick reconnect, or coming back from another server) — the fake players are now kept when the creator is online again.
-- **`/fp config` (including `config list` and `config set`) now works from the console.** Previously it failed with CommandAPI's internal error `This command has no implementations for terminalconsolecommandsender`, because the command was player-only. On the console `list` shows the global defaults, and operators / the console can target a specific player with the new optional `[player]` argument (e.g. `/fp config set autofish true <player>`), while regular players can still only configure themselves. `/fp config help` was added as well — it previously printed nothing at all.
-- **Fixed `/fp say` (and `say continuous` / `say interval`) rejecting the name of a fake player owned by someone else** with "you haven't spawned a fake player yet" — from the console this made it impossible to address any fake player by name at all. An explicitly given name is now resolved with the same rules as every other command: operators and the console may target any fake player, regular players only their own.
+- **`/fp config` now works from the console.** `list` shows the global defaults; operators and the console can target a player with the new optional `[player]` argument, while regular players still configure only themselves. `/fp config help`, which previously printed nothing, was added as well.
+- **Fixed `/fp say` (and `say continuous` / `say interval`) rejecting the name of a fake player owned by someone else:** it answered "you haven't spawned a fake player yet", which from the console made named addressing impossible. Names now follow the same rules as every other command.
 - **`/fp say once` / `continuous` / `interval` now TAB-complete fake player names** — the name argument previously offered no suggestions at all (unlike every other command), because it is parsed as a plain string so that a single argument still falls back to being the message.
-- **Fixed `/fp say stop` being entirely unusable.** With a fake-player name it threw a `ClassCastException` ("An unexpected error occurred"), and without one it complained about an empty message instead of stopping. `stop` no longer requires a message; the single-argument message fallback of the other subcommands is unchanged.
+- **Fixed `/fp say stop` being entirely unusable.** It threw a `ClassCastException` when given a name, and demanded a message when not; `stop` no longer requires one.
 
 ### 中文
 
-- **支持 Minecraft 26.3。** 新增 `fakeplayer-v26_3` 模块（完整 NMS 实现，非桥接），适配 26.3 的 API 变更：`LivingEntity.swing(InteractionHand)` 新增 `SwingAnimation` 与 boolean 参数、`Entity.hurtMarked` 由 `syncVelocity` 取代、`ServerPlayer.drop` 改为接受 `Prediction`。在 26.3 上需 CommandAPI `12.1.0` 及以上。
+- **支持 Minecraft 26.3。** 新增完整 NMS 模块 `fakeplayer-v26_3` 适配 26.3 的 API 变更；在 26.3 上需 CommandAPI `12.1.0` 及以上。
 - **移除已废弃的 `allow-commands` 配置。** `/fp cmd` 现在始终需要 `fakeplayer.command.cmd` 权限，请通过权限插件分配。该配置早已标记废弃，启动时仅打印一条移除警告。
 - **`check-for-updates` 改为检查本仓库。** 现查询 `EndlessPixel-Studio/FakePlayer-CE` 的最新 GitHub Release，并按 `fp.buildN` 的构建号比较；此前检查的是原上游项目，对本分支没有意义且通常直接失败。
-- **新增假人延迟（ping）模拟。** 新配置 `custom-ping` 用于设置假人在 Tab 列表里显示的延迟——可以是固定值（`30`）或随机范围（`20,50`）；`custom-ping-dynamic` 会让该数值在其上下小幅波动，避免看起来是写死的；留空则继续使用服务端计算出的真实值。也可用新命令 `/fp setping <ping> [name]` 在运行时修改（权限 `fakeplayer.command.setping`）。
+- **新增假人延迟（ping）模拟。** 新配置 `custom-ping` 设置假人在 Tab 列表显示的延迟，可填固定值（`30`）或范围（`20,50`）；`custom-ping-dynamic` 让其小幅波动，留空则用真实值。运行时可用 `/fp setping <ping> [name]` 修改。
 - **`config.yml` 按主题重新分组并精简注释**，版本提升至 24。
 - **修复 `follow-quiting-force` 在创建者于延迟内重新上线（快速重连，或从其他服务器返回）时仍会清理其假人的问题**；创建者已回到服务器时现在会保留假人。
-- **`/fp config`（含 `config list` 与 `config set`）现在可以在控制台使用。** 此前会报 CommandAPI 的内部错误 `This command has no implementations for terminalconsolecommandsender`，因为该命令只注册了玩家执行器。控制台下 `list` 展示全局默认值；op / 控制台可用新增的可选 `[player]` 参数指定目标玩家（如 `/fp config set autofish true <玩家>`），普通玩家仍然只能配置自己。同时补上了 `/fp config help`——此前执行它完全没有输出。
-- **修复 `/fp say`（及 `say continuous` / `say interval`）指定「他人的假人名称」时报「你还没召唤假人呢」的问题**——在控制台里这会导致完全无法按名字指定假人。显式给出的名字现按与其他命令一致的规则解析：op 与控制台可指定任意假人，普通玩家只能指定自己召唤的假人。
+- **`/fp config` 现在可以在控制台使用。** `list` 展示全局默认值；op 与控制台可用新增的可选 `[player]` 参数指定玩家，普通玩家仍只能配置自己；并补上了此前没有任何输出的 `/fp config help`。
+- **修复 `/fp say`（及 `say continuous` / `say interval`）指定「他人的假人名称」时报「你还没召唤假人呢」**，在控制台里等于无法按名字指定假人。名称解析现与其他命令一致：op 与控制台可指定任意假人，普通玩家仅限自己的。
 - **`/fp say once` / `continuous` / `interval` 的假人名字现在支持 TAB 补全**——此前该参数没有任何补全（与其他命令不同），因为为了保留「单参数即消息」的回退，它按字符串解析。
-- **修复 `/fp say stop` 完全不可用的问题。** 带假人名字时会抛 `ClassCastException`（提示发生意外错误），不带名字时则报「消息不能为空」而不执行停止。`stop` 不再要求消息；其余子命令的「单参数回退成消息」行为不变。
+- **修复 `/fp say stop` 完全不可用的问题。** 带名字时抛 `ClassCastException`，不带名字时又要求消息；`stop` 现已不要求消息。
 
 ## fp.build12 - 2026-09-26
 
 ### English
 
-- **Folia support.** The plugin can now run on Folia and other regionised servers: every scheduling call goes through a unified scheduler API (region / entity / global), fake-player spawning uses the region scheduler together with `teleportAsync`, and the connection answers keep-alive packets itself so fake players are no longer kicked for being "timed out" (#48).
-- **Login plugin compatibility.** Fake players are now marked as logged in for AuthMe / AuthMeReloaded, CatSeedLogin / ReCatSeedLogin and LibreLogin (Paper) / LibreLoginNext (Paper) — AuthMe through its public API (`forceLogin` / `forceRegister`, auto-registering unregistered names with a random short password), CatSeedLogin by adding the fake player to its `loginPlayers` list, LibreLogin by creating a temporary unregistered user record for an online fake player and authorizing it on spawn (no password; removed on disconnect or orderly shutdown; existing records are reused only when name capitalization matches). All of them are declared as `softdepend` and load only when that plugin is installed (#17, #19, #26).
-- **`/fp say` now goes through the chat event pipeline.** Messages are sent as unsigned chat through `ChatProcessor`, fully triggering `AsyncPlayerChatEvent` / `AsyncChatEvent` so chat-formatting plugins (EssentialsX Chat, Vane, …) can modify the format; the result is broadcast unless the event is cancelled. Previously chat was silently dropped on modern versions because of signature verification (#21).
-- **New `follow-quiting-force` option.** When enabled, a creator's fake players are removed right after the creator quits — after `follow-quiting-force-delay` seconds (default 3) — instead of waiting for the periodic cleanup; disabled by default. Note that enabling it also removes the fake players when the creator merely switches servers on a proxy. `config.yml` bumped to 22 (#50).
+- **Folia support.** The plugin now runs on Folia and other regionised servers: scheduling goes through region/entity/global schedulers, spawning uses `teleportAsync`, and the connection answers keep-alive itself so fake players are no longer kicked for timing out (#48).
+- **Login plugin compatibility.** Fake players are marked as logged in for AuthMe, CatSeedLogin and LibreLogin / LibreLoginNext without running register or login commands; all are declared as `softdepend` and only load when installed (#17, #19, #26).
+- **`/fp say` now goes through the chat event pipeline.** Messages are sent as unsigned chat through `ChatProcessor`, so `AsyncPlayerChatEvent` / `AsyncChatEvent` fire and formatting plugins can rewrite them (#21).
+- **New `follow-quiting-force` option.** A creator's fake players are removed `follow-quiting-force-delay` seconds (default 3) after the creator quits instead of waiting for the periodic cleanup; disabled by default. On a proxy it also triggers when the creator merely switches servers. `config.yml` bumped to 22 (#50).
 - Fixed AuthMe login failing with short passwords, and CatSeedLogin compatibility when its classes live in a different location.
 - Fixed command help ignoring the configured locale: help text is now resolved with the plugin's configured locale (#20).
 
 ### 中文
 
-- **新增 Folia 支持。** 插件现可在 Folia 及其他区域化服务端上运行：所有调度统一走调度 API（区域 / 实体 / 全局），假人生成改用区域调度器与 `teleportAsync`，连接会自行回应 keep-alive 包，不再被误判超时踢出（#48）。
-- **新增登录插件兼容。** 假人生成时会被自动标记为已登录，现支持 AuthMe / AuthMeReloaded、CatSeedLogin / ReCatSeedLogin 与 LibreLogin（Paper）/ LibreLoginNext（Paper）——AuthMe 走公开 API（`forceLogin` / `forceRegister`，未注册的名称用随机短密码自动注册），CatSeedLogin 写入其 `loginPlayers` 名单，LibreLogin 为在线假人创建临时未注册记录并在生成时授权（不设置密码；断开连接或正常关闭时清理；仅名称大小写一致时复用已有记录）。三者均以 `softdepend` 声明，仅在对应插件安装时加载（#17、#19、#26）。
-- **`/fp say` 现走聊天事件管线。** 消息以未签名形式交给 `ChatProcessor` 处理，完整触发 `AsyncPlayerChatEvent` / `AsyncChatEvent`，聊天格式化插件（EssentialsX Chat、Vane 等）可介入修改格式；事件未取消时按结果广播。此前因新版签名校验，聊天会被静默丢弃（#21）。
-- **新增 `follow-quiting-force` 配置。** 开启后，创建者退出时会立即清理其假人（延迟 `follow-quiting-force-delay` 秒，默认 3），无需等待定时轮询；默认关闭。注意：开启后代理服上玩家仅切换服务器也会被清理。`config.yml` 版本提升至 22（#50）。
+- **新增 Folia 支持。** 插件现可在 Folia 及区域化服务端运行：调度统一走区域/实体/全局调度器，生成使用 `teleportAsync`，连接自行回应 keep-alive，不再被误判超时踢出（#48）。
+- **新增登录插件兼容。** 假人生成时会被自动标记为已登录，支持 AuthMe、CatSeedLogin 与 LibreLogin / LibreLoginNext，无需执行注册/登录命令；均以 `softdepend` 声明，仅在安装时加载（#17、#19、#26）。
+- **`/fp say` 现走聊天事件管线。** 消息以未签名形式交给 `ChatProcessor`，完整触发 `AsyncPlayerChatEvent` / `AsyncChatEvent`，格式化插件可修改格式（#21）。
+- **新增 `follow-quiting-force` 配置。** 创建者退出 `follow-quiting-force-delay` 秒（默认 3）后即清理其假人，无需等待定时轮询；默认关闭。代理服上仅切换服务器也会触发。`config.yml` 版本提升至 22（#50）。
 - 修复 AuthMe 短密码登录失败，以及 CatSeedLogin 类位于不同位置时的兼容问题。
 - 修复命令帮助未遵循配置语言：帮助文本现按插件配置的 locale 解析（#20）。
 
@@ -142,14 +142,14 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 ### English
 
 - **New: built-in HTTP admin API.** Optional remote management for web panels and automation: `GET /list`, `/spawn`, `/kick`, `/kill`, `/say`. Authenticated via `?token=` or `Authorization: Bearer`; each endpoint can be toggled independently under `http-admin.interface`; every call is logged with the token redacted.
-- **Breaking: `/fp kill` now truly kills.** `/fp kill` / `/fp killall` go through the real death flow (`setHealth(0)`), following the `kick-on-dead` config: by default the fake player is removed after death (death event cancelled, no loot); with `kick-on-dead: false` the corpse remains and can be revived via `/fp respawn`, with normal loot rules applied. The previous "remove without death" behavior is now `/fp kick` (single) / `/fp kickall` (all).
+- **Breaking: `/fp kill` now truly kills.** `/fp kill` / `/fp killall` go through the real death flow and follow `kick-on-dead`: by default the fake player is removed after death (no loot); with `kick-on-dead: false` the corpse remains and `/fp respawn` revives it. The old behavior is now `/fp kick` / `/fp kickall`.
 - New permission node `fakeplayer.command.kick`; the `fakeplayer.spawn` permission group now includes `kick` instead of `kill` (the latter now controls the real kill commands).
 - Fixed `/fp say` fallback when only a message is given (e.g. `/fp say once 1234`).
 
 ### 中文
 
 - **新增：内置 HTTP 管理接口。** 可选的远程管理能力，适用于 Web 面板与自动化脚本：`GET /list`、`/spawn`、`/kick`、`/kill`、`/say`。通过 `?token=` 或 `Authorization: Bearer` 鉴权；各接口可在 `http-admin.interface` 下独立开关；所有调用均记录日志（token 已脱敏）。
-- **破坏性变更：`/fp kill` 现为"真正杀死"。** `/fp kill` / `/fp killall` 现在通过真实死亡流程（`setHealth(0)`）击杀假人，并遵循 `kick-on-dead` 配置：默认死亡后即被移除（死亡事件被取消，不掉落物品）；`kick-on-dead: false` 时保留尸体并可用 `/fp respawn` 复活，掉落按服务端规则生效。原先"不造成死亡直接下线"的行为改为 `/fp kick`（单个）/ `/fp kickall`（批量）。
+- **破坏性变更：`/fp kill` 现为「真正杀死」。** `/fp kill` / `/fp killall` 走真实死亡流程并遵循 `kick-on-dead`：默认死亡后移除（不掉落）；`kick-on-dead: false` 时保留尸体，可用 `/fp respawn` 复活。原先「不造成死亡直接下线」的行为改为 `/fp kick` / `/fp kickall`。
 - 新增权限节点 `fakeplayer.command.kick`；`fakeplayer.spawn` 权限组现包含 `kick` 而非 `kill`（`kill` 现在对应真杀死命令）。
 - 修复 `/fp say` 仅给消息时的参数回退（如 `/fp say once 1234`）。
 
@@ -203,13 +203,13 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
-- **Fixed fake players could not be removed (Issue #3).** `/fp kill` and `/fp killall` now actually deregister the fake player entity from the server. Fake players are injected through a custom `NetworkManager`, where `Player.kick()` is a no-op on the fake connection; the cleanup flow now calls NMS `PlayerList.remove(ServerPlayer)` to truly remove them, and is compatible with Leaf forks.
+- **Fixed fake players could not be removed (Issue #3).** `/fp kill` / `/fp killall` now deregister the entity from the server instead of only clearing internal records; compatible with Leaf forks. Vanilla `/kick` does not affect fake players by design.
 - Includes the build5 fix: resolved `ClassCastException` when spawning on Leaf 1.21.11 / 26.2.
 - Note: vanilla `/kick` does not affect fake players by design (they are not real connections). Use `/fp kill` or `/fp killall` to remove them.
 
 ### 中文
 
-- **修复假人无法移除（Issue #3）。** `/fp kill` 与 `/fp killall` 现在会真正从服务器注销假人实体。假人通过自定义 `NetworkManager` 注入，`Player.kick()` 在 fake 连接上为空操作，旧逻辑仅清空内部记录而未断开实体。清理流程现改为调用 NMS `PlayerList.remove(ServerPlayer)` 真正移除，并兼容 Leaf 分支。
+- **修复假人无法移除（Issue #3）。** `/fp kill` 与 `/fp killall` 现会真正从服务器注销假人实体，而非仅清空内部记录；兼容 Leaf 分支。vanilla `/kick` 对假人无效为预期设计。
 - 包含此前 build5 的修复：解决 Leaf 1.21.11 / 26.2 上生成假人的 `ClassCastException`。
 - 说明：vanilla `/kick` 对假人无效为预期设计（假人并非真实连接），请使用 `/fp kill` 或 `/fp killall` 移除假人。
 
