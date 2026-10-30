@@ -10,6 +10,8 @@ import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerPlayer;
 import io.github.hello09x.devtools.core.translation.PluginTranslator;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.aichat.AiChatConfig;
+import io.github.hello09x.fakeplayer.core.aichat.AiChatManager;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.constant.MetadataKeys;
@@ -82,6 +84,8 @@ public class HttpAdminService {
     private final FakeplayerList playerList;
     private final FakeplayerPingSetter pingSetter;
     private final PluginTranslator translator;
+    private final AiChatManager aiChatManager;
+    private final AiChatConfig aiChatConfig;
 
     private final Map<String, Endpoint> routes = new LinkedHashMap<>();
 
@@ -93,7 +97,8 @@ public class HttpAdminService {
 
     @Inject
     public HttpAdminService(FakeplayerManager manager, FakeplayerConfig config, ActionManager actionManager, NMSBridge bridge,
-                            FakeplayerList playerList, FakeplayerPingSetter pingSetter, PluginTranslator translator) {
+                            FakeplayerList playerList, FakeplayerPingSetter pingSetter, PluginTranslator translator,
+                            AiChatManager aiChatManager, AiChatConfig aiChatConfig) {
         this.manager = manager;
         this.config = config;
         this.actionManager = actionManager;
@@ -101,6 +106,8 @@ public class HttpAdminService {
         this.playerList = playerList;
         this.pingSetter = pingSetter;
         this.translator = translator;
+        this.aiChatManager = aiChatManager;
+        this.aiChatConfig = aiChatConfig;
     }
 
     public void start() {
@@ -130,6 +137,8 @@ public class HttpAdminService {
         routes.put("/kill", this::handleKill);
         routes.put("/respawn", this::handleRespawn);
         routes.put("/say", this::handleSay);
+        routes.put("/aichat", this::handleAiChat);
+        routes.put("/aichat/stop", this::handleAiChatStop);
         routes.put("/action", this::handleAction);
         routes.put("/stop", this::handleStop);
         routes.put("/teleport", this::handleTeleport);
@@ -491,6 +500,89 @@ public class HttpAdminService {
                 return null;
             });
             sendJson(ex, 200, "success", null);
+        } catch (Exception e) {
+            sendJson(ex, 500, "failure", rootMsg(e));
+        }
+    }
+
+    /**
+     * 让假人用 AI 说一句; {@code continuous=true} 时持续发言直到 /aichat/stop
+     */
+    private void handleAiChat(HttpExchange ex) throws IOException {
+        if (!preflight(ex, config.isHttpAdminAichat())) {
+            return;
+        }
+        if (!aiChatConfig.isEnabled()) {
+            sendJson(ex, 403, "failure", "AI chat is disabled, enable it in ai-chat.yml");
+            return;
+        }
+        if (aiChatConfig.resolveApiKey() == null) {
+            sendJson(ex, 403, "failure", "No API key configured in ai-chat.yml");
+            return;
+        }
+
+        var fake = requireFake(ex, query(ex, "name"));
+        if (fake == null) {
+            return;
+        }
+
+        var mode = Optional.ofNullable(query(ex, "mode")).orElse("public").trim().toLowerCase(Locale.ROOT);
+        Player target = null;
+        if (mode.equals("private")) {
+            var targetName = query(ex, "target");
+            if (targetName == null || targetName.isBlank()) {
+                sendJson(ex, 400, "failure", "Target is required for private mode");
+                return;
+            }
+            target = Bukkit.getPlayerExact(targetName);
+            if (target == null) {
+                sendJson(ex, 400, "failure", "The target player is not online.");
+                return;
+            }
+        } else if (!mode.equals("public")) {
+            sendJson(ex, 400, "failure", "Unknown mode: " + mode);
+            return;
+        }
+
+        final Integer interval;
+        try {
+            interval = intQuery(ex, "interval");
+        } catch (IllegalArgumentException e) {
+            sendJson(ex, 400, "failure", e.getMessage());
+            return;
+        }
+
+        var continuous = Boolean.parseBoolean(Optional.ofNullable(query(ex, "continuous")).orElse("false"));
+        var chatTarget = target;
+        try {
+            callSync(() -> {
+                if (continuous) {
+                    aiChatManager.start(fake, chatTarget, interval);
+                } else {
+                    aiChatManager.say(fake, chatTarget);
+                }
+                return null;
+            });
+            sendJson(ex, 200, "success", null);
+        } catch (Exception e) {
+            sendJson(ex, 500, "failure", rootMsg(e));
+        }
+    }
+
+    private void handleAiChatStop(HttpExchange ex) throws IOException {
+        if (!preflight(ex, config.isHttpAdminAichat())) {
+            return;
+        }
+        var fake = requireFake(ex, query(ex, "name"));
+        if (fake == null) {
+            return;
+        }
+        try {
+            var stopped = callSync(() -> aiChatManager.stop(fake));
+            var payload = new LinkedHashMap<String, Object>();
+            payload.put("status", "success");
+            payload.put("stopped", stopped);
+            sendJson(ex, 200, payload);
         } catch (Exception e) {
             sendJson(ex, 500, "failure", rootMsg(e));
         }

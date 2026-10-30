@@ -307,6 +307,11 @@ public class FakeplayerConfig extends PluginConfig {
     private boolean httpAdminSay;
 
     /**
+     * 是否启用 HTTP 接口 /aichat
+     */
+    private boolean httpAdminAichat;
+
+    /**
      * 是否启用 status 接口
      */
     private boolean httpAdminStatus;
@@ -482,6 +487,7 @@ public class FakeplayerConfig extends PluginConfig {
         this.httpAdminKick = file.getBoolean("http-admin.interface.kick", true);
         this.httpAdminKill = file.getBoolean("http-admin.interface.kill", true);
         this.httpAdminSay = file.getBoolean("http-admin.interface.say", true);
+        this.httpAdminAichat = file.getBoolean("http-admin.interface.aichat", true);
         this.httpAdminStatus = file.getBoolean("http-admin.interface.status", true);
         this.httpAdminInfo = file.getBoolean("http-admin.interface.info", true);
         this.httpAdminAction = file.getBoolean("http-admin.interface.action", true);

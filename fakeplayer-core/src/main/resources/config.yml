@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 30
+version: 31
 
 
 # ============================================================
@@ -423,6 +423,7 @@ http-admin:
     action: true        # GET /action       触发动作 (attack/mine/use/jump/drop/say 等)
     stop: true          # GET /stop         停止当前所有动作      stop all running actions
     say: true           # GET /say          让假人发言            make a fake player send a chat message
+    aichat: true        # GET /aichat       让假人用 AI 发言      let a fake player talk via AI
     teleport: true      # GET /teleport     传送假人              teleport a fake player
     look: true          # GET /look         设置朝向              set the look direction
     hold: true          # GET /hold         切换主手槽位          switch the main hand slot
