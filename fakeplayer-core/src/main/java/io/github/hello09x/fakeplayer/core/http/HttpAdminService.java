@@ -553,6 +553,10 @@ public class HttpAdminService {
         }
 
         var continuous = Boolean.parseBoolean(Optional.ofNullable(query(ex, "continuous")).orElse("false"));
+        if (continuous && !aiChatConfig.isAllowContinuous()) {
+            sendJson(ex, 403, "failure", "Continuous AI chat is disabled in ai-chat.yml");
+            return;
+        }
         var chatTarget = target;
         try {
             callSync(() -> {

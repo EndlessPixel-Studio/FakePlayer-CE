@@ -6,6 +6,8 @@ import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.entity.Fakeplayer;
+import io.github.hello09x.fakeplayer.core.manager.FakeplayerList;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -21,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
 /**
@@ -34,6 +38,9 @@ public class AiChatManager {
     private final AiChatConfig config;
     private final AiChatClient client;
     private final NMSBridge bridge;
+    private final FakeplayerList fakeplayerList;
+
+    private final AtomicLong lastAutoReplyAt = new AtomicLong(0);
 
     private final Map<UUID, Deque<ChatMessage>> histories = new ConcurrentHashMap<>();
 
@@ -46,10 +53,11 @@ public class AiChatManager {
     private final Deque<String> recentChats = new ArrayDeque<>();
 
     @Inject
-    public AiChatManager(AiChatConfig config, AiChatClient client, NMSBridge bridge) {
+    public AiChatManager(AiChatConfig config, AiChatClient client, NMSBridge bridge, FakeplayerList fakeplayerList) {
         this.config = config;
         this.client = client;
         this.bridge = bridge;
+        this.fakeplayerList = fakeplayerList;
     }
 
     /**
@@ -72,6 +80,75 @@ public class AiChatManager {
                 this.recentChats.removeFirst();
             }
         }
+    }
+
+    /**
+     * 玩家发言时调用: 内容像样、冷却已过且随机命中才会让某个假人接一句
+     */
+    public void onPlayerChat(@NotNull Player speaker, @NotNull String message) {
+        if (this.isFake(speaker)) {
+            // 假人自己的发言不参与触发, 避免自问自答
+            return;
+        }
+
+        this.recordChat(speaker.getName(), message);
+
+        if (!config.isAutoReplyEnabled() || !this.isMeaningful(message) || !this.tryAcquireAutoReply()) {
+            return;
+        }
+
+        var fake = this.pickFakeplayer();
+        if (fake != null) {
+            this.generate(fake, null);
+        }
+    }
+
+    private boolean isFake(@NotNull Player player) {
+        return this.fakeplayerList.getAll().stream().anyMatch(fake -> fake.getPlayer().equals(player));
+    }
+
+    /**
+     * 过滤掉「1」「?」「哈哈哈哈」这类不值得接话的消息
+     */
+    private boolean isMeaningful(@NotNull String message) {
+        var text = message.trim();
+        if (text.length() < config.getAutoReplyMinLength() || text.length() > config.getAutoReplyMaxLength()) {
+            return false;
+        }
+
+        long alphanumeric = text.codePoints().filter(Character::isLetterOrDigit).count();
+        if (alphanumeric * 2 < text.length()) {
+            // 大半是符号或表情
+            return false;
+        }
+
+        long distinct = text.codePoints().distinct().count();
+        return distinct * 3 >= text.length();
+    }
+
+    private boolean tryAcquireAutoReply() {
+        var now = System.currentTimeMillis();
+        var last = this.lastAutoReplyAt.get();
+        if (now - last < config.getAutoReplyCooldownSeconds() * 1000L) {
+            return false;
+        }
+        if (ThreadLocalRandom.current().nextDouble() >= config.getAutoReplyChance()) {
+            return false;
+        }
+        return this.lastAutoReplyAt.compareAndSet(last, now);
+    }
+
+    private @Nullable Player pickFakeplayer() {
+        var candidates = this.fakeplayerList
+                .getAll()
+                .stream()
+                .map(Fakeplayer::getPlayer)
+                .filter(player -> player.isOnline() && player.isValid())
+                .toList();
+        if (candidates.isEmpty()) {
+            return null;
+        }
+        return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
     }
 
     /**
