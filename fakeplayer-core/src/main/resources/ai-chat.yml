@@ -1,0 +1,54 @@
+# ============================================================
+# AI 聊天 / AI chat
+# ============================================================
+# 用于 /fp aichat: 让假人通过 OpenAI 兼容接口生成聊天内容, 与 MCP 无关
+# Used by /fp aichat: let fake players generate chat lines through an
+# OpenAI-compatible endpoint. No MCP required.
+
+# 总开关
+# Master switch
+enabled: false
+
+# 接口地址, 不含 /chat/completions
+# API base URL without /chat/completions
+api: "https://api.openai.com/v1"
+
+# 密钥: 优先读取 api-key-env 指定的环境变量, 未设置时使用 api-key
+# API key: the environment variable named by api-key-env wins, then api-key
+api-key: ""
+api-key-env: "FAKEPLAYER_AI_KEY"
+
+model: "gpt-4o"
+
+temperature: 1.0
+top-p: 1.0
+presence-penalty: 0.0
+frequency-penalty: 0.0
+
+# 0 表示不限制 / 0 means unlimited
+max-tokens: 0
+
+# 保留多少轮上下文, 0 表示不保留历史
+# Number of turns kept as context, 0 disables history
+max-context: 20
+
+# 单次请求超时 (秒) / Request timeout in seconds
+timeout-seconds: 30
+
+# 持续发言的默认间隔 (tick), 可用 /fp aichat <public|private> interval <ticks> 覆盖
+# Default interval in ticks for continuous mode
+interval-ticks: 200
+
+# 系统提示词, 可用 {name} 代表假人名称
+# System prompt, {name} is replaced with the fake player's name
+system-prompt: |
+  你是 Minecraft 服务器中的一名玩家, 名字是 {name}。
+  说话简短、自然、口语化, 每次只说一到两句话, 不要使用括号描述动作, 不要提到自己是 AI。
+
+# 每轮对话追加的用户提示, 可用 {name}
+# Extra user turn appended on every request, {name} is supported
+turn-prompt: "说一句话。"
+
+# 私聊消息格式, 支持 MiniMessage, 可用 {name} 与 {message}
+# Private message format (MiniMessage), supports {name} and {message}
+private-format: "<gray>[{name} -> 你] {message}</gray>"
