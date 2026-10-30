@@ -144,6 +144,8 @@ http-admin:
 | `GET /kill?name=<name>` | Kill a fake player (real death, may drop loot) |
 | `GET /respawn?name=<name>` | Respawn a dead fake player |
 | `GET /say?name=<name>&message=<text>` | Send a chat message as the fake player (URL-encode the text) |
+| `GET /aichat?name=<name>[&mode=public\|private][&target=<player>][&continuous=true][&interval=<ticks>]` | Let the fake player talk via AI; requires `ai-chat.yml`; `continuous=true` keeps going until `/aichat/stop` |
+| `GET /aichat/stop?name=<name>` | Stop the fake player's continuous AI chat |
 | `GET /action?name=<name>&action=<action>` | Trigger an action, see parameters below |
 | `GET /stop?name=<name>` | Stop every running action |
 | `GET /teleport?name=<name>[&world=&x=&y=&z=&yaw=&pitch=]` | Teleport; omitted parameters keep their current value |

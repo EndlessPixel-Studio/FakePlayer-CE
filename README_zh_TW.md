@@ -144,6 +144,8 @@ http-admin:
 | `GET /kill?name=<名字>` | 殺死假人（真實死亡，可能掉落） |
 | `GET /respawn?name=<名字>` | 復活已死亡假人 |
 | `GET /say?name=<名字>&message=<內容>` | 以假人身份發言（內容需 URL 編碼） |
+| `GET /aichat?name=<名字>[&mode=public\|private][&target=<玩家>][&continuous=true][&interval=<tick>]` | 讓假人用 AI 發言，需啟用 `ai-chat.yml`；`continuous=true` 持續到 `/aichat/stop` |
+| `GET /aichat/stop?name=<名字>` | 停止該假人的 AI 持續發言 |
 | `GET /action?name=<名字>&action=<動作>` | 觸發動作，參數見下表 |
 | `GET /stop?name=<名字>` | 停止假人目前所有動作 |
 | `GET /teleport?name=<名字>[&world=&x=&y=&z=&yaw=&pitch=]` | 傳送假人，未給出的參數保持目前值 |
