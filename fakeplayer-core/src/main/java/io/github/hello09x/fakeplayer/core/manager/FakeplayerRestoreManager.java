@@ -54,6 +54,8 @@ public class FakeplayerRestoreManager implements Listener {
     private final FakeplayerConfig config;
     private final ActionManager actionManager;
 
+    private volatile String lastSnapshot;
+
     @Inject
     public FakeplayerRestoreManager(FakeplayerManager manager, FakeplayerConfig config, ActionManager actionManager) {
         this.manager = manager;
@@ -100,6 +102,13 @@ public class FakeplayerRestoreManager implements Listener {
                     this.encodeActions(actionManager.getSettings(player))
             ));
         }
+
+        // 内容没变就不落盘, 避免每 30 秒无谓写文件
+        var content = String.join("\n", lines);
+        if (content.equals(this.lastSnapshot)) {
+            return;
+        }
+        this.lastSnapshot = content;
         this.write(lines);
     }
 

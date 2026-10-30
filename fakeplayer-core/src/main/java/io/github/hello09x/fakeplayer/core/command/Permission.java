@@ -50,6 +50,7 @@ public interface Permission {
     String wakeup = "fakeplayer.command.wakeup";
     String cmd = "fakeplayer.command.cmd";
     String say = "fakeplayer.command.say";
+    String aichat = "fakeplayer.command.aichat";
     String stop = "fakeplayer.command.stop";
     String password = "fakeplayer.command.password";
     String changepassword = "fakeplayer.command.changepassword";

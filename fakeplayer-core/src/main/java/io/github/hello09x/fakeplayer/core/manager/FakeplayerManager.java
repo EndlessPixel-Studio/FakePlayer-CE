@@ -10,6 +10,7 @@ import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.aichat.AiChatManager;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.constant.MetadataKeys;
 import io.github.hello09x.fakeplayer.core.entity.Fakeplayer;
@@ -32,6 +33,7 @@ import org.bukkit.plugin.IllegalPluginAccessException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
 import java.util.Objects;
@@ -59,19 +61,25 @@ public class FakeplayerManager {
     private final NameManager nameManager;
     private final FakeplayerList playerList;
     private final FakeplayerFeatureManager featureManager;
+    private final AiChatManager aiChatManager;
     private final NMSBridge nms;
     private final FakeplayerConfig config;
     private final ScheduledExecutorService lagMonitor;
     private volatile boolean stopping;
     private int laglevel=0;
 
+    private volatile @Nullable Method removeMethod;
+    private volatile @Nullable Method broadcastMethod;
+    private volatile boolean playerListMethodsResolved;
+
     @Inject
-    public FakeplayerManager(NameManager nameManager, FakeplayerList playerList, FakeplayerFeatureManager featureManager, NMSBridge nms, FakeplayerConfig config) {
+    public FakeplayerManager(NameManager nameManager, FakeplayerList playerList, FakeplayerFeatureManager featureManager, NMSBridge nms, FakeplayerConfig config, AiChatManager aiChatManager) {
         this.nameManager = nameManager;
         this.playerList = playerList;
         this.featureManager = featureManager;
         this.nms = nms;
         this.config = config;
+        this.aiChatManager = aiChatManager;
 
         this.lagMonitor = Executors.newSingleThreadScheduledExecutor();
         this.lagMonitor.scheduleWithFixedDelay(() -> {
@@ -386,6 +394,7 @@ public class FakeplayerManager {
             return;
         }
         this.nameManager.unregister(fakeplayer.getSequenceName());
+        this.aiChatManager.forget(target);
         if (config.isDropInventoryOnQuiting()) {
             this.nms.createAction(
                     fakeplayer.getPlayer(),
@@ -410,33 +419,98 @@ public class FakeplayerManager {
      */
     private void removeFromServer(@NotNull Player player) {
         try {
-            var server = Bukkit.getServer();
-            var playerList = resolvePlayerList(server);
+            var playerList = resolvePlayerList(Bukkit.getServer());
             if (playerList == null) {
                 return;
             }
             var serverPlayer = Reflections.getHandle(player);
-            var spClass = serverPlayer.getClass();
-            // 优先尝试 remove(ServerPlayer), 其次 remove(ServerPlayer, String)
-            for (var paramTypes : new Class<?>[][]{new Class<?>[]{spClass}, new Class<?>[]{spClass, String.class}}) {
+            this.resolvePlayerListMethods(playerList, serverPlayer.getClass());
+
+            var method = this.removeMethod;
+            if (method == null) {
+                log.warning("未能找到 PlayerList.remove(" + serverPlayer.getClass().getName() + ") 方法, 假人 "
+                        + player.getName() + " 可能未被真正移除");
+                return;
+            }
+
+            // remove(ServerPlayer) 优先, 回退到 remove(ServerPlayer, String)
+            var leaveMessage = method.getParameterCount() == 1
+                    ? method.invoke(playerList, serverPlayer)
+                    : method.invoke(playerList, serverPlayer, "removed");
+            this.broadcastLeaveMessage(playerList, player, leaveMessage);
+        } catch (Exception e) {
+            log.warning("调用 PlayerList.remove 移除假人 " + player.getName() + " 失败: " + e);
+        }
+    }
+
+    /**
+     * 反射方法只解析一次, 避免每次移除假人都全量扫描方法表
+     */
+    private void resolvePlayerListMethods(@NotNull Object playerList, @NotNull Class<?> serverPlayerClass) {
+        if (this.playerListMethodsResolved) {
+            return;
+        }
+        synchronized (this) {
+            if (this.playerListMethodsResolved) {
+                return;
+            }
+            for (var paramTypes : new Class<?>[][]{new Class<?>[]{serverPlayerClass}, new Class<?>[]{serverPlayerClass, String.class}}) {
                 try {
                     var method = playerList.getClass().getMethod("remove", paramTypes);
                     method.setAccessible(true);
-                    if (paramTypes.length == 1) {
-                        method.invoke(playerList, serverPlayer);
-                    } else {
-                        method.invoke(playerList, serverPlayer, "removed");
-                    }
-                    return;
+                    this.removeMethod = method;
+                    break;
                 } catch (NoSuchMethodException ignored) {
                     // 尝试下一签名
                 }
             }
-            log.warning("未能找到 PlayerList.remove(" + spClass.getName() + ") 方法, 假人 "
-                    + player.getName() + " 可能未被真正移除");
-        } catch (Exception e) {
-            log.warning("调用 PlayerList.remove 移除假人 " + player.getName() + " 失败: " + e);
+            for (var method : playerList.getClass().getMethods()) {
+                var paramTypes = method.getParameterTypes();
+                if (method.getName().equals("broadcastSystemMessage") && paramTypes.length == 2 && paramTypes[1] == boolean.class) {
+                    method.setAccessible(true);
+                    this.broadcastMethod = method;
+                    break;
+                }
+            }
+            this.playerListMethodsResolved = true;
         }
+    }
+
+    /**
+     * 补发假人的退出消息。
+     *
+     * <p>1.20 ~ 1.21 的 {@code PlayerList.remove} 自身会广播退出消息 (返回 String); 26.2 起该广播移到了
+     * {@code ServerGamePacketListenerImpl#removePlayerFromWorld} 中, 而我们移除假人绕过了这条链路,
+     * 因此 {@code remove} 返回 void 时需要自己补发一条与取消一致的提示。</p>
+     */
+    private void broadcastLeaveMessage(
+            @NotNull Object playerList,
+            @NotNull Player player,
+            @Nullable Object leaveMessage
+    ) {
+        if (leaveMessage != null && this.invokeBroadcastSystemMessage(playerList, leaveMessage)) {
+            return;
+        }
+        if (this.removeMethod != null && this.removeMethod.getReturnType() == void.class) {
+            Bukkit.getServer().sendMessage(translatable("multiplayer.player.left", player.displayName()).color(YELLOW));
+        }
+    }
+
+    private boolean invokeBroadcastSystemMessage(@NotNull Object playerList, @NotNull Object message) {
+        var method = this.broadcastMethod;
+        if (method == null) {
+            return false;
+        }
+        if (!method.getParameterTypes()[0].isInstance(message)) {
+            // 旧版本返回的是 String, 与聊天组件参数不匹配, 说明服务器已经广播过
+            return false;
+        }
+        try {
+            method.invoke(playerList, message, false);
+        } catch (Exception e) {
+            log.warning("广播假人退出消息失败: " + e);
+        }
+        return true;
     }
 
     private static @Nullable Object resolvePlayerList(@NotNull org.bukkit.Server server) {
