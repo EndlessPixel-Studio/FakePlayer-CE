@@ -84,7 +84,12 @@ public class FakeplayerLifecycleListener implements Listener {
             // Not a fake player
             return;
         }
-        pendingFakeQuits.put(player.getUniqueId(), this.manager.getCreatorName(player));
+        // ConcurrentHashMap 不接受 null: 创建者已被别人先行清理时直接跳过 after-quit,
+        // 而不是在事件里抛 NPE 把 post-quit 命令也一起带下去
+        var creatorName = this.manager.getCreatorName(player);
+        if (creatorName != null) {
+            pendingFakeQuits.put(player.getUniqueId(), creatorName);
+        }
         manager.dispatchCommands(player, config.getPostQuitCommands());
     }
 
