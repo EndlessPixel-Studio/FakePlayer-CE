@@ -57,7 +57,7 @@
 | `/fp aichat private <玩家> [once\|continuous\|interval <tick>] [假人]` | 只發給指定玩家 |
 | `/fp aichat stop [假人]` | 停止持續發言 |
 
-`ai-chat.yml` 中的 `system-prompt` / `turn-prompt` / `max-context` / `interval-ticks` 分別控制人設、每輪提示、保留的上下文輪數與持續發言間隔。
+`ai-chat.yml` 中的 `system-prompt` / `turn-prompt` / `max-context` / `interval-ticks` 分別控制人設、每輪提示、保留的上下文輪數與持續發言間隔；`recent-chat-lines` 大於 0 時，最近若干條公共聊天也會作為上下文傳入，讓假人能接上玩家的話題。
 
 ## 指令清單
 
