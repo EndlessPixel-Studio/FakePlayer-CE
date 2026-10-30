@@ -17,11 +17,14 @@ import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.translatable;
@@ -50,25 +53,49 @@ public class SpawnCommand extends AbstractCommand {
         if (name != null && name.isEmpty()) {
             name = null;
         }
-        var world = (World) args.get("world");
-        var location = (Location) args.get("location");
+        this.spawn(sender, name, this.resolveSpawnpoint(sender, args), null);
+    }
 
-        Location spawnpoint;
-        if (world == null || location == null) {
-            spawnpoint = sender instanceof Player p
-                    ? p.getLocation().clone()
-                    : Bukkit.getWorlds().get(0).getSpawnLocation().clone();
-        } else {
-            spawnpoint = new Location(
-                    world,
-                    location.getX(),
-                    location.getY(),
-                    location.getZ()
-            );
+    /**
+     * 用指定 UUID 创建假人
+     */
+    @HandleCommandException
+    public void spawnWithUuid(@NotNull CommandSender sender, @NotNull CommandArguments args) {
+        var name = (String) args.get("name");
+        var raw = (String) args.get("uuid");
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(Objects.requireNonNull(raw).trim());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            sender.sendMessage(translatable(
+                    "fakeplayer.spawn.error.uuid.invalid",
+                    text(String.valueOf(raw), GOLD)
+            ).color(RED));
+            return;
         }
 
+        this.spawn(sender, name, this.resolveSpawnpoint(sender, args), uuid);
+    }
+
+    private @NotNull Location resolveSpawnpoint(@NotNull CommandSender sender, @NotNull CommandArguments args) {
+        var world = (World) args.get("world");
+        var location = (Location) args.get("location");
+        if (world == null || location == null) {
+            return sender instanceof Player p
+                    ? p.getLocation().clone()
+                    : Bukkit.getWorlds().get(0).getSpawnLocation().clone();
+        }
+        return new Location(world, location.getX(), location.getY(), location.getZ());
+    }
+
+    private void spawn(
+            @NotNull CommandSender sender,
+            @Nullable String name,
+            @NotNull Location spawnpoint,
+            @Nullable UUID uuid
+    ) {
         var removedAt = Optional.ofNullable(config.getLifespan()).map(lifespan -> LocalDateTime.now().plus(lifespan)).orElse(null);
-        manager.spawnAsync(sender, name, spawnpoint, Optional.ofNullable(config.getLifespan()).map(Duration::toMillis).orElse(FakeplayerTicker.NON_REMOVE_AT))
+        manager.spawnAsync(sender, name, spawnpoint, Optional.ofNullable(config.getLifespan()).map(Duration::toMillis).orElse(FakeplayerTicker.NON_REMOVE_AT), uuid)
                .thenAcceptAsync(player -> {
                    if (player == null) {
                        return;

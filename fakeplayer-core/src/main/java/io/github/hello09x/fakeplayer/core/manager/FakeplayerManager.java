@@ -132,12 +132,29 @@ public class FakeplayerManager {
             @NotNull Location spawnAt,
             long lifespan
     ) {
+        return this.spawnAsync(creator, name, spawnAt, lifespan, null);
+    }
+
+    /**
+     * 创建假人, 可指定 UUID
+     *
+     * @param uuid 指定的 UUID, 为空时按名称生成
+     */
+    public @NotNull CompletableFuture<Player> spawnAsync(
+            @NotNull CommandSender creator,
+            @Nullable String name,
+            @NotNull Location spawnAt,
+            long lifespan,
+            @Nullable UUID uuid
+    ) {
         if (stopping) {
             return CompletableFuture.failedFuture(new IllegalStateException("Plugin is disabled"));
         }
         this.checkLimit(creator);
 
-        var sn = name == null ? nameManager.getRegularName(creator) : nameManager.getSpecifiedName(creator, name);
+        var sn = uuid != null && name != null
+                ? nameManager.getSpecifiedName(creator, name, uuid)
+                : name == null ? nameManager.getRegularName(creator) : nameManager.getSpecifiedName(creator, name);
         log.info("UUID of fake player %s is %s".formatted(sn.name(), sn.uuid()));
 
         var fp = new Fakeplayer(

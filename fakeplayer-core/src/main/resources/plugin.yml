@@ -27,6 +27,9 @@ permissions:
     default: op
   fakeplayer.command.spawn.location:
     description: 'Allow player to run /fp spawn and specify a spawn location'
+  fakeplayer.command.spawn.uuid:
+    description: 'Allow player to run /fp spawnuuid and specify a UUID'
+    default: op
   fakeplayer.command.kick:
     description: 'Allow player to run /fp kick'
   fakeplayer.command.kill:
