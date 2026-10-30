@@ -105,6 +105,8 @@ permissions:
     description: 'Allow player to run /fp cmd'
   fakeplayer.command.say:
     description: 'Allow player to run /fp say'
+  fakeplayer.command.aichat:
+    description: 'Allow player to run /fp aichat'
   fakeplayer.command.password:
     description: 'Allow player to run /fp password'
   fakeplayer.command.changepassword:

@@ -47,6 +47,18 @@ FakePlayer CE ships as a single `fakeplayer-fp.buildX.jar`. Drop it into your se
 
 On first launch only a template `config.tmpl.yml` is generated; rename it to `config.yml` to activate it. The template lets you preview new options when upgrading without overwriting existing settings. See the [sample config](fakeplayer-core/src/main/resources/config.yml).
 
+## AI Chat
+
+`/fp aichat` lets fake players generate chat lines through an OpenAI-compatible endpoint (no MCP required). Fill in `api` and `api-key` (or the environment variable named by `api-key-env`) in `plugins/FakePlayer-CE/ai-chat.yml`, set `enabled: true`, then run `/fp reload`.
+
+| Command | Description |
+|---|---|
+| `/fp aichat public [once\|continuous\|interval <ticks>] [fake player]` | Send to public chat; `continuous` keeps talking until `stop` |
+| `/fp aichat private <player> [once\|continuous\|interval <ticks>] [fake player]` | Send to one player only |
+| `/fp aichat stop [fake player]` | Stop continuous mode |
+
+`system-prompt`, `turn-prompt`, `max-context` and `interval-ticks` in `ai-chat.yml` control the persona, per-turn prompt, retained context and interval. Setting `recent-chat-lines` above 0 also feeds the last N public chat lines into the prompt, so fake players can pick up what players are talking about.
+
 ## Commands
 
 | Command | Description | Permission | Note |
@@ -93,6 +105,7 @@ On first launch only a template `config.tmpl.yml` is generated; rename it to `co
 | /fp hold | Hold the hotbar item in a slot | fakeplayer.command.hold | |
 | /fp cmd | Execute a command as the fake player | fakeplayer.command.cmd | High risk, see Permissions |
 | /fp say | Send a chat message | fakeplayer.command.say | Goes through chat events, formatter-friendly |
+| /fp aichat | Generate chat lines with AI | fakeplayer.command.aichat | Requires `ai-chat.yml`; `public` / `private` / `stop` |
 | /fp password | Set fake player login password (stored in the plugin database) | fakeplayer.command.password | Used with `auto-login.command` |
 | /fp changepassword | Change fake player login password (old password optional) | fakeplayer.command.changepassword | |
 | /fp reload | Reload config | OP | |
