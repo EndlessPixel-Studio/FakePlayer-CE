@@ -51,12 +51,14 @@ public class AiChatCommand extends AbstractCommand {
     }
 
     public void publicContinuous(@NotNull CommandSender sender, @NotNull CommandArguments args) throws WrapperCommandSyntaxException {
+        this.checkContinuous(sender);
         var fake = this.readyFakeplayer(sender, args);
         this.aiChat.start(fake, null, getInterval(args));
         sender.sendMessage(translatable("fakeplayer.command.aichat.started", GRAY));
     }
 
     public void privateContinuous(@NotNull CommandSender sender, @NotNull CommandArguments args) throws WrapperCommandSyntaxException {
+        this.checkContinuous(sender);
         var fake = this.readyFakeplayer(sender, args);
         this.aiChat.start(fake, this.getTarget(args), getInterval(args));
         sender.sendMessage(translatable("fakeplayer.command.aichat.started", GRAY));
@@ -79,6 +81,12 @@ public class AiChatCommand extends AbstractCommand {
             throw this.fail(sender, "fakeplayer.command.aichat.error.missing-api-key");
         }
         return super.getFakeplayer(sender, args);
+    }
+
+    private void checkContinuous(@NotNull CommandSender sender) throws WrapperCommandSyntaxException {
+        if (!this.aiChatConfig.isAllowContinuous()) {
+            throw this.fail(sender, "fakeplayer.command.aichat.error.continuous-disabled");
+        }
     }
 
     private @NotNull Player getTarget(@NotNull CommandArguments args) {

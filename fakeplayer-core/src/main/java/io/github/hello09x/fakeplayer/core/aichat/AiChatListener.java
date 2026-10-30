@@ -28,7 +28,7 @@ public class AiChatListener implements Listener {
         if (message.isEmpty()) {
             return;
         }
-        this.aiChatManager.recordChat(event.getPlayer().getName(), message);
+        this.aiChatManager.onPlayerChat(event.getPlayer(), message);
     }
 
 }

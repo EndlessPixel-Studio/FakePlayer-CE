@@ -36,6 +36,22 @@ max-context: 20
 # How many recent public chat lines are given as context, 0 disables it
 recent-chat-lines: 0
 
+# 自动接话 (推荐): 玩家说了像样的话时才可能让某个假人接一句
+# 会先过滤短消息、纯符号/表情、重复刷屏, 再按概率与冷却决定是否真的请求模型
+# Auto reply (recommended): a fake player may answer when a player says something
+# sensible. Short, symbol-only and spammy messages are filtered before the chance
+# and cooldown checks.
+auto-reply:
+  enabled: false
+  chance: 0.15              # 每条合格消息接话的概率 / chance per qualifying message
+  cooldown-seconds: 90      # 两次接话的最小间隔 / minimum seconds between replies
+  min-length: 4             # 太短的不接 / ignore messages shorter than this
+  max-length: 120           # 太长的（复制的长文）不接 / ignore messages longer than this
+
+# 是否允许 continuous (定时主动发言)。会一直消耗 token, 默认关闭
+# Allow continuous mode (talking on a timer). It keeps burning tokens, off by default
+allow-continuous: false
+
 # 单次请求超时 (秒) / Request timeout in seconds
 timeout-seconds: 30
 

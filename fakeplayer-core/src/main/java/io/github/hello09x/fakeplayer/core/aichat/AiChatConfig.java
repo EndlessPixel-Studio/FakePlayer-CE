@@ -51,6 +51,18 @@ public class AiChatConfig {
 
     private int recentChatLines;
 
+    private boolean autoReplyEnabled;
+
+    private double autoReplyChance;
+
+    private int autoReplyCooldownSeconds;
+
+    private int autoReplyMinLength;
+
+    private int autoReplyMaxLength;
+
+    private boolean allowContinuous;
+
     private int timeoutSeconds;
 
     private int intervalTicks;
@@ -93,6 +105,12 @@ public class AiChatConfig {
         this.maxTokens = yaml.getInt("max-tokens", 0);
         this.maxContext = Math.max(0, yaml.getInt("max-context", 20));
         this.recentChatLines = Math.max(0, yaml.getInt("recent-chat-lines", 0));
+        this.autoReplyEnabled = yaml.getBoolean("auto-reply.enabled", false);
+        this.autoReplyChance = Math.max(0D, Math.min(1D, yaml.getDouble("auto-reply.chance", 0.15D)));
+        this.autoReplyCooldownSeconds = Math.max(0, yaml.getInt("auto-reply.cooldown-seconds", 90));
+        this.autoReplyMinLength = Math.max(1, yaml.getInt("auto-reply.min-length", 4));
+        this.autoReplyMaxLength = Math.max(this.autoReplyMinLength, yaml.getInt("auto-reply.max-length", 120));
+        this.allowContinuous = yaml.getBoolean("allow-continuous", false);
         this.timeoutSeconds = Math.max(1, yaml.getInt("timeout-seconds", 30));
         this.intervalTicks = Math.max(20, yaml.getInt("interval-ticks", 200));
         this.systemPrompt = yaml.getString("system-prompt", DEFAULT_SYSTEM_PROMPT);
