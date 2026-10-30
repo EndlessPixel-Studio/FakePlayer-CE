@@ -145,6 +145,22 @@ public enum Feature implements Translatable, Singletons {
             faker -> String.valueOf(autofishManager.get().isAutofish(faker)),
             (faker, value) -> autofishManager.get().setAutofish(faker, Boolean.parseBoolean(value))
     ),
+
+    /**
+     * 假人的模拟距离 (区块半径); -1 表示沿用世界设置
+     * <p>可选值为空表示该项接受任意整数, 而不是 true/false 这类枚举</p>
+     */
+    simulation_distance(
+            "fakeplayer.config.simulation_distance",
+            List.of(Permission.config),
+            List.of(),
+            "-1",
+            faker -> String.valueOf(faker.getSimulationDistance()),
+            (faker, value) -> {
+                var distance = Integer.parseInt(value);
+                faker.setSimulationDistance(distance >= 0 ? distance : faker.getWorld().getSimulationDistance());
+            }
+    ),
     ;
 
     @NotNull
@@ -173,6 +189,13 @@ public enum Feature implements Translatable, Singletons {
 
     public boolean hasDetector() {
         return this.detector != null;
+    }
+
+    /**
+     * 是否接受任意整数取值 (options 为空)
+     */
+    public boolean isNumeric() {
+        return this.options.isEmpty();
     }
 
     public boolean hasModifier() {

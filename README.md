@@ -194,9 +194,11 @@ Each player can save their own defaults; changes apply on the **next spawn**. Us
 | `replenish` | Refill consumed or used items |
 | `replace_tools` | GCA-style tool replacement |
 | `autofish` | Enable auto-fishing |
+| `simulation_distance` | Simulation distance (chunk radius) of the fake player; `-1` keeps the world setting |
 
 - **`replace_tools`**: follows GCA's default mode — non-Mending tools are replaced after they break; Mending tools are replaced at `tool-replacement.remaining-durability-threshold` (default `10`) when a qualifying replacement is available. Matching uses item type (enchantments ignored) and picks the first eligible item in inventory order.
 - **`replenish`**: `/fp drop` and `/fp dropstack` refill the main hand; milk buckets, stews, honey bottles and drinkable potions are refilled with their returned container when it fits, otherwise the container stays in hand. `/fp dropinv` never refills.
+- **`simulation_distance`**: the chunk radius ticking around the fake player. Set the global default under `default-features` in `config.yml`; `/fp config set simulation_distance 8` applies to that creator's fake players, and `/fp set <name> simulation_distance 8` changes a single one. `-1` uses the world setting.
 
 ## Permissions
 

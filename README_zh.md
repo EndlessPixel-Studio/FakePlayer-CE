@@ -194,9 +194,11 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 | `replenish` | 自动补充消耗或使用完的物品 |
 | `replace_tools` | GCA 风格的工具替换 |
 | `autofish` | 是否开启自动钓鱼 |
+| `simulation_distance` | 假人的模拟距离（区块半径），`-1` 沿用世界设置 |
 
 - **`replace_tools`**：遵循 GCA 默认模式——非经验修补工具损坏后才更换；经验修补工具达到 `tool-replacement.remaining-durability-threshold`（默认 `10`）时，若背包中有合格替代品即更换。匹配只看物品类型（不看附魔），按背包顺序取第一个。
 - **`replenish`**：`/fp drop` / `/fp dropstack` 丢空主手后自动补货；消耗奶桶、炖菜、蜂蜜瓶或可饮用药水时，若背包能存下返回的容器则回填并补回原物，否则容器留在手上。`/fp dropinv` 不会补货。
+- **`simulation_distance`**：以假人为中心的区块刻半径。全局默认写在 `config.yml` 的 `default-features` 里；`/fp config set simulation_distance 8` 对该创建者的假人生效，`/fp set <假人> simulation_distance 8` 只改单个假人；`-1` 用世界设置。
 
 ## 权限分组说明
 

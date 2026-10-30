@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -21,7 +22,7 @@ public class ActionManager {
 
     private final static Logger log = Main.getInstance().getLogger();
 
-    private final Map<UUID, Map<ActionType, ActionTicker>> managers = new HashMap<>();
+    private final Map<UUID, Map<ActionType, ActionTicker>> managers = new ConcurrentHashMap<>();
 
     private final NMSBridge bridge;
 
@@ -58,12 +59,38 @@ public class ActionManager {
                       .collect(Collectors.toSet());
     }
 
+    /**
+     * 复制当前活跃动作的配置, 供持久化 (如 restore-on-start) 使用。
+     * <p>返回的是副本, 快照线程无需担心与 tick 线程竞争。</p>
+     */
+    public @NotNull Map<ActionType, ActionSetting> getSettings(@NotNull Player player) {
+        var tickers = this.managers.get(player.getUniqueId());
+        if (tickers == null || tickers.isEmpty()) {
+            return Map.of();
+        }
+
+        var settings = new EnumMap<ActionType, ActionSetting>(ActionType.class);
+        for (var entry : tickers.entrySet()) {
+            var setting = entry.getValue().getSetting();
+            if (setting.remains <= 0 && setting.remains != -1) {
+                continue;
+            }
+            var copy = new ActionSetting(setting.maximum, setting.interval, setting.wait, setting.message);
+            copy.remains = setting.remains;
+            copy.targetX = setting.targetX;
+            copy.targetY = setting.targetY;
+            copy.targetZ = setting.targetZ;
+            settings.put(entry.getKey(), copy);
+        }
+        return settings;
+    }
+
     public void setAction(
             @NotNull Player player,
             @NotNull ActionType action,
             @NotNull ActionSetting setting
     ) {
-        var managers = this.managers.computeIfAbsent(player.getUniqueId(), key -> new HashMap<>());
+        var managers = this.managers.computeIfAbsent(player.getUniqueId(), key -> new ConcurrentHashMap<>());
         managers.put(action, bridge.createAction(player, action, setting));
     }
 

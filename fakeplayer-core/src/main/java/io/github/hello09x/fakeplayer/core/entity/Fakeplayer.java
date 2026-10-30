@@ -270,6 +270,10 @@ public class Fakeplayer {
                     this.handle.setupClientOptions();   // 处理皮肤设置问题
 
                     this.teleportToSpawnpoint(option.spawnAt().clone());
+                    if (option.simulationDistance() >= 0) {
+                        // 玩家进入世界后再设置, 否则区块追踪还没有建立
+                        this.player.setSimulationDistance(option.simulationDistance());
+                    }
                     this.ticker.run();
                 }))
                 .whenComplete((ignored, throwable) -> {
