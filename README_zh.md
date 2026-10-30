@@ -57,7 +57,9 @@
 | `/fp aichat private <玩家> [once\|continuous\|interval <tick>] [假人]` | 只发给指定玩家 |
 | `/fp aichat stop [假人]` | 停止持续发言 |
 
-`ai-chat.yml` 中的 `system-prompt` / `turn-prompt` / `max-context` / `interval-ticks` 分别控制人设、每轮提示、保留的上下文轮数与持续发言间隔；`recent-chat-lines` 大于 0 时，最近若干条公共聊天也会作为上下文传入，让假人能接上玩家的话题。
+`ai-chat.yml` 中的 `system-prompt` / `turn-prompt` / `max-context` / `interval-ticks` 分别控制人设、每轮提示、保留的上下文轮数与持续发言间隔；`recent-chat-lines` 大于 0 时，最近若干条公共聊天也会作为上下文传入。
+
+推荐开启 `auto-reply`：只在玩家说了像样的话时才可能接一句，短消息、纯符号和重复刷屏会先被过滤，再由 `chance` 与 `cooldown-seconds` 控制频率。`continuous`（定时主动发言）会持续消耗 token，默认关闭，需要在 `ai-chat.yml` 里把 `allow-continuous` 打开。
 
 ## 指令列表
 
