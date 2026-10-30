@@ -32,6 +32,7 @@ import org.bukkit.plugin.IllegalPluginAccessException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
 import java.util.Objects;
@@ -425,7 +426,7 @@ public class FakeplayerManager {
                     var leaveMessage = paramTypes.length == 1
                             ? method.invoke(playerList, serverPlayer)
                             : method.invoke(playerList, serverPlayer, "removed");
-                    this.broadcastLeaveMessage(playerList, player, leaveMessage);
+                    this.broadcastLeaveMessage(playerList, player, method, leaveMessage);
                     return;
                 } catch (NoSuchMethodException ignored) {
                     // 尝试下一签名
@@ -441,21 +442,25 @@ public class FakeplayerManager {
     /**
      * 补发假人的退出消息。
      *
-     * <p>26.x 起 {@code PlayerList.remove} 不再自行广播退出消息, 而是把它作为返回值交给调用方;
-     * 1.20 / 1.21 的 {@code remove} 返回 String 且内部已经广播过。因此返回值是聊天组件时直接广播,
-     * 返回值为空且存在 {@code remove(ServerPlayer, Component)} 重载 (26.x) 时, 用原版的退出消息补发一次。</p>
+     * <p>1.20 ~ 1.21 的 {@code PlayerList.remove} 自身会广播退出消息; 26.2 起该广播移到了
+     * {@code ServerGamePacketListenerImpl#removePlayerFromWorld} 中, 而我们移除假人绕过了这条链路,
+     * 因此 {@code remove} 返回 void 时需要自己补发一条与取消一致的提示。</p>
      */
-    private void broadcastLeaveMessage(@NotNull Object playerList, @NotNull Player player, @Nullable Object leaveMessage) {
-        if (leaveMessage != null) {
-            this.invokeBroadcastSystemMessage(playerList, leaveMessage);
+    private void broadcastLeaveMessage(
+            @NotNull Object playerList,
+            @NotNull Player player,
+            @NotNull Method removeMethod,
+            @Nullable Object leaveMessage
+    ) {
+        if (leaveMessage != null && this.invokeBroadcastSystemMessage(playerList, leaveMessage)) {
             return;
         }
-        if (this.hasComponentRemoveOverload(playerList)) {
-            Bukkit.getServer().sendMessage(translatable("multiplayer.player.left", player.displayName()));
+        if (removeMethod.getReturnType() == void.class) {
+            Bukkit.getServer().sendMessage(translatable("multiplayer.player.left", player.displayName()).color(YELLOW));
         }
     }
 
-    private void invokeBroadcastSystemMessage(@NotNull Object playerList, @NotNull Object message) {
+    private boolean invokeBroadcastSystemMessage(@NotNull Object playerList, @NotNull Object message) {
         for (var method : playerList.getClass().getMethods()) {
             var types = method.getParameterTypes();
             if (!method.getName().equals("broadcastSystemMessage") || types.length != 2 || types[1] != boolean.class) {
@@ -471,22 +476,7 @@ public class FakeplayerManager {
             } catch (Exception e) {
                 log.warning("广播假人退出消息失败: " + e);
             }
-            return;
-        }
-    }
-
-    /**
-     * 是否存在 26.x 的 {@code remove(ServerPlayer, Component)} 重载 (第二个参数不是 String)
-     */
-    private boolean hasComponentRemoveOverload(@NotNull Object playerList) {
-        for (var method : playerList.getClass().getMethods()) {
-            if (!method.getName().equals("remove")) {
-                continue;
-            }
-            var types = method.getParameterTypes();
-            if (types.length == 2 && types[1] != String.class && !types[1].isPrimitive()) {
-                return true;
-            }
+            return true;
         }
         return false;
     }
