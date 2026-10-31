@@ -9,6 +9,7 @@ import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.entity.FakeplayerTicker;
+import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import io.github.hello09x.fakeplayer.core.util.OfflineCreator;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -37,7 +38,7 @@ import java.util.logging.Logger;
  * 记录当前在线的假人, 并在服务器下次启动时自动恢复。
  * <p>开启 {@code restore-on-start} 后:
  * <ul>
- *     <li>周期性把在线假人 (名称 / 创建者 / 位置) 写入快照文件, 关服前再写一次</li>
+ *     <li>周期性把在线假人 (名称 / 创建者 / 位置 / 特性 / 进行中的动作) 写入快照文件, 关服前再写一次</li>
  *     <li>服务器启动完成的 {@link ServerLoadEvent} 后, 按快照逐个异步重建假人</li>
  * </ul>
  */
@@ -77,7 +78,7 @@ public class FakeplayerRestoreManager implements Listener {
     }
 
     /**
-     * 将当前在线假人 (名称 / 创建者 / 位置 / 进行中的动作) 写入快照文件
+     * 将当前在线假人 (名称 / 创建者 / 位置 / 特性 / 进行中的动作) 写入快照文件
      */
     public void saveSnapshot() {
         if (!config.isRestoreOnStart()) {
@@ -99,7 +100,8 @@ public class FakeplayerRestoreManager implements Listener {
                     String.valueOf(location.getZ()),
                     String.valueOf(location.getYaw()),
                     String.valueOf(location.getPitch()),
-                    this.encodeActions(actionManager.getSettings(player))
+                    this.encodeActions(actionManager.getSettings(player)),
+                    this.encodeFeatures(player)
             ));
         }
 
@@ -141,7 +143,7 @@ public class FakeplayerRestoreManager implements Listener {
                                          .get(30, TimeUnit.SECONDS);
                     if (player != null) {
                         restored++;
-                        this.restoreActions(player, entry.actions());
+                        this.restoreState(player, entry.features(), entry.actions());
                         log.info("Restored fake player %s (creator: %s)".formatted(entry.name(), entry.creator()));
                     }
                 } catch (Exception e) {
@@ -216,6 +218,7 @@ public class FakeplayerRestoreManager implements Listener {
                     Double.parseDouble(parts[5]),
                     Float.parseFloat(parts[6]),
                     Float.parseFloat(parts[7]),
+                    parts.length > 9 ? this.decodeFeatures(parts[9]) : List.of(),
                     parts.length > 8 ? this.decodeActions(parts[8]) : List.of()
             );
         } catch (NumberFormatException e) {
@@ -224,15 +227,31 @@ public class FakeplayerRestoreManager implements Listener {
     }
 
     /**
-     * 恢复假人上次的动作; 必须在假人所属的实体线程执行
+     * 恢复假人上次的特性与动作; 必须在假人所属的实体线程执行
+     * <p>先特性后动作: {@code look_at_entity} 同时属于两者, 以动作快照为准</p>
      */
-    private void restoreActions(@NotNull Player player, @NotNull List<ActionEntry> actions) {
-        if (actions.isEmpty()) {
+    private void restoreState(
+            @NotNull Player player,
+            @NotNull List<FeatureEntry> features,
+            @NotNull List<ActionEntry> actions
+    ) {
+        if (features.isEmpty() && actions.isEmpty()) {
             return;
         }
         Schedulers.entity(Main.getInstance(), player, () -> {
             if (!player.isValid()) {
                 return;
+            }
+            for (var entry : features) {
+                var modifier = entry.feature().getModifier();
+                if (modifier == null) {
+                    continue;
+                }
+                try {
+                    modifier.accept(player, entry.value());
+                } catch (RuntimeException e) {
+                    log.warning("Failed to restore feature %s of %s: %s".formatted(entry.feature(), player.getName(), e.getMessage()));
+                }
             }
             for (var action : actions) {
                 try {
@@ -242,6 +261,53 @@ public class FakeplayerRestoreManager implements Listener {
                 }
             }
         });
+    }
+
+    /**
+     * 编码为 {@code FEATURE=value;FEATURE=value}
+     * <p>只记录既能读出又能回放的项: {@code skin} 在生成时已确定, 没有读写函数, 故跳过。</p>
+     */
+    private @NotNull String encodeFeatures(@NotNull Player player) {
+        var encoded = new StringBuilder();
+        for (var feature : Feature.values()) {
+            var detector = feature.getDetector();
+            if (detector == null || feature.getModifier() == null) {
+                continue;
+            }
+            String value;
+            try {
+                value = detector.apply(player);
+            } catch (RuntimeException e) {
+                continue;
+            }
+            if (value == null || value.isBlank()) {
+                continue;
+            }
+            if (!encoded.isEmpty()) {
+                encoded.append(';');
+            }
+            encoded.append(feature.name()).append('=').append(value);
+        }
+        return encoded.toString();
+    }
+
+    private @NotNull List<FeatureEntry> decodeFeatures(@NotNull String encoded) {
+        if (encoded.isBlank()) {
+            return List.of();
+        }
+        var features = new ArrayList<FeatureEntry>();
+        for (var part : encoded.split(";")) {
+            var index = part.indexOf('=');
+            if (index <= 0) {
+                continue;
+            }
+            try {
+                features.add(new FeatureEntry(Feature.valueOf(part.substring(0, index)), part.substring(index + 1)));
+            } catch (IllegalArgumentException e) {
+                log.warning("Failed to decode restored feature: " + part);
+            }
+        }
+        return features;
     }
 
     /**
@@ -306,6 +372,12 @@ public class FakeplayerRestoreManager implements Listener {
     ) {
     }
 
+    private record FeatureEntry(
+            @NotNull Feature feature,
+            @NotNull String value
+    ) {
+    }
+
     private record Entry(
             @NotNull String name,
             @NotNull String creator,
@@ -315,6 +387,7 @@ public class FakeplayerRestoreManager implements Listener {
             double z,
             float yaw,
             float pitch,
+            @NotNull List<FeatureEntry> features,
             @NotNull List<ActionEntry> actions
     ) {
     }
