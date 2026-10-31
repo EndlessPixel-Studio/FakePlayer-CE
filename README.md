@@ -273,7 +273,7 @@ Features: `fakeplayer.config.replenish`, `fakeplayer.config.replenish.chest` (re
 
 ## Custom Translation
 
-Built-in locales: `en`, `zh`, `zh_tw`, `zh_hk`. Switch with `i18n.locale` in `config.yml` (then `/fp reload`).
+Built-in locales: `en`, `zh`, `zh_tw`, `zh_hk`, `ja`. Switch with `i18n.locale` in `config.yml` (then `/fp reload`).
 
 Custom: drop `message_<language>_<region>.properties` (copy the [template](fakeplayer-core/src/main/resources/message/message.properties)) into `plugins/fakeplayer/message/`, set `i18n.locale` to the matching suffix (e.g. `en_us`), and run `/fp reload-translation`. Files must be **UTF-8** encoded.
 
