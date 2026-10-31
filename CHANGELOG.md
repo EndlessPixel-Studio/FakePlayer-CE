@@ -14,10 +14,14 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 ### English
 
 - **Japanese localization.** Messages, command descriptions and help text now ship in Japanese; set `i18n.locale: ja` to use it. `config.yml` bumped to 33.
+- **`/fp say` help now matches every other command.** `/fp say help` prints the same paginated list as `/fp say` subcommands elsewhere, and the usage line spells out each subcommand's arguments (including `interval <ticks>`), so following the docs no longer sends the name where a tick count is expected.
+- **Fixed messages being dropped when `/fp say once` is used repeatedly.** Once commands were queued as a single replaceable action, so two in the same tick left only the last one; each call now runs on its own.
 
 ### 中文
 
 - **新增日语本地化。** 消息、命令描述与帮助文本均已提供日语版本，把 `i18n.locale` 设为 `ja` 即可使用。`config.yml` 版本提升至 33。
+- **`/fp say` 的帮助与其他命令统一。** `/fp say help` 现在输出与其他子命令一致的分页列表，用法行也逐一写清每个子命令的参数（含 `interval <ticks>`），照文档传参不会再出现「名字被当整数」的报错。
+- **修复连续执行 `/fp say once` 丢消息。** once 原先作为可替换的单条动作排队，同一 tick 内连发两次只会执行最后一条；现在每次调用各自执行。
 
 ## fp.build16 - 2026-10-31
 
