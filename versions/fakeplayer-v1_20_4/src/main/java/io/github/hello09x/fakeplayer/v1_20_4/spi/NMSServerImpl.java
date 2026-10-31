@@ -36,7 +36,10 @@ public class NMSServerImpl implements NMSServer {
                 new GameProfile(uuid, name),
                 ClientInformation.createDefault()
         );
-        server.getPlayerList().playerIo.load(handle).ifPresent(handle::load);
+        var saved = server.getPlayerList().playerIo.load(handle);
+        if (saved != null) {
+            handle.load(saved);
+        }
         return new NMSServerPlayerImpl(handle.getBukkitEntity());
     }
 }
