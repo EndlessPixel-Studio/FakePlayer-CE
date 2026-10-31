@@ -163,16 +163,12 @@ def read_readme(path="README.md"):
 
 
 def to_absolute(markdown):
-    """相对链接与图片在 Hangar 上打不开, 统统改写成 GitHub 的绝对地址。"""
+    """相对链接改写成 GitHub 绝对地址, 并去掉只属于 GitHub 首页的装饰。"""
     blob = f"https://github.com/{REPO}/blob/master"
-    raw = f"https://raw.githubusercontent.com/{REPO}/master"
 
     markdown = markdown.replace('<div align="center">', "").replace("</div>", "")
-    markdown = re.sub(
-        r'<img src="(?P<src>[^"]+)" alt="(?P<alt>[^"]*)"[^>]*>',
-        lambda m: f"![{m.group('alt')}]({path_url(m.group('src'), raw)})",
-        markdown,
-    )
+    # 主页上的大 logo 在 Hangar 页面里显得突兀, 直接去掉
+    markdown = re.sub(r'<img src="[^"]*" alt="[^"]*"[^>]*>\n*', "", markdown)
     markdown = re.sub(
         r"\]\((?!https?://|#|mailto:)([^)\s]+)\)",
         lambda m: f"]({path_url(m.group(1), blob)})",
