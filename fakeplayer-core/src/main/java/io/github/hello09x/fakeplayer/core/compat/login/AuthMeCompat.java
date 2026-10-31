@@ -6,9 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Method;
 import java.security.SecureRandom;
-import java.util.UUID;
 
 /**
  * AuthMe (AuthMeReloaded) 兼容实现。

@@ -9,7 +9,6 @@ import io.github.hello09x.fakeplayer.core.compat.skin.SkinsRestorerCompat;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerSkinManager;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
