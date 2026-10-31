@@ -23,6 +23,13 @@ English | [简体中文](README_zh.md) | [繁體中文](README_zh_TW.md)
 - This repository is an **independent community fork** — not released, maintained or endorsed by the original author.
 - Report all bugs and feature requests **only to this repository**, never upstream.
 
+## Quick Start
+
+1. Install [CommandAPI](https://commandapi.jorel.dev) into `plugins/`
+2. Put `fakeplayer-fp.buildX.jar` into `plugins/`
+3. Start the server once, then rename `config.tmpl.yml` to `config.yml`
+4. Run `/fp spawn`
+
 ## Features
 
 - Spawn fake players that appear fully real to the server — ideal for chunk loading
@@ -66,7 +73,7 @@ On first launch only a template `config.tmpl.yml` is generated; rename it to `co
 | Command | Description | Permission | Note |
 |------|---------|---------|------|
 | /fp spawn | Spawn a fake player | fakeplayer.command.spawn | |
-| /fp spawnuuid | Spawn a fake player with a given UUID | fakeplayer.command.spawn.uuid | `<name> <uuid> [world] [location]` |
+| /fp spawnuuid | Spawn a fake player with a given UUID | fakeplayer.command.spawn.uuid | `<name> <uuid> [world] [location]`; a name already bound to another UUID is rejected |
 | /fp kick | Kick fake players (remove from the server) | fakeplayer.command.kick | |
 | /fp kickall | Kick all fake players on the server | OP | |
 | /fp kill | Kill fake players (real death, may drop loot) | fakeplayer.command.kill | |
@@ -186,7 +193,7 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/cmd" --data-urlencode "name=klmg
 curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmgun" --data-urlencode "message=hello world"
 ```
 
-### Security
+## Security
 
 Built in, no configuration needed: **authentication before the endpoint switch**, so `401`/`403` cannot be used to probe which endpoints are enabled; token redaction and control-character replacement in logs; per-IP rate limiting with lockout after repeated failures; optional `allowed-hosts` Host / `Origin` checks; `Cache-Control: no-store` on responses.
 
@@ -215,7 +222,7 @@ Each player can save their own defaults; changes apply on the **next spawn**. Us
 
 - **`replace_tools`**: GCA-style — broken non-Mending tools, and Mending tools worn below `tool-replacement.remaining-durability-threshold` (default `10`), are swapped for an identical item from the inventory; enchantments are ignored.
 - **`replenish`**: `/fp drop` and `/fp dropstack` refill the main hand; food and drink containers come back when they fit. `/fp dropinv` never refills.
-- **`simulation_distance`**: chunk radius ticking around the fake player. Set the default under `default-features`; `/fp config set` overrides it per creator and `/fp set` per fake player.
+- **`simulation_distance`**: chunk radius ticking around the fake player; set the default under `default-features`, override with `/fp config set` or `/fp set`.
 
 ## Permissions
 
