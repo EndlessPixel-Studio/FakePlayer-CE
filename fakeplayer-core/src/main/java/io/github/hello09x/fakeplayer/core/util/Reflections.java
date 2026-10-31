@@ -72,6 +72,22 @@ public class Reflections {
         }
     }
 
+    /**
+     * 反射调用无参方法, 方法不存在或不可访问时静默失败
+     *
+     * @return 是否调用成功
+     */
+    public static boolean invokeVoid(@NotNull Object target, @NotNull String methodName) {
+        try {
+            var method = target.getClass().getDeclaredMethod(methodName);
+            method.setAccessible(true);
+            method.invoke(target);
+            return true;
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return false;
+        }
+    }
+
     public static Object getServer(Object obj) {
         try {
             Method method = obj.getClass().getMethod("getServer");
