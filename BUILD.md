@@ -1,6 +1,6 @@
 # Build Guide
 
-English | [简体中文](BUILD_zh.md) | [繁體中文](BUILD_zh_TW.md)
+English | [简体中文](BUILD_zh.md) | [繁體中文](BUILD_zh_TW.md) | [日本語](BUILD_ja.md)
 
 This project uses **paperweight-userdev** Gradle plugin to handle NMS dependencies automatically.
 No manual BuildTools setup is required.

@@ -1,6 +1,6 @@
 # 构建指南
 
-English | 简体中文 | [繁體中文](BUILD_zh_TW.md)
+[English](BUILD.md) | 简体中文 | [繁體中文](BUILD_zh_TW.md) | [日本語](BUILD_ja.md)
 
 本项目使用 **paperweight-userdev** Gradle 插件自动处理 NMS 依赖，无需手动运行 BuildTools。
 
