@@ -1,0 +1,48 @@
+name: Publish to Hangar
+
+# GitHub 上发布新版（Release published）后，自动在 Hangar 建同名版本：
+# 外链指向该 Release 的 jar（不占 Hangar 存储），更新日志指向 Release 页面，
+# 支持版本从 tag 上各 NMSBridge 的 SUPPORTS 声明读出。
+#
+# 鉴权：HANGAR_API_TOKEN 是 Hangar 的 API key，脚本内部先用
+# POST /api/v1/authenticate 换成 JWT，再用 `Authorization: HangarAuth <jwt>` 调用。
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '要发布的 tag，例如 fp.build16'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hangar-publish-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Create Hangar version
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # 需要完整历史才能读到 tag 上的 SUPPORTS 声明
+          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Create Hangar version
+        env:
+          HANGAR_API_TOKEN: ${{ secrets.HANGAR_API_TOKEN }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          python3 -m py_compile .github/scripts/sync_hangar.py
+          python3 .github/scripts/sync_hangar.py version --tag "$TAG"
