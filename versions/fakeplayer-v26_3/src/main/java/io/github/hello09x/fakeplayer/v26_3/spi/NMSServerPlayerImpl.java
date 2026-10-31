@@ -219,6 +219,12 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
     }
 
     @Override
+    public void markClientLoaded() {
+        // 假人没有真实客户端, 需要手动结束「等待客户端加载世界」, 否则出生后会短暂免疫伤害
+        Reflections.invokeVoid(handle.connection, "markClientLoaded");
+    }
+
+    @Override
     public void drop(int slot, boolean flag, boolean flag1) {
         // 26.3: ServerPlayer.drop(ItemStack, boolean, Prediction) —— 原本的第三个 boolean 变成 Prediction,
         // dropAround 在 26.3 内部固定为 false。此处按原语义把 flag1 (includeThrowerName) 传为 boolean,

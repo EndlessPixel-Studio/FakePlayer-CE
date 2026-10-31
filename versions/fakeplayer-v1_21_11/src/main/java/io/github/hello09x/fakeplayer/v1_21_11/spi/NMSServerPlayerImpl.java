@@ -215,6 +215,12 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
     }
 
     @Override
+    public void markClientLoaded() {
+        // 假人没有真实客户端, 需要手动结束「等待客户端加载世界」, 否则出生后会短暂免疫伤害
+        Reflections.invokeVoid(handle.connection, "markClientLoaded");
+    }
+
+    @Override
     public void drop(int slot, boolean flag, boolean flag1) {
         var inventory = handle.getInventory();
         handle.drop(inventory.removeItem(slot, inventory.getItem(slot).getCount()), flag, flag1);
