@@ -351,3 +351,7 @@ auto-login:
 ## ビルド
 
 [BUILD.md](./BUILD.md) を参照してください。本プロジェクトの Gradle マルチモジュール手順専用であり、上流の Maven ビルドには適用できません。
+
+## スター履歴
+
+[![Star History Chart](https://api.star-history.com/svg?repos=EndlessPixel-Studio/FakePlayer-CE&type=Date)](https://star-history.com/#EndlessPixel-Studio/FakePlayer-CE&Date)
