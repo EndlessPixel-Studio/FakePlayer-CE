@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.Component.translatable;
 
 @Singleton
 public class ChangepasswordCommand extends AbstractCommand {
@@ -28,13 +29,13 @@ public class ChangepasswordCommand extends AbstractCommand {
         var newPassword = (String) args.get("new");
 
         if (newPassword == null || newPassword.isBlank()) {
-            sender.sendMessage(text("新密码不能为空").color(NamedTextColor.RED));
+            sender.sendMessage(translatable("fakeplayer.command.changepassword.error.empty", NamedTextColor.RED));
             return;
         }
 
         var stored = authRepository.selectByName(target.getName());
         if (stored == null) {
-            sender.sendMessage(text("该假人尚未设置密码, 请先使用 /fp password 设置").color(NamedTextColor.RED));
+            sender.sendMessage(translatable("fakeplayer.command.changepassword.error.not-set", NamedTextColor.RED));
             return;
         }
 
@@ -43,7 +44,7 @@ public class ChangepasswordCommand extends AbstractCommand {
         if (oldInput == null || oldInput.isBlank()) {
             oldPassword = stored;
         } else if (!stored.equals(oldInput)) {
-            sender.sendMessage(text("旧密码不正确").color(NamedTextColor.RED));
+            sender.sendMessage(translatable("fakeplayer.command.changepassword.error.wrong-old", NamedTextColor.RED));
             return;
         } else {
             oldPassword = oldInput;
@@ -53,7 +54,7 @@ public class ChangepasswordCommand extends AbstractCommand {
         authRepository.saveOrUpdate(target.getName(), newPassword);
         var cmd = template.replace("%oldpassword%", oldPassword).replace("%newpassword%", newPassword);
         manager.issueCommands(target, List.of(cmd));
-        sender.sendMessage(text("已为假人 " + target.getName() + " 修改登录密码").color(NamedTextColor.GREEN));
+        sender.sendMessage(translatable("fakeplayer.command.changepassword.success", text(target.getName())).color(NamedTextColor.GREEN));
     }
 
 }
