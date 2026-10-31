@@ -13,11 +13,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
-- (TBD)
-
 ### 中文
-
-- （待补充）
 
 ## fp.build16 - 2026-10-31
 
