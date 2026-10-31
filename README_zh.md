@@ -23,6 +23,13 @@
 - 本仓库是**独立的社区维护分支**，不由原作者发布、维护或背书。
 - 所有 Bug 与功能需求**请只提交到本仓库**，不要提交给上游。
 
+## 快速上手
+
+1. 安装 [CommandAPI](https://commandapi.jorel.dev) 到 `plugins/`
+2. 把 `fakeplayer-fp.buildX.jar` 放进 `plugins/`
+3. 启动服务器一次，把 `config.tmpl.yml` 重命名为 `config.yml`
+4. 执行 `/fp spawn`
+
 ## 功能特性
 
 - 生成对服务器完全透明的假人玩家，适用于区块常驻加载
@@ -66,7 +73,7 @@
 | 指令 | 功能说明 | 权限节点 | 备注 |
 |------|---------|---------|------|
 | /fp spawn | 创建假人 | fakeplayer.command.spawn | |
-| /fp spawnuuid | 用指定 UUID 创建假人 | fakeplayer.command.spawn.uuid | 参数 `<名称> <UUID> [世界] [坐标]` |
+| /fp spawnuuid | 用指定 UUID 创建假人 | fakeplayer.command.spawn.uuid | 参数 `<名称> <UUID> [世界] [坐标]`；名称已绑定其他 UUID 时拒绝 |
 | /fp kick | 踢出假人（从服务器移除） | fakeplayer.command.kick | |
 | /fp kickall | 踢出服务器所有假人 | OP | |
 | /fp kill | 杀死假人（真实死亡，可能掉落物品） | fakeplayer.command.kill | |
@@ -186,7 +193,7 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/cmd" --data-urlencode "name=klmg
 curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmgun" --data-urlencode "message=你好 世界"
 ```
 
-### 安全说明
+## 安全说明
 
 内置防护（无需配置）：**鉴权先于接口开关**（无法用 `401` / `403` 差异探测已启用的接口）；日志脱敏并替换控制字符；按 IP 限流，连续失败后锁定；可选 `allowed-hosts` 校验 Host 与 `Origin`；响应带 `Cache-Control: no-store`。
 
@@ -215,7 +222,7 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 
 - **`replace_tools`**：GCA 风格——非经验修补工具损坏后、经验修补工具磨损到 `tool-replacement.remaining-durability-threshold`（默认 `10`）以下时，若背包中有同类物品即更换，不看附魔。
 - **`replenish`**：`/fp drop` / `/fp dropstack` 丢空主手后自动补货，食物与药水的容器在放得下时归还。`/fp dropinv` 不会补货。
-- **`simulation_distance`**：以假人为中心的区块刻半径。全局默认写在 `default-features`，`/fp config set` 按创建者覆盖，`/fp set` 改单个假人。
+- **`simulation_distance`**：以假人为中心的区块刻半径；默认写在 `default-features`，可用 `/fp config set` 或 `/fp set` 覆盖。
 
 ## 权限分组说明
 
