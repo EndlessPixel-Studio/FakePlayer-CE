@@ -135,7 +135,9 @@ public class Fakeplayer {
         this.player.setPersistent(config.isPersistData());
         this.player.setSleepingIgnored(true);
         this.handle.setPlayBefore(); // 可避免一些插件的第一次入服欢迎信息
-        this.handle.disableAdvancements(Main.getInstance()); // 不提示成就信息
+        if (!config.isAdvancements()) {
+            this.handle.disableAdvancements(Main.getInstance()); // 不授予成就, 也不播报
+        }
     }
 
     /**
