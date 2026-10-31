@@ -82,6 +82,15 @@ public abstract class AbstractCommand {
         }
         var locale = TranslatorUtils.getLocale(sender);
 
+        // 明确给了名字却没匹配到: 不能退回到「选中/唯一」的假人,
+        // 否则名字打错时会去操作另一个假人
+        if (!ignoreName && args.getRaw("name") != null) {
+            throw CommandAPI.failWithString(ComponentUtils.toString(
+                    translatable("fakeplayer.command.generic.error.non-matching-fake-player"),
+                    locale
+            ));
+        }
+
         var all = manager.getAll(sender, predicate);
         var count = all.size();
         return switch (count) {

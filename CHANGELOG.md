@@ -16,6 +16,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **Japanese localization.** Messages, command descriptions and help text now ship in Japanese; set `i18n.locale: ja` to use it. `config.yml` bumped to 33.
 - **New `/fp goto stop [name]`.** Cancels an ongoing walk without touching other actions; previously only `/fp stop` could end it, which also aborted everything else.
 - **Fixed `/fp kick -a` and `/fp kill -a` doing nothing for operators.** The `-a` shortcut was filtering by creator even for ops and the console, so it only ever matched fake players that sender had spawned; it now means every fake player on the server, matching `/fp kickall`. A name that matches nothing also reports an error instead of falling back to the selected fake player.
+- **Fixed a typo in a fake player name acting on a different fake player.** When the name did not match, the command fell back to the selected (or only) fake player, so `/fp tp wrongname` could move someone else's fake player; it now reports that nothing matched.
 - **Fixed HTTP admin endpoints touching fake players from the wrong thread.** Teleport, look, sneak, sprint, ping and the other per-fake-player writes ran on the HTTP executor thread (setping not even hopped off it), which violates Folia's region threading and races with the entity thread on Paper; they now run on the fake player's own entity thread.
 - **`/fp say` help now matches every other command.** `/fp say help` prints the same paginated list as `/fp say` subcommands elsewhere, and the usage line spells out each subcommand's arguments (including `interval <ticks>`), so following the docs no longer sends the name where a tick count is expected.
 - **Fixed messages being dropped when `/fp say once` is used repeatedly.** Once commands were queued as a single replaceable action, so two in the same tick left only the last one; each call now runs on its own.
@@ -25,6 +26,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **新增日语本地化。** 消息、命令描述与帮助文本均已提供日语版本，把 `i18n.locale` 设为 `ja` 即可使用。`config.yml` 版本提升至 33。
 - **新增 `/fp goto stop [假人]`。** 只中止正在进行的寻路，不影响其它动作；此前只能用 `/fp stop` 把该假人的所有动作一起停掉。
 - **修复 `/fp kick -a` 与 `/fp kill -a` 对 op 无效。** `-a` 原先只按创建者过滤，即使 op / 控制台执行也只看自己召唤的假人；现在与 `/fp kickall` 一致，作用于全服假人。另外，名字匹配不到时改为直接报错，不再回退到选中的假人——避免打错名字误操作。
+- **修复假人名字打错时会操作到另一个假人。** 名字匹配不到时原先会退回到「选中/唯一的假人」，例如 `/fp tp 打错的名字` 会传送别人家的假人；现在直接报「找不到匹配的假人」。
 - **修复 HTTP 管理接口在错误线程操作假人。** 传送、朝向、潜行、疾跑、延迟等针对单个假人的写操作原先跑在 HTTP 线程（`/setping` 甚至完全没切线程），Folia 下违反区域线程模型、Paper 下与实体线程竞争；现在统一在假人所属实体线程执行。
 - **`/fp say` 的帮助与其他命令统一。** `/fp say help` 现在输出与其他子命令一致的分页列表，用法行也逐一写清每个子命令的参数（含 `interval <ticks>`），照文档传参不会再出现「名字被当整数」的报错。
 - **修复连续执行 `/fp say once` 丢消息。** once 原先作为可替换的单条动作排队，同一 tick 内连发两次只会执行最后一条；现在每次调用各自执行。
