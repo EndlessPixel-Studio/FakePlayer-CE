@@ -111,7 +111,7 @@
 | /fp turn | 假人原地转向 | fakeplayer.command.turn | |
 | /fp look | 假人看向指定坐标 | fakeplayer.command.look | |
 | /fp move | 假人定向移动 | fakeplayer.command.move | |
-| /fp goto | 让假人寻路前往指定坐标 | fakeplayer.command.goto | 自动寻路；无法抵达则拒绝 |
+| /fp goto | 让假人寻路前往指定坐标 | fakeplayer.command.goto | 自动寻路；无法抵达则拒绝；`/fp goto stop` 可中止 |
 | /fp ride | 假人骑乘实体 | fakeplayer.command.ride | |
 | /fp sneak | 假人进入潜行模式 | fakeplayer.command.sneak | |
 | /fp sprint | 假人疾跑 | fakeplayer.command.sprint | |

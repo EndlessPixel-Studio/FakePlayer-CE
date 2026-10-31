@@ -111,7 +111,7 @@
 | /fp turn | その場で向きを変える | fakeplayer.command.turn | |
 | /fp look | 指定座標の方向を見る | fakeplayer.command.look | |
 | /fp move | 指定方向へ移動 | fakeplayer.command.move | |
-| /fp goto | 指定座標まで歩く | fakeplayer.command.goto | 障害物を避けて自動で経路探索。到達不能な目標は拒否 |
+| /fp goto | 指定座標まで歩く | fakeplayer.command.goto | 障害物を避けて自動で経路探索。到達不能な目標は拒否。`/fp goto stop` で中止 |
 | /fp ride | 騎乗 | fakeplayer.command.ride | |
 | /fp sneak | スニーク | fakeplayer.command.sneak | |
 | /fp sprint | ダッシュ | fakeplayer.command.sprint | |
