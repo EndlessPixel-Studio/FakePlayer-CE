@@ -466,7 +466,7 @@ public class HttpAdminService {
             return;
         }
         try {
-            callSync(() -> {
+            callOnEntity(fake, () -> {
                 fake.setHealth(0D);
                 return null;
             });
@@ -496,7 +496,7 @@ public class HttpAdminService {
             return;
         }
         try {
-            callSync(() -> {
+            callOnEntity(fake, () -> {
                 var setting = ActionSetting.once().clone();
                 setting.message = message;
                 actionManager.setAction(fake, ActionType.SAY, setting);
@@ -562,7 +562,7 @@ public class HttpAdminService {
         }
         var chatTarget = target;
         try {
-            callSync(() -> {
+            callOnEntity(fake, () -> {
                 if (continuous) {
                     aiChatManager.start(fake, chatTarget, interval);
                 } else {
@@ -585,7 +585,7 @@ public class HttpAdminService {
             return;
         }
         try {
-            var stopped = callSync(() -> aiChatManager.stop(fake));
+            var stopped = callOnEntity(fake, () -> aiChatManager.stop(fake));
             var payload = new LinkedHashMap<String, Object>();
             payload.put("status", "success");
             payload.put("stopped", stopped);
@@ -708,7 +708,7 @@ public class HttpAdminService {
         }
 
         try {
-            callSync(() -> {
+            callOnEntity(fake, () -> {
                 actionManager.setAction(fake, action, new ActionSetting(maximum, tickInterval, waitTicks, message));
                 return null;
             });
@@ -727,7 +727,7 @@ public class HttpAdminService {
             return;
         }
         try {
-            callSync(() -> {
+            callOnEntity(fake, () -> {
                 actionManager.stop(fake);
                 return null;
             });
@@ -904,7 +904,7 @@ public class HttpAdminService {
             return;
         }
         try {
-            callSync(() -> {
+            callOnEntity(fake, () -> {
                 fake.getInventory().setHeldItemSlot(slot - 1);
                 return null;
             });
@@ -923,7 +923,7 @@ public class HttpAdminService {
             return;
         }
         try {
-            callSync(() -> {
+            callOnEntity(fake, () -> {
                 bridge.fromPlayer(fake).swapItemWithOffhand();
                 return null;
             });
@@ -996,7 +996,7 @@ public class HttpAdminService {
         setting.targetY = stand.getY();
         setting.targetZ = stand.getZ();
         try {
-            callSync(() -> {
+            callOnEntity(fake, () -> {
                 actionManager.setAction(fake, ActionType.GOTO, setting);
                 return null;
             });
@@ -1112,11 +1112,11 @@ public class HttpAdminService {
             return;
         }
         try {
-            if (!callSync(fake::isDead)) {
+            if (!callOnEntity(fake, fake::isDead)) {
                 sendJson(ex, 400, "failure", "The dummy is not dead.");
                 return;
             }
-            callSync(() -> {
+            callOnEntity(fake, () -> {
                 bridge.fromPlayer(fake).respawn();
                 return null;
             });
@@ -1140,7 +1140,7 @@ public class HttpAdminService {
             return;
         }
         try {
-            callSync(() -> {
+            callOnEntity(fake, () -> {
                 manager.issueCommands(fake, List.of(command));
                 return null;
             });
