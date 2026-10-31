@@ -9,6 +9,12 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - 未发布的版本写作 `## fp.buildN - (Not published | 未发布)`：版本号可在开发期预置为下一版本，发布时把标题改成发布日期。
 - 每条条目以加粗短语概括要点，中英文段落条目数量与顺序保持一致。
 
+## fp.build17 - (Not published | 未发布)
+
+### English
+
+### 中文
+
 ## fp.build16 - 2026-10-31
 
 ### English
