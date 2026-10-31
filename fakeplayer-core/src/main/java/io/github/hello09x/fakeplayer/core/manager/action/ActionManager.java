@@ -117,7 +117,8 @@ public class ActionManager {
         }
 
         for (var entry : managers.entrySet()) {
-            if (!entry.getValue().equals(ActionSetting.stop())) {
+            // 原先把 ticker 直接和 ActionSetting 比 equals，类型不同恒 false，守卫一直没生效
+            if (!entry.getValue().getSetting().equals(ActionSetting.stop())) {
                 entry.setValue(bridge.createAction(player, entry.getKey(), ActionSetting.stop()));
             }
         }
