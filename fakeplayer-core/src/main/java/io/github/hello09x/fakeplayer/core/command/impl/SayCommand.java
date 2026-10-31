@@ -5,7 +5,9 @@ import com.google.inject.Singleton;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
+import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +56,13 @@ public class SayCommand extends AbstractCommand {
             var fake = super.getFakeplayer(sender, args, null, messageOnly);
             var copy = setting.clone();
             copy.message = message;
-            actionManager.setAction(fake, ActionType.SAY, copy);
+
+            if (setting.equals(ActionSetting.once())) {
+                // once 不能走 ticker: 同一 tick 内连续执行会互相覆盖, 前几条消息直接丢掉
+                Schedulers.entity(Main.getInstance(), fake, () -> actionManager.executeOnce(fake, ActionType.SAY, copy));
+            } else {
+                actionManager.setAction(fake, ActionType.SAY, copy);
+            }
             if (!setting.equals(ActionSetting.once()) || sender instanceof ConsoleCommandSender) {
                 sender.sendMessage(translatable("fakeplayer.command.generic.success"));
             }

@@ -94,6 +94,21 @@ public class ActionManager {
         managers.put(action, bridge.createAction(player, action, setting));
     }
 
+    /**
+     * 立即执行一次动作, 不经过 ticker
+     * <p>同一 tick 内连续调用时, 走 ticker 会被后一次覆盖, 前一次永远不执行 (如连续 /fp say once 丢消息), 这里直接执行。</p>
+     * <p>必须在假人所属的实体线程调用。</p>
+     */
+    public void executeOnce(
+            @NotNull Player player,
+            @NotNull ActionType action,
+            @NotNull ActionSetting setting
+    ) {
+        var oneShot = setting.clone();
+        oneShot.remains = 1;
+        bridge.createAction(player, action, oneShot).tick();
+    }
+
     public void stop(@NotNull Player player) {
         var managers = this.managers.get(player.getUniqueId());
         if (managers == null || managers.isEmpty()) {
