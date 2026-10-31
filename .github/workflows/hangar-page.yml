@@ -1,0 +1,37 @@
+name: Sync README to Hangar
+
+# README.md 变更后同步到 Hangar 项目主页正文（main page）。
+# 同步时会去掉居中 div、把相对链接与图片改成 GitHub 绝对地址，
+# 否则挂到 Hangar 上会 404。
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'README.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hangar-page
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync README.md to Hangar page
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Sync page content
+        env:
+          HANGAR_API_TOKEN: ${{ secrets.HANGAR_API_TOKEN }}
+        run: |
+          python3 -m py_compile .github/scripts/sync_hangar.py
+          python3 .github/scripts/sync_hangar.py page
