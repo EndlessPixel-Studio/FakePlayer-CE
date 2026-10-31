@@ -39,7 +39,8 @@ public class ActionManager {
     ) {
         return Optional.ofNullable(this.managers.get(player.getUniqueId()))
                        .map(manager -> manager.get(action))
-                       .filter(ac -> ac.getSetting().remains > 0)
+                       // -1 表示持续执行 (continuous) 的动作, 与 getActiveActions 的判定保持一致
+                       .filter(ac -> ac.getSetting().remains > 0 || ac.getSetting().remains == -1)
                        .isPresent();
     }
 
