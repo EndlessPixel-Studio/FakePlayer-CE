@@ -41,6 +41,9 @@
 - [xiplugin/FakePlayer commit d8ae21e](https://github.com/xiplugin/FakePlayer/commit/d8ae21e66618d9164df57e54bdcb068dca88f785)
 - [xiplugin/FakePlayer commit d6041da](https://github.com/xiplugin/FakePlayer/commit/d6041da6b983be844dbb51952bcb7834217bda79)
 - [xiplugin/FakePlayer commit fbf03ce](https://github.com/xiplugin/FakePlayer/commit/fbf03cec8ab16574b6ec055f3db7aa4b7f70a80c)
+- [xiplugin/FakePlayer commit 1f2d4fb](https://github.com/xiplugin/FakePlayer/commit/1f2d4fbc7aa30abe8aa48ea4e5df27a72d39d11d)
+- [xiplugin/FakePlayer commit 04f1dc3](https://github.com/xiplugin/FakePlayer/commit/04f1dc35f5559c41562274475f417871655b6a29)
+
 
 ## shulng/ReCatSeedLogin
 - [shulng/ReCatSeedLogin Issue #6](https://github.com/shulng/ReCatSeedLogin/issues/6)
