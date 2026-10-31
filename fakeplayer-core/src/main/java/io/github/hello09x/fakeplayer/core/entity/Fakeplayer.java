@@ -322,6 +322,8 @@ public class Fakeplayer {
                              text(player.getName(), WHITE)
                      ).color(GRAY));
                  }
+                 // 传送会重新拉起「等待客户端加载世界」的倒计时, 假人没法自己回应, 只能在这里替它标记
+                 this.handle.markClientLoaded();
              });
     }
 
