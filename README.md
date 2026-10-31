@@ -16,6 +16,8 @@ English | [简体中文](README_zh.md) | [繁體中文](README_zh_TW.md)
 
 > **FakePlayer CE** is a community-maintained fork of [FakePlayer](https://github.com/tanyaofei/minecraft-fakeplayer): a server-side plugin inspired by [Carpet-Mod](https://github.com/gnembon/fabric-carpet) that spawns fake players indistinguishable from real ones, rebuilt with Gradle multi-module architecture for **single-jar compatibility from Minecraft `1.20.1` to `26.3`**.
 
+⭐ If you like FakePlayer CE, please give it a star — it really helps the project grow.
+
 ## ⚠️ Community Edition Statement
 
 - This repository is an **independent community fork** — not released, maintained or endorsed by the original author.

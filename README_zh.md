@@ -16,6 +16,8 @@
 
 > **FakePlayer CE** 是 [FakePlayer](https://github.com/tanyaofei/minecraft-fakeplayer) 的社区维护分支：受 [Carpet-Mod](https://github.com/gnembon/fabric-carpet) 启发，在服务端生成对服务器完全透明的假人玩家，并用 Gradle 多模块架构做到 **Minecraft `1.20.1` ~ `26.3` 单一 Jar 兼容**。
 
+⭐ 如果你喜欢 FakePlayer CE，给它点个 Star 吧！这对项目的成长非常有帮助。
+
 ## ⚠️ 社区版声明
 
 - 本仓库是**独立的社区维护分支**，不由原作者发布、维护或背书。
