@@ -259,6 +259,11 @@ public class CommandRegistry {
                                 .withPermission(Permission.goto_)
                                 .withShortDescription("fakeplayer.command.goto.description")
                                 .withRequirement(CommandSupports::hasFakeplayer)
+                                .withSubcommands(
+                                        command("stop")
+                                                .withShortDescription("fakeplayer.command.goto.stop.description")
+                                                .withOptionalArguments(fakeplayer("name"))
+                                                .executes(gotoCommand::stopGoTo))
                                 .withArguments(location("location"))
                                 .withOptionalArguments(fakeplayer("name"))
                                 .executes(gotoCommand::goTo),

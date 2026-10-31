@@ -18,6 +18,7 @@ import java.util.Locale;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.translatable;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
+import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 import static net.kyori.adventure.text.format.NamedTextColor.YELLOW;
 
@@ -79,6 +80,22 @@ public class GotoCommand extends AbstractCommand {
                 text(coordinate(stand.getY()), GOLD),
                 text(coordinate(stand.getZ()), GOLD)
         ));
+    }
+
+    /**
+     * 中止正在进行的寻路, 只影响 GOTO, 不影响其它动作
+     */
+    @HandleCommandException
+    public void stopGoTo(@NotNull CommandSender sender, @NotNull CommandArguments args) throws WrapperCommandSyntaxException {
+        var fake = getFakeplayer(sender, args);
+
+        if (!actionManager.hasActiveAction(fake, ActionType.GOTO)) {
+            sender.sendMessage(translatable("fakeplayer.command.goto.stop.none", GRAY));
+            return;
+        }
+
+        actionManager.setAction(fake, ActionType.GOTO, ActionSetting.stop());
+        sender.sendMessage(translatable("fakeplayer.command.generic.success"));
     }
 
     private static String coordinate(double value) {

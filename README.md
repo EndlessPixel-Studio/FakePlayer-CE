@@ -111,7 +111,7 @@ On first launch only a template `config.tmpl.yml` is generated; rename it to `co
 | /fp turn | Turn around | fakeplayer.command.turn | |
 | /fp look | Look at specified location | fakeplayer.command.look | |
 | /fp move | Move | fakeplayer.command.move | |
-| /fp goto | Walk to the specified coordinates | fakeplayer.command.goto | Pathfinds around obstacles; rejects unreachable targets |
+| /fp goto | Walk to the specified coordinates | fakeplayer.command.goto | Pathfinds around obstacles; rejects unreachable targets; `/fp goto stop` cancels |
 | /fp ride | Ride | fakeplayer.command.ride | |
 | /fp sneak | Sneak | fakeplayer.command.sneak | |
 | /fp sprint | Sprint | fakeplayer.command.sprint | |
