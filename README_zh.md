@@ -273,7 +273,7 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 
 ## 自定义本地化翻译
 
-内置 `en` / `zh` / `zh_tw` / `zh_hk`，改 `config.yml` 的 `i18n.locale` 切换（之后 `/fp reload`）。
+内置 `en` / `zh` / `zh_tw` / `zh_hk` / `ja`，改 `config.yml` 的 `i18n.locale` 切换（之后 `/fp reload`）。
 
 自定义：在 `plugins/fakeplayer/message/` 放入 `message_<语言>_<地区>.properties`（复制[模板](fakeplayer-core/src/main/resources/message/message.properties)后改），把 `i18n.locale` 设为对应后缀（如 `zh_cn`），执行 `/fp reload-translation` 生效。文件必须使用 **UTF-8** 编码。
 
