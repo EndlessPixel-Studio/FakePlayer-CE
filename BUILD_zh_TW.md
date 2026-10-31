@@ -1,6 +1,6 @@
 # 建置指南
 
-[English](BUILD.md) | [简体中文](BUILD_zh.md) | 繁體中文
+[English](BUILD.md) | [简体中文](BUILD_zh.md) | 繁體中文 | [日本語](BUILD_ja.md)
 
 本專案使用 **paperweight-userdev** Gradle 外掛自動處理 NMS 依賴，無需手動執行 BuildTools。
 
