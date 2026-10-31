@@ -10,6 +10,7 @@ import lombok.Getter;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ProblemReporter;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 
@@ -29,12 +30,14 @@ public class NMSServerImpl implements NMSServer {
 
     @Override
     public @NotNull NMSServerPlayer newPlayer(@NotNull UUID uuid, @NotNull String name) {
+        var server = new NMSServerImpl(Bukkit.getServer()).getHandle();
         var handle = new ServerPlayer(
                 new NMSServerImpl(Bukkit.getServer()).getHandle(),
                 new NMSServerLevelImpl(WorldUtils.getMainWorld()).getHandle(),
                 new GameProfile(uuid, name),
                 ClientInformation.createDefault()
         );
+        server.getPlayerList().playerIo.load(handle, ProblemReporter.DISCARDING).ifPresent(handle::load);
         return new NMSServerPlayerImpl(handle.getBukkitEntity());
     }
 }

@@ -29,12 +29,17 @@ public class NMSServerImpl implements NMSServer {
 
     @Override
     public @NotNull NMSServerPlayer newPlayer(@NotNull UUID uuid, @NotNull String name) {
+        var server = new NMSServerImpl(Bukkit.getServer()).getHandle();
         var handle = new ServerPlayer(
                 new NMSServerImpl(Bukkit.getServer()).getHandle(),
                 new NMSServerLevelImpl(WorldUtils.getMainWorld()).getHandle(),
                 new GameProfile(uuid, name),
                 ClientInformation.createDefault()
         );
+        var saved = server.getPlayerList().playerIo.load(handle);
+        if (saved != null) {
+            handle.load(saved);
+        }
         return new NMSServerPlayerImpl(handle.getBukkitEntity());
     }
 }
