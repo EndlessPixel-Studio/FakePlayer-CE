@@ -23,6 +23,8 @@ import io.github.hello09x.fakeplayer.core.util.Reflections;
 import io.github.hello09x.fakeplayer.core.util.Commands;
 import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.Component;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.Component.translatable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -100,9 +102,7 @@ public class FakeplayerManager {
                                                                    }
                                                                }
                                                            }
-                                                           //Lacking translation key for now
-                                                           //暂时没有写翻译条目，先用英文播报
-                                                           Bukkit.broadcast(Component.text("Server lag! Current fakeplayer limits: ").color(GOLD).append(Component.text(this.config.getPlayerLimit()-laglevel).color(RED)));
+                                                           Bukkit.broadcast(translatable("fakeplayer.manager.lag.server-lag", GOLD, text(this.config.getPlayerLimit() - laglevel, RED)));
                                                        });
                                                    }
                                                    else {
@@ -111,7 +111,7 @@ public class FakeplayerManager {
                                                        // 在主线程中递减 laglevel 并广播, 避免跨线程竞争与主线程外调用 Bukkit API
                                                        Schedulers.global(Main.getInstance(), () -> {
                                                            if (laglevel > 0) {
-                                                               Bukkit.broadcast(Component.text("Fakeplayer restrictions removed! Current limits: ").color(GREEN).append(Component.text(this.config.getPlayerLimit() - laglevel + 1).color(AQUA)));
+                                                               Bukkit.broadcast(translatable("fakeplayer.manager.lag.restrictions-removed", GREEN, text(this.config.getPlayerLimit() - laglevel + 1, AQUA)));
                                                            }
                                                            laglevel = max(laglevel - 1, 0);
                                                        });
