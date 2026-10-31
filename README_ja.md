@@ -1,8 +1,10 @@
-# FakePlayer CE（コミュニティ版）
-
 <div align="center">
 
-<img src=".github/assets/logo.png" alt="FakePlayer CE" width="160">
+<img src=".github/assets/logo.png" alt="FakePlayer CE" width="200">
+
+# FakePlayer CE（コミュニティ版）
+
+[English](README.md) | [简体中文](README_zh.md) | [繁體中文](README_zh_TW.md) | 日本語
 
 [![CI](https://github.com/EndlessPixel-Studio/FakePlayer-CE/actions/workflows/ci.yml/badge.svg)](https://github.com/EndlessPixel-Studio/FakePlayer-CE/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/EndlessPixel-Studio/FakePlayer-CE)](LICENSE.txt)
@@ -12,8 +14,6 @@
 [![Platforms](https://img.shields.io/badge/Platforms-Paper%20%7C%20Spigot%20%7C%20Purpur-2d2d2d)](https://github.com/EndlessPixel-Studio/FakePlayer-CE)
 
 </div>
-
-[English](README.md) | [简体中文](README_zh.md) | [繁體中文](README_zh_TW.md) | 日本語
 
 ---
 
