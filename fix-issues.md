@@ -14,10 +14,8 @@
 - [tanyaofei/minecraft-fakeplayer Issue #137](https://github.com/tanyaofei/minecraft-fakeplayer/issues/137)
 - [tanyaofei/minecraft-fakeplayer Issue #138](https://github.com/tanyaofei/minecraft-fakeplayer/issues/138)
 - [tanyaofei/minecraft-fakeplayer Issue #150](https://github.com/tanyaofei/minecraft-fakeplayer/issues/150)
+- [tanyaofei/minecraft-fakeplayer Issue #162](https://github.com/tanyaofei/minecraft-fakeplayer/issues/162)
 - [tanyaofei/minecraft-fakeplayer Issue #169](https://github.com/tanyaofei/minecraft-fakeplayer/issues/169)
-  - **假人加入游戏时会在 usercache 中添加两个 UUID**
-  - 原因：`NameManager.getUUIDFromName()` 每次生成随机 UUID，导致同一名称的假人每次召唤产生不同 UUID，usercache.json 中累积多个 (name, uuid) 记录。
-  - 修复：在 `config.yml` 新增 `share-fakeplayer` 配置项 (默认 false)。开启后 `getUUIDFromName()` 改用 `UUID.nameUUIDFromBytes(name)` 生成确定性 UUID，同一假人名称始终映射到相同 UUID，允许不同玩家共享同一个假人，usercache 不再重复。
 - [tanyaofei/minecraft-fakeplayer Issue #172](https://github.com/tanyaofei/minecraft-fakeplayer/issues/172)
 - [tanyaofei/minecraft-fakeplayer Issue #178](https://github.com/tanyaofei/minecraft-fakeplayer/issues/178)
 - [tanyaofei/minecraft-fakeplayer Issue #181](https://github.com/tanyaofei/minecraft-fakeplayer/issues/181)
@@ -33,6 +31,7 @@
 - [tanyaofei/minecraft-fakeplayer Issue #199](https://github.com/tanyaofei/minecraft-fakeplayer/issues/199)
 - [tanyaofei/minecraft-fakeplayer Issue #200](https://github.com/tanyaofei/minecraft-fakeplayer/issues/200)
 - [tanyaofei/minecraft-fakeplayer Issue #201](https://github.com/tanyaofei/minecraft-fakeplayer/issues/201)
+- [tanyaofei/minecraft-fakeplayer Issue #203](https://github.com/tanyaofei/minecraft-fakeplayer/issues/203)
 
 ## xiplugin/FakePlayer
 - [xiplugin/FakePlayer commit 9d21b2c](https://github.com/xiplugin/FakePlayer/commit/9d21b2c8f410729c5d2e30ff71d3bf972c34dcbe)
