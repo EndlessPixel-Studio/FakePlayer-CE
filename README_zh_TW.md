@@ -351,3 +351,7 @@ auto-login:
 ## 專案建置
 
 詳見 [BUILD_zh_TW.md](./BUILD_zh_TW.md)。該文件只適用於本專案的 Gradle 多模組流程，不能用於上游 Maven 架構。
+
+## Star 趨勢
+
+[![Star History Chart](https://api.star-history.com/svg?repos=EndlessPixel-Studio/FakePlayer-CE&type=Date)](https://star-history.com/#EndlessPixel-Studio/FakePlayer-CE&Date)

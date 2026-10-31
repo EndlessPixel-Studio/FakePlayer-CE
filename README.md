@@ -351,3 +351,7 @@ auto-login:
 ## Build
 
 See [BUILD.md](./BUILD.md). It applies to this project's Gradle multi-module workflow only, not to the upstream Maven build.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=EndlessPixel-Studio/FakePlayer-CE&type=Date)](https://star-history.com/#EndlessPixel-Studio/FakePlayer-CE&Date)
