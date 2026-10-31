@@ -38,7 +38,7 @@ final class CommandHelpGenerator {
             return;
         }
 
-        // say / config 等已有手写 help, 不重复生成
+        // config 已有手写 help, 不重复生成
         if (subcommands.stream().anyMatch(CommandHelpGenerator::isHelpSubcommand)) {
             for (var sub : subcommands) {
                 if (!isHelpSubcommand(sub)) {

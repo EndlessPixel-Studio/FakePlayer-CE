@@ -549,12 +549,7 @@ public class CommandRegistry {
                                         command("stop")
                                                 .withShortDescription("fakeplayer.command.say.stop")
                                                 .withOptionalArguments(fakeplayer("name"))
-                                                .executes(sayCommand.say(ActionSetting.stop())),
-                                        command("help")
-                                                .withShortDescription("fakeplayer.command.say.help")
-                                                .executes((sender, args) -> {
-                                                    sender.sendMessage(translatable("fakeplayer.command.say.help"));
-                                                })
+                                                .executes(sayCommand.say(ActionSetting.stop()))
                                 ),
 
                         command("aichat")
