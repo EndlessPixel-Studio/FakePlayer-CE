@@ -148,6 +148,15 @@ public interface NMSServerPlayer {
     void disableAdvancements(@NotNull Plugin plugin);
 
     /**
+     * 标记假人的「客户端已加载世界」
+     * <p>假人没有真实客户端, 不标记时服务端会认为它还没加载完世界, 出生后一段时间内免疫伤害。</p>
+     * <p>仅 1.21.11 及以后的服务端有这个机制, 更早的版本无需处理 (默认空实现)。</p>
+     */
+    default void markClientLoaded() {
+        // 老版本没有这个限制
+    }
+
+    /**
      * 获取时刻计数, 尽管假人会退出游戏, 但服务器重启前这个值不会重置
      *
      * @return 时刻计数
