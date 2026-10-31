@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 31
+version: 32
 
 
 # ============================================================
@@ -129,6 +129,17 @@ kick-on-dead: true
 # 假人死亡时是否广播死亡消息 (仅在 kick-on-dead: true 时生效)
 # Broadcast the fake player's death message (only applies when kick-on-dead is true)
 death-message: false
+
+
+# ============================================================
+# 成就 / Advancements
+# ============================================================
+
+# 假人是否像真实玩家一样达成并播报成就
+# 关闭后假人不会授予任何进度, 也不会写入进度存档
+# Whether fake players earn and announce advancements like real players
+# When false, no progress is ever awarded or saved
+advancements: true
 
 
 # ============================================================

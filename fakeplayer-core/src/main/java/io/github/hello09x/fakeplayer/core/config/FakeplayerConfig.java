@@ -144,6 +144,12 @@ public class FakeplayerConfig extends PluginConfig {
     private boolean deathMessage;
 
     /**
+     * 假人是否像真实玩家一样达成并播报成就
+     * <p>关闭后假人不会授予任何进度, 也不会写入进度存档</p>
+     */
+    private boolean advancements;
+
+    /**
      * 是否在服务器启动后自动恢复上次在线的假人
      */
     private boolean restoreOnStart;
@@ -446,6 +452,7 @@ public class FakeplayerConfig extends PluginConfig {
         this.kickOnDead = file.getBoolean("kick-on-dead", true);
         this.deathMessage = file.getBoolean("death-message", false);
         this.restoreOnStart = file.getBoolean("restore-on-start", false);
+        this.advancements = file.getBoolean("advancements", true);
         this.shareFakeplayer = file.getBoolean("share-fakeplayer", false);
         this.checkForUpdates = file.getBoolean("check-for-updates", true);
         this.namePattern = getNamePattern(file);
