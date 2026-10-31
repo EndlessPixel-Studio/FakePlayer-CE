@@ -131,7 +131,8 @@ public abstract class CommandSupports {
             var arg = info.currentInput();
 
             if (arg.equals("-a")) {
-                return manager().getAll(sender);
+                // 与其他按名字找假人的命令保持一致: op / 控制台的「全部」是全服, 普通玩家只限自己召唤的
+                return sender.isOp() ? manager().getAll() : manager().getAll(sender);
             }
 
             var target = sender.isOp()
