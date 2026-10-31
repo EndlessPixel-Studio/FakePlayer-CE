@@ -27,6 +27,9 @@ public abstract class AbstractCommand {
     protected final static Logger log = Main.getInstance().getLogger();
 
     @Inject
+    protected NMSBridge bridge;
+
+    @Inject
     protected FakeplayerManager manager;
 
     @Inject
