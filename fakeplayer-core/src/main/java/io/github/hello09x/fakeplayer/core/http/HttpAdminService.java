@@ -52,6 +52,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -418,13 +419,18 @@ public class HttpAdminService {
 
         var location = Bukkit.getWorlds().get(0).getSpawnLocation().clone();
         var lifespan = Optional.ofNullable(config.getLifespan()).map(Duration::toMillis).orElse(FakeplayerTicker.NON_REMOVE_AT);
+        var future = manager.spawnAsync(Bukkit.getConsoleSender(), name, location, lifespan);
         try {
-            var player = manager.spawnAsync(Bukkit.getConsoleSender(), name, location, lifespan).get(15, TimeUnit.SECONDS);
+            var player = future.get(15, TimeUnit.SECONDS);
             if (player == null) {
                 sendJson(ex, 500, "failure", "Spawn failed");
             } else {
                 sendJson(ex, 200, "success", null);
             }
+        } catch (TimeoutException e) {
+            // 生成仍在后台继续, 只是这次请求等不到结果了
+            future.cancel(false);
+            sendJson(ex, 504, "failure", "Spawn is still in progress, check /list later");
         } catch (Exception e) {
             sendJson(ex, 500, "failure", rootMsg(e));
         }
