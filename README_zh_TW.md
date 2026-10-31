@@ -49,7 +49,7 @@
 
 ## AI 聊天
 
-`/fp aichat` 讓假人透過 OpenAI 相容介面產生聊天內容（與 MCP 無關）。首次使用需在 `plugins/FakePlayer-CE/ai-chat.yml` 填入 `api` 與 `api-key`（或設定 `api-key-env` 指定的環境變數），把 `enabled` 改為 `true`，再執行 `/fp reload`。
+`/fp aichat` 讓假人透過 OpenAI 相容介面產生聊天內容。首次使用需在 `plugins/FakePlayer-CE/ai-chat.yml` 填入 `api` 與 `api-key`（或設定 `api-key-env` 指定的環境變數），把 `enabled` 改為 `true`，再執行 `/fp reload`。
 
 | 指令 | 說明 |
 |---|---|
@@ -57,16 +57,14 @@
 | `/fp aichat private <玩家> [once\|continuous\|interval <tick>] [假人]` | 只發給指定玩家 |
 | `/fp aichat stop [假人]` | 停止持續發言 |
 
-`ai-chat.yml` 中的 `system-prompt` / `turn-prompt` / `max-context` / `interval-ticks` 分別控制人設、每輪提示、保留的上下文輪數與持續發言間隔；`recent-chat-lines` 大於 0 時，最近若干條公共聊天也會作為上下文傳入。
-
-建議開啟 `auto-reply`：只在玩家說了像樣的話時才可能接一句，短訊息、純符號與重複洗頻會先被過濾，再由 `chance` 與 `cooldown-seconds` 控制頻率。`continuous`（定時主動發言）會持續消耗 token，預設關閉，需要在 `ai-chat.yml` 把 `allow-continuous` 打開。
+建議開啟 `auto-reply`：只在玩家說了值得回應的話時才接一句（短訊息、純符號與洗頻會先被過濾），由 `chance` 與 `cooldown-seconds` 控制頻率。`continuous` 為定時發言，預設關閉，需要打開 `allow-continuous`。人設、提示詞、上下文與節奏分別由 `system-prompt` / `turn-prompt` / `max-context` / `recent-chat-lines` / `interval-ticks` 控制。
 
 ## 指令清單
 
 | 指令 | 功能說明 | 權限節點 | 備註 |
 |------|---------|---------|------|
 | /fp spawn | 建立假人 | fakeplayer.command.spawn | |
-| /fp spawnuuid | 用指定 UUID 建立假人 | fakeplayer.command.spawn.uuid | 參數 `<名稱> <UUID> [世界] [座標]`；名稱已綁定其他 UUID 時拒絕 |
+| /fp spawnuuid | 用指定 UUID 建立假人 | fakeplayer.command.spawn.uuid | 參數 `<名稱> <UUID> [世界] [座標]` |
 | /fp kick | 踢出假人（從伺服器移除） | fakeplayer.command.kick | |
 | /fp kickall | 踢出伺服器所有假人 | OP | |
 | /fp kill | 殺死假人（真實死亡，可能掉落物品） | fakeplayer.command.kill | |
@@ -78,13 +76,13 @@
 | /fp drop | 假人丟棄手中單個物品 | fakeplayer.command.drop | |
 | /fp dropstack | 假人丟棄手中整組物品 | fakeplayer.command.dropstack | |
 | /fp dropinv | 假人清空全部背包物品 | fakeplayer.command.dropinv | |
-| /fp skin | 複製其他玩家造型 | fakeplayer.command.skin | 離線玩家有 60 秒冷卻；裝有 SkinsRestorer 時走其 API（支援正版名稱） |
+| /fp skin | 複製其他玩家造型 | fakeplayer.command.skin | 裝有 SkinsRestorer 時走其 API；離線名稱 60 秒冷卻 |
 | /fp invsee | 開啟假人背包介面 | fakeplayer.command.invsee | 對假人按右鍵可觸發 |
-| /fp enderchest | 開啟假人終界箱 | fakeplayer.command.enderchest | 別名 `/fp ec`；潛行按右鍵可觸發，需同世界 |
+| /fp enderchest | 開啟假人終界箱 | fakeplayer.command.enderchest | 別名 `/fp ec`；潛行按右鍵；需同世界 |
 | /fp sleep | 假人進入睡覺狀態 | fakeplayer.command.sleep | |
 | /fp wakeup | 喚醒睡覺中的假人 | fakeplayer.command.wakeup | |
 | /fp status | 檢視假人目前狀態 | fakeplayer.command.status | |
-| /fp respawn | 復活已死亡假人 | fakeplayer.command.respawn | 需關閉死亡踢出設定 |
+| /fp respawn | 復活已死亡假人 | fakeplayer.command.respawn | 需 `kick-on-dead: false` |
 | /fp tp | 傳送到假人位置 | fakeplayer.command.tp | |
 | /fp tphere | 將假人傳送至自身位置 | fakeplayer.command.tphere | |
 | /fp tps | 與假人互換位置 | fakeplayer.command.tps | |
@@ -100,22 +98,22 @@
 | /fp turn | 假人原地轉向 | fakeplayer.command.turn | |
 | /fp look | 假人看向指定座標 | fakeplayer.command.look | |
 | /fp move | 假人定向移動 | fakeplayer.command.move | |
-| /fp goto | 讓假人尋路前往指定座標 | fakeplayer.command.goto | 會繞障礙、游水；無法抵達則拒絕；`/fp stop` 可中止 |
+| /fp goto | 讓假人尋路前往指定座標 | fakeplayer.command.goto | 自動尋路；無法抵達則拒絕 |
 | /fp ride | 假人騎乘實體 | fakeplayer.command.ride | |
 | /fp sneak | 假人進入潛行模式 | fakeplayer.command.sneak | |
 | /fp sprint | 假人疾跑 | fakeplayer.command.sprint | |
 | /fp swap | 切換主手副手物品 | fakeplayer.command.swap | |
 | /fp hold | 切換快捷欄指定格子物品 | fakeplayer.command.hold | |
-| /fp cmd | 讓假人執行控制台指令 | fakeplayer.command.cmd | 高風險，見「權限分組」 |
-| /fp say | 讓假人發送聊天訊息 | fakeplayer.command.say | 走聊天事件管線，相容格式化插件 |
-| /fp aichat | 讓假人用 AI 產生聊天內容 | fakeplayer.command.aichat | 需設定 `ai-chat.yml`；可選 `public` / `private` / `stop` |
+| /fp cmd | 讓假人執行控制台指令 | fakeplayer.command.cmd | 高風險 |
+| /fp say | 讓假人發送聊天訊息 | fakeplayer.command.say | 相容格式化插件 |
+| /fp aichat | 讓假人用 AI 產生聊天內容 | fakeplayer.command.aichat | 需設定 `ai-chat.yml` |
 | /fp password | 設定假人登入密碼（存入插件資料庫） | fakeplayer.command.password | 搭配 `auto-login.command` 使用 |
 | /fp changepassword | 修改假人登入密碼（舊密碼可省略） | fakeplayer.command.changepassword | |
 | /fp reload | 重新載入插件設定檔 | OP | |
 
 ## HTTP 管理介面
 
-選用的輕量 HTTP 介面（預設關閉，基於 JDK 內建 HttpServer，無額外依賴），用於 Web 面板與自動化腳本。
+選用的輕量 HTTP 介面（預設關閉，無額外依賴），用於 Web 面板與自動化腳本。
 
 ```yaml
 http-admin:
@@ -133,8 +131,7 @@ http-admin:
     list: true           # 每個介面都有同名開關，關閉後回傳 403
 ```
 
-- 權杖只走 `Authorization: Bearer <token>` 請求標頭，**不支援 `?token=`**（會進入代理記錄與瀏覽器歷史）。
-- 路徑精確比對：`/listfoo` 回傳 `404`，不會落到 `/list`。
+- 權杖只走 `Authorization: Bearer <token>` 請求標頭，**不支援 `?token=`**。
 - 參數一律走 query，`GET` / `POST` 均可。
 
 | 介面 | 說明 |
@@ -175,7 +172,7 @@ http-admin:
 | `wait` | `0` | 首次執行前等待的 tick |
 | `message` | — | 僅 `SAY` 需要 |
 
-成功回傳 `{"status":"success"}`（批次介面附帶 `count`），失敗回傳 `{"status":"failure","msg":"..."}`。常見 `msg`：與真實玩家重名、假人已線上 / 不存在 / 已死亡、缺少 `action` 或 `message`、座標非法、`Unknown world`。HTTP 層錯誤：`401` 權杖缺失或錯誤、`403` 介面已關閉或 Host 不被允許、`404` 路徑不存在、`405`、`414` 請求過長、`429` 限流或驗證失敗鎖定。
+成功回傳 `{"status":"success"}`（批次介面附帶 `count`），失敗回傳 `{"status":"failure","msg":"..."}` 說明原因。HTTP 層錯誤：`401` 權杖錯誤、`403` 介面已關閉或 Host 不被允許、`404` 路徑不存在、`405` 方法不對、`414` 請求過長、`429` 限流或鎖定。
 
 ```bash
 TOKEN="YOUR_TOKEN"; API="http://localhost:3253"
@@ -189,7 +186,7 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 
 ### 安全說明
 
-內建防護（無需設定）：權杖定長比對；**驗證先於介面開關**（無法用 `401` / `403` 差異列舉已啟用介面）；精確路徑比對；日誌脫敏 `token` 並替換控制字元；預設每 IP 每分鐘 120 次、連續 10 次失敗鎖定 60 秒；設定 `allowed-hosts` 後校驗 Host 與跨源 `Origin`，緩解 DNS rebinding；URI 超過 4096 字元回傳 `414`，回應帶 `Cache-Control: no-store`。
+內建防護（無需設定）：**驗證先於介面開關**（無法用 `401` / `403` 差異探測已啟用的介面）；日誌脫敏並替換控制字元；按 IP 限流，連續失敗後鎖定；可選 `allowed-hosts` 校驗 Host 與 `Origin`；回應帶 `Cache-Control: no-store`。
 
 仍需注意：
 
@@ -214,9 +211,9 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 | `autofish` | 是否開啟自動釣魚 |
 | `simulation_distance` | 假人的模擬距離（區塊半徑），`-1` 沿用世界設定 |
 
-- **`replace_tools`**：遵循 GCA 預設模式——非經驗修補工具損壞後才更換；經驗修補工具達到 `tool-replacement.remaining-durability-threshold`（預設 `10`）時，若背包中有合格替代品即更換。比對只看物品類型（不看附魔），按背包順序取第一個。
-- **`replenish`**：`/fp drop` / `/fp dropstack` 丟空主手後自動補貨；消耗奶桶、燉菜、蜂蜜瓶或可飲用藥水時，若背包能存下回傳容器則回填並補回原物，否則容器留在手上。`/fp dropinv` 不會補貨。
-- **`simulation_distance`**：以假人為中心的區塊刻半徑。全域預設寫在 `config.yml` 的 `default-features` 裡；`/fp config set simulation_distance 8` 對該建立者的假人生效，`/fp set <假人> simulation_distance 8` 只改單一假人；`-1` 用世界設定。
+- **`replace_tools`**：GCA 風格——非經驗修補工具損壞後、經驗修補工具磨損到 `tool-replacement.remaining-durability-threshold`（預設 `10`）以下時，若背包中有同類物品即更換，不看附魔。
+- **`replenish`**：`/fp drop` / `/fp dropstack` 丟空主手後自動補貨，食物與藥水的容器在放得下時歸還。`/fp dropinv` 不會補貨。
+- **`simulation_distance`**：以假人為中心的區塊刻半徑。全域預設寫在 `default-features`，`/fp config set` 按建立者覆寫，`/fp set` 改單一假人。
 
 ## 權限分組說明
 
@@ -279,10 +276,9 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 |---|---|---|
 | AuthMe / AuthMeReloaded | `forceLogin` / `forceRegister` | 經公開 API 標記已登入；未註冊的名稱用隨機短密碼自動註冊 |
 | CatSeedLogin / ReCatSeedLogin | 加入登入名單 | 寫入其 `loginPlayers` 名單，不會被 `auto-kick` 踢出 |
-| LibreLogin（Paper）/ LibreLoginNext（Paper） | API 授權 | 線上期間暫存無密碼帳號並在斷線 / 關服時清理；已有帳號僅在大小寫一致時重用，崩潰時暫存記錄可能殘留 |
+| LibreLogin（Paper）/ LibreLoginNext（Paper） | API 授權 | 線上期間暫存無密碼帳號，斷線時清理 |
 
-- **自動生效**：以 `softdepend` 宣告，僅在裝有對應插件時載入，未安裝無影響；全程反射呼叫，不引入編譯期依賴。
-- 相關 Issue：#17（相容框架）、#18（CatSeedLogin）、#19（AuthMe）、#26（LibreLogin）。
+- **自動生效**：無需設定，僅在裝有對應插件時啟用。
 
 ### 自動登入（兩套獨立機制）
 
@@ -309,7 +305,7 @@ auto-login:
 
 ### 聊天事件相容（/fp say）
 
-`/fp say` 經由 `handle.connection.chat(...)` 完整觸發 `AsyncPlayerChatEvent` 與 `AsyncChatEvent`，EssentialsX Chat、Vane 等格式化插件可修改格式與內容；事件未被取消時按事件結果廣播。此行為對所有支援版本（`1.20.1 ~ 26.3`）一致。相關 Issue：#21 / #22。
+`/fp say` 完整觸發 `AsyncPlayerChatEvent` 與 `AsyncChatEvent`，EssentialsX Chat、Vane 等格式化插件可修改格式與內容；事件未被取消時按事件結果廣播。所有支援版本（`1.20.1 ~ 26.3`）行為一致。
 
 ## 常見問題
 
