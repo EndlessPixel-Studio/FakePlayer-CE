@@ -16,6 +16,7 @@ import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.listener.FakeplayerLifecycleListener;
 import io.github.hello09x.fakeplayer.core.listener.FakeplayerListener;
 import io.github.hello09x.fakeplayer.core.listener.PlayerListener;
+import io.github.hello09x.fakeplayer.core.listener.SpawnTeleportGuard;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerAutofishManager;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerPingSetter;
@@ -82,6 +83,7 @@ public final class Main extends JavaPlugin {
             manager.registerEvents(injector.getInstance(FakeplayerReplenishManager.class), this);
             manager.registerEvents(injector.getInstance(InvseeManager.class), this);
             manager.registerEvents(injector.getInstance(AiChatListener.class), this);
+            manager.registerEvents(injector.getInstance(SpawnTeleportGuard.class), this);
         }
 
         injector.getInstance(LoginCompatManager.class).onEnable();
