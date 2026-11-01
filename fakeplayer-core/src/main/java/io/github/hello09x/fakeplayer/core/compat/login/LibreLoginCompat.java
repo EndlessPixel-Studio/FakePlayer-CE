@@ -132,7 +132,9 @@ public class LibreLoginCompat implements LoginCompat {
                 return;
             }
 
-            Schedulers.async(Main.getInstance(), () -> authorize(fakePlayer));
+            // 必须同步完成授权: 异步会让 FastLogin 等插件在玩家已进服后才看到「已登录」,
+            // 从而出现登录会话错误
+            authorize(fakePlayer);
         });
     }
 
