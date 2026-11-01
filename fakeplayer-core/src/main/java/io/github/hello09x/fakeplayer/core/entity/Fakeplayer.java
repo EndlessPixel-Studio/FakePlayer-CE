@@ -1,6 +1,7 @@
 package io.github.hello09x.fakeplayer.core.entity;
 
 import io.github.hello09x.devtools.command.exception.CommandException;
+import io.github.hello09x.fakeplayer.core.listener.SpawnTeleportGuard;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.devtools.core.utils.WorldUtils;
 import io.github.hello09x.fakeplayer.api.spi.*;
@@ -297,6 +298,7 @@ public class Fakeplayer {
     private void teleportToSpawnpoint(@NotNull Location to) {
         var from = this.player.getLocation();
         var chain = CompletableFuture.completedFuture(true);
+        Location bridge = null;
 
         if (from.getWorld().equals(to.getWorld())) {
             // 如果生成世界等于目的世界, 则需要穿越一次维度才能获取刷怪能力
@@ -307,9 +309,16 @@ public class Fakeplayer {
                         text(player.getName(), WHITE)
                 ).color(GRAY));
             } else {
-                // Folia: 区域线程内禁止同步 teleport, 必须使用 teleportAsync
-                chain = this.player.teleportAsync(otherWorld.getSpawnLocation());
+                bridge = otherWorld.getSpawnLocation();
             }
+        }
+
+        // 出生窗口内只允许传送到这两个点, 防止其它插件把假人搬走 (见 SpawnTeleportGuard)
+        var guard = Main.getInjector().getInstance(SpawnTeleportGuard.class);
+        guard.begin(this.player, bridge, to);
+        if (bridge != null) {
+            // Folia: 区域线程内禁止同步 teleport, 必须使用 teleportAsync
+            chain = this.player.teleportAsync(bridge);
         }
 
         chain.thenCompose(ignored -> this.player.teleportAsync(to))
@@ -324,7 +333,8 @@ public class Fakeplayer {
                  }
                  // 传送会重新拉起「等待客户端加载世界」的倒计时, 假人没法自己回应, 只能在这里替它标记
                  this.handle.markClientLoaded();
-             });
+             })
+             .whenComplete((ignored, error) -> guard.end(this.player));
     }
 
     public boolean isOnline() {
