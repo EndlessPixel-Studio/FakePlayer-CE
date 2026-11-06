@@ -11,7 +11,9 @@ import org.jetbrains.annotations.Unmodifiable;
 @Singleton
 public class FakeplayerList {
 
-  private final Map<String, Fakeplayer> playersByName = new HashMap<>();
+  // EasyBot 等第三方插件反射读这个字段，并用原始大小写的玩家名 containsKey。
+  // 本插件统一按小写键存取，改成大小写不敏感的 Map 后两边都能命中（issue #132）。
+  private final Map<String, Fakeplayer> playersByName = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
   private final Map<UUID, Fakeplayer> playersByUUID = new HashMap<>();
   private final Map<String, List<Fakeplayer>> playersByCreator = new HashMap<>();
 

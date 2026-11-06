@@ -13,11 +13,11 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
-- (TBD)
+- **Fixed EasyBot treating fake players as real players (#132).** EasyBot detects fake players by looking up our name map with the original-case name; keys were stored lowercased, so the lookup always missed and the QQ whitelist applied to every fake player. The map is now case-insensitive, so EasyBot skips them in its login, join/leave, death and chat handling again.
 
 ### 中文
 
-- （待补充）
+- **修复 EasyBot 把假人当成真实玩家（#132）。** EasyBot 用原始大小写的玩家名查我们的假人名单，而名单键存的是小写，永远查不到，于是 QQ 白名单对假人也生效。名单现在改为大小写不敏感，EasyBot 的登录、进出服、死亡与聊天处理重新跳过假人。
 
 ## fp.build18 - 2026-11-06
 
