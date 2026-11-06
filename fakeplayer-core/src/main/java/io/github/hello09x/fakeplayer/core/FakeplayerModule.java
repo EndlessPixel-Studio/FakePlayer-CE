@@ -15,72 +15,78 @@ import io.github.hello09x.fakeplayer.core.manager.invsee.SimpleInvseeManagerImpl
 import io.github.hello09x.fakeplayer.core.placeholder.FakeplayerPlaceholderExpansion;
 import io.github.hello09x.fakeplayer.core.placeholder.FakeplayerPlaceholderExpansionImpl;
 import io.github.hello09x.fakeplayer.core.util.ClassUtils;
+import java.util.ServiceLoader;
+import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ServiceLoader;
-import java.util.logging.Logger;
-
 public class FakeplayerModule extends AbstractModule {
 
-    private final static Logger log = Main.getInstance().getLogger();
+  private static final Logger log = Main.getInstance().getLogger();
 
-    @Override
-    protected void configure() {
-        super.bind(Plugin.class).toInstance(Main.getInstance());
-    }
+  @Override
+  protected void configure() {
+    super.bind(Plugin.class).toInstance(Main.getInstance());
+  }
 
-    @Provides
-    @Singleton
-    public @NotNull InvseeManager invseeManager(FakeplayerConfig config, FakeplayerManager fakeplayerManager, FakeplayerList fakeplayerList) {
-        return switch (config.getInvseeImplement()) {
-            case SIMPLE -> new SimpleInvseeManagerImpl(fakeplayerManager, fakeplayerList, config);
-            case AUTO -> {
-                if (Bukkit.getPluginManager().isPluginEnabled("OpenInv") && ClassUtils.isClassExists("com.lishid.openinv.IOpenInv")) {
-                    log.info("Using OpenInv as invsee implement");
-                    yield new OpenInvInvseeManagerImpl(fakeplayerManager, fakeplayerList, config);
-                }
-                log.info("Using simple invsee implement");
-                yield new SimpleInvseeManagerImpl(fakeplayerManager, fakeplayerList, config);
-            }
-        };
-    }
-
-    @SuppressWarnings("PMD.UnusedPrivateMethod")
-    @Provides
-    @Singleton
-    private @NotNull NMSBridge nmsBridge(FakeplayerConfig config) {
-        var loader = ServiceLoader.load(NMSBridge.class, NMSBridge.class.getClassLoader());
-        if (config.isForcedExecution()) {
-            // 忽略版本检查, 以第一个可用的 NMSBridge 实现兜底 (可能不兼容, 风险自负)
-            return loader.stream()
-                    .map(ServiceLoader.Provider::get)
-                    .findFirst()
-                    .orElseThrow(() -> new ExceptionInInitializerError("No NMSBridge implementation found"));
+  @Provides
+  @Singleton
+  public @NotNull InvseeManager invseeManager(
+      FakeplayerConfig config, FakeplayerManager fakeplayerManager, FakeplayerList fakeplayerList) {
+    return switch (config.getInvseeImplement()) {
+      case SIMPLE -> new SimpleInvseeManagerImpl(fakeplayerManager, fakeplayerList, config);
+      case AUTO -> {
+        if (Bukkit.getPluginManager().isPluginEnabled("OpenInv")
+            && ClassUtils.isClassExists("com.lishid.openinv.IOpenInv")) {
+          log.info("Using OpenInv as invsee implement");
+          yield new OpenInvInvseeManagerImpl(fakeplayerManager, fakeplayerList, config);
         }
+        log.info("Using simple invsee implement");
+        yield new SimpleInvseeManagerImpl(fakeplayerManager, fakeplayerList, config);
+      }
+    };
+  }
 
-        var bridge = loader.stream()
-                .map(ServiceLoader.Provider::get)
-                .filter(NMSBridge::isSupported)
-                .findAny()
-                .orElse(null);
-
-        if (bridge == null) {
-            throw new ExceptionInInitializerError("Unsupported Minecraft version: " + Bukkit.getMinecraftVersion());
-        }
-        return bridge;
+  @SuppressWarnings("PMD.UnusedPrivateMethod")
+  @Provides
+  @Singleton
+  private @NotNull NMSBridge nmsBridge(FakeplayerConfig config) {
+    var loader = ServiceLoader.load(NMSBridge.class, NMSBridge.class.getClassLoader());
+    if (config.isForcedExecution()) {
+      // 忽略版本检查, 以第一个可用的 NMSBridge 实现兜底 (可能不兼容, 风险自负)
+      return loader.stream()
+          .map(ServiceLoader.Provider::get)
+          .findFirst()
+          .orElseThrow(() -> new ExceptionInInitializerError("No NMSBridge implementation found"));
     }
 
-    @SuppressWarnings("PMD.UnusedPrivateMethod")
-    @Singleton
-    @Provides
-    private @Nullable FakeplayerPlaceholderExpansion fakeplayerPlaceholderExpansion(FakeplayerManager fakeplayerManager, ActionManager actionManager, PluginTranslator translator) {
-        if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !ClassUtils.isClassExists("me.clip.placeholderapi.expansion.PlaceholderExpansion")) {
-            return null;
-        }
-        return new FakeplayerPlaceholderExpansionImpl(fakeplayerManager, actionManager, translator);
-    }
+    var bridge =
+        loader.stream()
+            .map(ServiceLoader.Provider::get)
+            .filter(NMSBridge::isSupported)
+            .findAny()
+            .orElse(null);
 
+    if (bridge == null) {
+      throw new ExceptionInInitializerError(
+          "Unsupported Minecraft version: " + Bukkit.getMinecraftVersion());
+    }
+    return bridge;
+  }
+
+  @SuppressWarnings("PMD.UnusedPrivateMethod")
+  @Singleton
+  @Provides
+  private @Nullable FakeplayerPlaceholderExpansion fakeplayerPlaceholderExpansion(
+      FakeplayerManager fakeplayerManager,
+      ActionManager actionManager,
+      PluginTranslator translator) {
+    if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")
+        || !ClassUtils.isClassExists("me.clip.placeholderapi.expansion.PlaceholderExpansion")) {
+      return null;
+    }
+    return new FakeplayerPlaceholderExpansionImpl(fakeplayerManager, actionManager, translator);
+  }
 }

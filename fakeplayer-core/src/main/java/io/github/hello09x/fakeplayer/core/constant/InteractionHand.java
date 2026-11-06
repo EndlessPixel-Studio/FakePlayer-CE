@@ -6,15 +6,13 @@ import org.jetbrains.annotations.NotNull;
 
 @AllArgsConstructor
 public enum InteractionHand {
+  MAIN_HAND(EquipmentSlot.HAND),
 
-    MAIN_HAND(EquipmentSlot.HAND),
+  OFF_HAND(EquipmentSlot.OFF_HAND);
 
-    OFF_HAND(EquipmentSlot.OFF_HAND);
+  final EquipmentSlot slot;
 
-    final EquipmentSlot slot;
-
-    public @NotNull EquipmentSlot asSlot() {
-        return slot;
-    }
-
+  public @NotNull EquipmentSlot asSlot() {
+    return slot;
+  }
 }

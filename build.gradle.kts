@@ -4,6 +4,8 @@ plugins {
     // 静态分析: pmd 是 Gradle 核心插件 (无需声明版本), spotbugs 只对
     // fakeplayer-api / fakeplayer-core 启用; 其余模块 (版本模块) 未启用
     id("com.github.spotbugs") version "6.5.13" apply false
+    // 格式化: google-java-format, 只做校验 (spotlessCheck), 不自动改文件
+    id("com.diffplug.spotless") version "8.9.0" apply false
 }
 
 allprojects {
@@ -22,6 +24,15 @@ allprojects {
 
 subprojects {
     apply(plugin = "java")
+    apply(plugin = "com.diffplug.spotless")
+
+    extensions.configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        java {
+            target("src/main/java/**/*.java", "src/test/java/**/*.java")
+            // 与命令行 google-java-format 的输出保持完全一致, 不叠加 removeUnusedImports
+            googleJavaFormat("1.28.0")
+        }
+    }
 
     java {
         // Java 25: Paper 26.x 的 paper-api 以 class file 69 (Java 25) 发布,

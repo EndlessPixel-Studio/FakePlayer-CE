@@ -51,7 +51,7 @@ jobs:
           cache-write-only: ${{ github.event_name == 'push' }}
 
       - name: Build with Gradle
-        run: ./gradlew :fakeplayer-dist:shadowJar --build-cache --parallel --console=plain
+        run: ./gradlew spotlessCheck :fakeplayer-dist:shadowJar --build-cache --parallel --console=plain
 
       # PR 仅验证构建，产物主要用于发布，故仅 push 到 master 时上传
       - name: Upload artifacts

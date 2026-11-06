@@ -1,70 +1,67 @@
 package io.github.hello09x.fakeplayer.core.command.impl;
 
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.Component.translatable;
+import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
+
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
 import dev.jorel.commandapi.wrappers.CommandResult;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.command.Permission;
-import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Objects;
 import java.util.logging.Logger;
-
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.Component.translatable;
-import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
-import static net.kyori.adventure.text.format.NamedTextColor.RED;
+import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 @Singleton
 public class CmdCommand extends AbstractCommand {
 
-    private final Logger log = Main.getInstance().getLogger();
+  private final Logger log = Main.getInstance().getLogger();
 
-    /**
-     * 假人执行命令
-     */
-    public void cmd(@NotNull CommandSender sender, @NotNull CommandArguments args) throws WrapperCommandSyntaxException {
-        var fake = super.getFakeplayer(sender, args);
-        var command = Objects.requireNonNull((CommandResult) args.get("command"));
+  /** 假人执行命令 */
+  public void cmd(@NotNull CommandSender sender, @NotNull CommandArguments args)
+      throws WrapperCommandSyntaxException {
+    var fake = super.getFakeplayer(sender, args);
+    var command = Objects.requireNonNull((CommandResult) args.get("command"));
 
-        var name = command.command().getName();
-        if (!sender.hasPermission(Permission.cmd)) {
-            sender.sendMessage(translatable("fakeplayer.command.cmd.error.no-permission", RED));
-            return;
-        }
-
-        if (!sender.isOp() && (name.equals("fakeplayer") || name.equals("fp"))) {
-            sender.sendMessage(translatable("fakeplayer.command.cmd.error.no-permission", RED));
-            return;
-        }
-
-        if (!command.command().testPermission(fake)) {
-            sender.sendMessage(translatable("fakeplayer.command.cmd.error.fakeplayer-has-no-permission", text(fake.getName())).color(RED));
-            return;
-        }
-
-        if (!command.execute(fake)) {
-            sender.sendMessage(translatable("fakeplayer.command.cmd.error.execute-failed", RED));
-            return;
-        }
-
-        sender.sendMessage(translatable(
-                "fakeplayer.command.generic.success",
-                GRAY
-        ));
-
-        log.info("%s issued server command: %s".formatted(fake.getName(), stringifyCommand(command)));
+    var name = command.command().getName();
+    if (!sender.hasPermission(Permission.cmd)) {
+      sender.sendMessage(translatable("fakeplayer.command.cmd.error.no-permission", RED));
+      return;
     }
 
-    private static @NotNull String stringifyCommand(@NotNull CommandResult command) {
-        var builder = new StringBuilder("/");
-        builder.append(command.command().getName());
-        if (command.args() != null && command.args().length > 0) {
-            builder.append(" ").append(String.join(" ", command.args()));
-        }
-        return builder.toString();
+    if (!sender.isOp() && (name.equals("fakeplayer") || name.equals("fp"))) {
+      sender.sendMessage(translatable("fakeplayer.command.cmd.error.no-permission", RED));
+      return;
     }
 
+    if (!command.command().testPermission(fake)) {
+      sender.sendMessage(
+          translatable(
+                  "fakeplayer.command.cmd.error.fakeplayer-has-no-permission", text(fake.getName()))
+              .color(RED));
+      return;
+    }
+
+    if (!command.execute(fake)) {
+      sender.sendMessage(translatable("fakeplayer.command.cmd.error.execute-failed", RED));
+      return;
+    }
+
+    sender.sendMessage(translatable("fakeplayer.command.generic.success", GRAY));
+
+    log.info("%s issued server command: %s".formatted(fake.getName(), stringifyCommand(command)));
+  }
+
+  private static @NotNull String stringifyCommand(@NotNull CommandResult command) {
+    var builder = new StringBuilder("/");
+    builder.append(command.command().getName());
+    if (command.args() != null && command.args().length > 0) {
+      builder.append(" ").append(String.join(" ", command.args()));
+    }
+    return builder.toString();
+  }
 }

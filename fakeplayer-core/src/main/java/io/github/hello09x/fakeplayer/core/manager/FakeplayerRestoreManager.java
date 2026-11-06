@@ -5,22 +5,12 @@ import com.google.inject.Singleton;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.core.Main;
-import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
-import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.entity.FakeplayerTicker;
+import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import io.github.hello09x.fakeplayer.core.util.OfflineCreator;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.entity.Player;
-import org.bukkit.event.server.ServerLoadEvent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -33,363 +23,396 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.server.ServerLoadEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * 记录当前在线的假人, 并在服务器下次启动时自动恢复。
+ *
  * <p>开启 {@code restore-on-start} 后:
+ *
  * <ul>
- *     <li>周期性把在线假人 (名称 / 创建者 / 位置 / 特性 / 进行中的动作) 写入快照文件, 关服前再写一次</li>
- *     <li>服务器启动完成的 {@link ServerLoadEvent} 后, 按快照逐个异步重建假人</li>
+ *   <li>周期性把在线假人 (名称 / 创建者 / 位置 / 特性 / 进行中的动作) 写入快照文件, 关服前再写一次
+ *   <li>服务器启动完成的 {@link ServerLoadEvent} 后, 按快照逐个异步重建假人
  * </ul>
  */
 @Singleton
 public class FakeplayerRestoreManager implements Listener {
 
-    private final static Logger log = Main.getInstance().getLogger();
+  private static final Logger log = Main.getInstance().getLogger();
 
-    private final static String FILE_NAME = "restore-fakeplayers.txt";
-    private final static String SEPARATOR = "|";
-    private final static long SNAPSHOT_INTERVAL_TICKS = 20L * 30;
+  private static final String FILE_NAME = "restore-fakeplayers.txt";
+  private static final String SEPARATOR = "|";
+  private static final long SNAPSHOT_INTERVAL_TICKS = 20L * 30;
 
-    private final FakeplayerManager manager;
-    private final FakeplayerConfig config;
-    private final ActionManager actionManager;
+  private final FakeplayerManager manager;
+  private final FakeplayerConfig config;
+  private final ActionManager actionManager;
 
-    private volatile String lastSnapshot;
+  private volatile String lastSnapshot;
 
-    @Inject
-    public FakeplayerRestoreManager(FakeplayerManager manager, FakeplayerConfig config, ActionManager actionManager) {
-        this.manager = manager;
-        this.config = config;
-        this.actionManager = actionManager;
+  @Inject
+  public FakeplayerRestoreManager(
+      FakeplayerManager manager, FakeplayerConfig config, ActionManager actionManager) {
+    this.manager = manager;
+    this.config = config;
+    this.actionManager = actionManager;
+  }
+
+  /**
+   * 注册周期性快照任务 (插件启用时调用)
+   *
+   * <p>任务始终注册, 是否记录由 {@link #saveSnapshot()} 内的配置开关决定, 以便 /fp reload 后动态生效。
+   */
+  public void start() {
+    Schedulers.asyncTimer(
+        Main.getInstance(), SNAPSHOT_INTERVAL_TICKS, SNAPSHOT_INTERVAL_TICKS, this::saveSnapshot);
+  }
+
+  /** 将当前在线假人 (名称 / 创建者 / 位置 / 特性 / 进行中的动作) 写入快照文件 */
+  public void saveSnapshot() {
+    if (!config.isRestoreOnStart()) {
+      return;
+    }
+    var lines = new ArrayList<String>();
+    for (var player : manager.getAll()) {
+      var creator = manager.getCreatorName(player);
+      if (creator == null) {
+        continue;
+      }
+      var location = player.getLocation();
+      lines.add(
+          String.join(
+              SEPARATOR,
+              player.getName(),
+              creator,
+              location.getWorld().getName(),
+              String.valueOf(location.getX()),
+              String.valueOf(location.getY()),
+              String.valueOf(location.getZ()),
+              String.valueOf(location.getYaw()),
+              String.valueOf(location.getPitch()),
+              this.encodeActions(actionManager.getSettings(player)),
+              this.encodeFeatures(player)));
     }
 
-    /**
-     * 注册周期性快照任务 (插件启用时调用)
-     * <p>任务始终注册, 是否记录由 {@link #saveSnapshot()} 内的配置开关决定, 以便 /fp reload 后动态生效。</p>
-     */
-    public void start() {
-        Schedulers.asyncTimer(
-                Main.getInstance(),
-                SNAPSHOT_INTERVAL_TICKS,
-                SNAPSHOT_INTERVAL_TICKS,
-                this::saveSnapshot
-        );
+    // 内容没变就不落盘, 避免每 30 秒无谓写文件
+    var content = String.join("\n", lines);
+    if (content.equals(this.lastSnapshot)) {
+      return;
+    }
+    this.lastSnapshot = content;
+    this.write(lines);
+  }
+
+  /** 服务器启动完成后, 按快照自动恢复假人 */
+  @EventHandler(priority = EventPriority.MONITOR)
+  public void onServerLoad(@NotNull ServerLoadEvent event) {
+    if (event.getType() != ServerLoadEvent.LoadType.STARTUP) {
+      return;
+    }
+    if (!config.isRestoreOnStart()) {
+      return;
+    }
+    var entries = this.read();
+    if (entries.isEmpty()) {
+      return;
     }
 
-    /**
-     * 将当前在线假人 (名称 / 创建者 / 位置 / 特性 / 进行中的动作) 写入快照文件
-     */
-    public void saveSnapshot() {
-        if (!config.isRestoreOnStart()) {
-            return;
-        }
-        var lines = new ArrayList<String>();
-        for (var player : manager.getAll()) {
-            var creator = manager.getCreatorName(player);
-            if (creator == null) {
-                continue;
+    log.info("Restoring %d fake player(s) from the last session...".formatted(entries.size()));
+    var lifespan =
+        Optional.ofNullable(config.getLifespan())
+            .map(Duration::toMillis)
+            .orElse(FakeplayerTicker.NON_REMOVE_AT);
+
+    // 逐个重建需要等待, 放到异步线程串行执行 (与 /spawn 的异步生成流程一致)
+    Schedulers.async(
+        Main.getInstance(),
+        () -> {
+          var restored = 0;
+          for (var entry : entries) {
+            try {
+              var location = this.resolveLocation(entry);
+              var player =
+                  manager
+                      .spawnAsync(
+                          new OfflineCreator(entry.creator()), entry.name(), location, lifespan)
+                      .get(30, TimeUnit.SECONDS);
+              if (player != null) {
+                restored++;
+                this.restoreState(player, entry.features(), entry.actions());
+                log.info(
+                    "Restored fake player %s (creator: %s)"
+                        .formatted(entry.name(), entry.creator()));
+              }
+            } catch (Exception e) {
+              log.warning(
+                  "Failed to restore fake player %s: %s".formatted(entry.name(), e.getMessage()));
             }
-            var location = player.getLocation();
-            lines.add(String.join(SEPARATOR,
-                    player.getName(),
-                    creator,
-                    location.getWorld().getName(),
-                    String.valueOf(location.getX()),
-                    String.valueOf(location.getY()),
-                    String.valueOf(location.getZ()),
-                    String.valueOf(location.getYaw()),
-                    String.valueOf(location.getPitch()),
-                    this.encodeActions(actionManager.getSettings(player)),
-                    this.encodeFeatures(player)
-            ));
-        }
-
-        // 内容没变就不落盘, 避免每 30 秒无谓写文件
-        var content = String.join("\n", lines);
-        if (content.equals(this.lastSnapshot)) {
-            return;
-        }
-        this.lastSnapshot = content;
-        this.write(lines);
-    }
-
-    /**
-     * 服务器启动完成后, 按快照自动恢复假人
-     */
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onServerLoad(@NotNull ServerLoadEvent event) {
-        if (event.getType() != ServerLoadEvent.LoadType.STARTUP) {
-            return;
-        }
-        if (!config.isRestoreOnStart()) {
-            return;
-        }
-        var entries = this.read();
-        if (entries.isEmpty()) {
-            return;
-        }
-
-        log.info("Restoring %d fake player(s) from the last session...".formatted(entries.size()));
-        var lifespan = Optional.ofNullable(config.getLifespan()).map(Duration::toMillis).orElse(FakeplayerTicker.NON_REMOVE_AT);
-
-        // 逐个重建需要等待, 放到异步线程串行执行 (与 /spawn 的异步生成流程一致)
-        Schedulers.async(Main.getInstance(), () -> {
-            var restored = 0;
-            for (var entry : entries) {
-                try {
-                    var location = this.resolveLocation(entry);
-                    var player = manager.spawnAsync(new OfflineCreator(entry.creator()), entry.name(), location, lifespan)
-                                         .get(30, TimeUnit.SECONDS);
-                    if (player != null) {
-                        restored++;
-                        this.restoreState(player, entry.features(), entry.actions());
-                        log.info("Restored fake player %s (creator: %s)".formatted(entry.name(), entry.creator()));
-                    }
-                } catch (Exception e) {
-                    log.warning("Failed to restore fake player %s: %s".formatted(entry.name(), e.getMessage()));
-                }
-                try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException ignored) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
+            try {
+              Thread.sleep(1000L);
+            } catch (InterruptedException ignored) {
+              Thread.currentThread().interrupt();
+              return;
             }
-            log.info("Restore finished: %d/%d fake player(s) restored".formatted(restored, entries.size()));
+          }
+          log.info(
+              "Restore finished: %d/%d fake player(s) restored"
+                  .formatted(restored, entries.size()));
         });
-    }
+  }
 
-    private @NotNull Location resolveLocation(@NotNull Entry entry) {
-        var world = Bukkit.getWorld(entry.world());
-        if (world == null) {
-            world = Bukkit.getWorlds().get(0);
-        }
-        return new Location(world, entry.x(), entry.y(), entry.z(), entry.yaw(), entry.pitch());
+  private @NotNull Location resolveLocation(@NotNull Entry entry) {
+    var world = Bukkit.getWorld(entry.world());
+    if (world == null) {
+      world = Bukkit.getWorlds().get(0);
     }
+    return new Location(world, entry.x(), entry.y(), entry.z(), entry.yaw(), entry.pitch());
+  }
 
-    private void write(@NotNull List<String> lines) {
-        try {
-            var folder = Main.getInstance().getDataFolder();
-            if (!folder.exists() && !folder.mkdirs()) {
-                return;
-            }
-            var tmp = folder.toPath().resolve(FILE_NAME + ".tmp");
-            var target = folder.toPath().resolve(FILE_NAME);
-            Files.writeString(tmp, String.join("\n", lines), StandardCharsets.UTF_8);
-            Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-        } catch (IOException e) {
-            log.warning("Failed to save fake player restore list: " + e);
-        }
+  private void write(@NotNull List<String> lines) {
+    try {
+      var folder = Main.getInstance().getDataFolder();
+      if (!folder.exists() && !folder.mkdirs()) {
+        return;
+      }
+      var tmp = folder.toPath().resolve(FILE_NAME + ".tmp");
+      var target = folder.toPath().resolve(FILE_NAME);
+      Files.writeString(tmp, String.join("\n", lines), StandardCharsets.UTF_8);
+      Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+    } catch (IOException e) {
+      log.warning("Failed to save fake player restore list: " + e);
     }
+  }
 
-    private @NotNull List<Entry> read() {
-        var file = Main.getInstance().getDataFolder().toPath().resolve(FILE_NAME);
-        if (!Files.isRegularFile(file)) {
-            return List.of();
-        }
-        try {
-            var entries = new ArrayList<Entry>();
-            for (var line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
-                var entry = this.parse(line);
-                if (entry != null) {
-                    entries.add(entry);
-                }
-            }
-            return entries;
-        } catch (IOException e) {
-            log.warning("Failed to read fake player restore list: " + e);
-            return List.of();
-        }
+  private @NotNull List<Entry> read() {
+    var file = Main.getInstance().getDataFolder().toPath().resolve(FILE_NAME);
+    if (!Files.isRegularFile(file)) {
+      return List.of();
     }
-
-    private @Nullable Entry parse(@NotNull String line) {
-        var parts = line.trim().split("\\" + SEPARATOR);
-        if (parts.length < 8 || parts[0].isBlank() || parts[1].isBlank()) {
-            return null;
+    try {
+      var entries = new ArrayList<Entry>();
+      for (var line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
+        var entry = this.parse(line);
+        if (entry != null) {
+          entries.add(entry);
         }
-        try {
-            return new Entry(
-                    parts[0],
-                    parts[1],
-                    parts[2],
-                    Double.parseDouble(parts[3]),
-                    Double.parseDouble(parts[4]),
-                    Double.parseDouble(parts[5]),
-                    Float.parseFloat(parts[6]),
-                    Float.parseFloat(parts[7]),
-                    parts.length > 9 ? this.decodeFeatures(parts[9]) : List.of(),
-                    parts.length > 8 ? this.decodeActions(parts[8]) : List.of()
-            );
-        } catch (NumberFormatException e) {
-            return null;
-        }
+      }
+      return entries;
+    } catch (IOException e) {
+      log.warning("Failed to read fake player restore list: " + e);
+      return List.of();
     }
+  }
 
-    /**
-     * 恢复假人上次的特性与动作; 必须在假人所属的实体线程执行
-     * <p>先特性后动作: {@code look_at_entity} 同时属于两者, 以动作快照为准</p>
-     */
-    private void restoreState(
-            @NotNull Player player,
-            @NotNull List<FeatureEntry> features,
-            @NotNull List<ActionEntry> actions
-    ) {
-        if (features.isEmpty() && actions.isEmpty()) {
+  private @Nullable Entry parse(@NotNull String line) {
+    var parts = line.trim().split("\\" + SEPARATOR);
+    if (parts.length < 8 || parts[0].isBlank() || parts[1].isBlank()) {
+      return null;
+    }
+    try {
+      return new Entry(
+          parts[0],
+          parts[1],
+          parts[2],
+          Double.parseDouble(parts[3]),
+          Double.parseDouble(parts[4]),
+          Double.parseDouble(parts[5]),
+          Float.parseFloat(parts[6]),
+          Float.parseFloat(parts[7]),
+          parts.length > 9 ? this.decodeFeatures(parts[9]) : List.of(),
+          parts.length > 8 ? this.decodeActions(parts[8]) : List.of());
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  /**
+   * 恢复假人上次的特性与动作; 必须在假人所属的实体线程执行
+   *
+   * <p>先特性后动作: {@code look_at_entity} 同时属于两者, 以动作快照为准
+   */
+  private void restoreState(
+      @NotNull Player player,
+      @NotNull List<FeatureEntry> features,
+      @NotNull List<ActionEntry> actions) {
+    if (features.isEmpty() && actions.isEmpty()) {
+      return;
+    }
+    Schedulers.entity(
+        Main.getInstance(),
+        player,
+        () -> {
+          if (!player.isValid()) {
             return;
-        }
-        Schedulers.entity(Main.getInstance(), player, () -> {
-            if (!player.isValid()) {
-                return;
+          }
+          for (var entry : features) {
+            var modifier = entry.feature().getModifier();
+            if (modifier == null) {
+              continue;
             }
-            for (var entry : features) {
-                var modifier = entry.feature().getModifier();
-                if (modifier == null) {
-                    continue;
-                }
-                try {
-                    modifier.accept(player, entry.value());
-                } catch (RuntimeException e) {
-                    log.warning("Failed to restore feature %s of %s: %s".formatted(entry.feature(), player.getName(), e.getMessage()));
-                }
+            try {
+              modifier.accept(player, entry.value());
+            } catch (RuntimeException e) {
+              log.warning(
+                  "Failed to restore feature %s of %s: %s"
+                      .formatted(entry.feature(), player.getName(), e.getMessage()));
             }
-            for (var action : actions) {
-                try {
-                    actionManager.setAction(player, action.type(), action.setting());
-                } catch (RuntimeException e) {
-                    log.warning("Failed to restore action %s of %s: %s".formatted(action.type(), player.getName(), e.getMessage()));
-                }
+          }
+          for (var action : actions) {
+            try {
+              actionManager.setAction(player, action.type(), action.setting());
+            } catch (RuntimeException e) {
+              log.warning(
+                  "Failed to restore action %s of %s: %s"
+                      .formatted(action.type(), player.getName(), e.getMessage()));
             }
+          }
         });
-    }
+  }
 
-    /**
-     * 编码为 {@code FEATURE=value;FEATURE=value}
-     * <p>只记录既能读出又能回放的项: {@code skin} 在生成时已确定, 没有读写函数, 故跳过。</p>
-     */
-    private @NotNull String encodeFeatures(@NotNull Player player) {
-        var encoded = new StringBuilder();
-        for (var feature : Feature.values()) {
-            var detector = feature.getDetector();
-            if (detector == null || feature.getModifier() == null) {
-                continue;
-            }
-            String value;
-            try {
-                value = detector.apply(player);
-            } catch (RuntimeException e) {
-                continue;
-            }
-            if (value == null || value.isBlank()) {
-                continue;
-            }
-            if (!encoded.isEmpty()) {
-                encoded.append(';');
-            }
-            encoded.append(feature.name()).append('=').append(value);
-        }
-        return encoded.toString();
+  /**
+   * 编码为 {@code FEATURE=value;FEATURE=value}
+   *
+   * <p>只记录既能读出又能回放的项: {@code skin} 在生成时已确定, 没有读写函数, 故跳过。
+   */
+  private @NotNull String encodeFeatures(@NotNull Player player) {
+    var encoded = new StringBuilder();
+    for (var feature : Feature.values()) {
+      var detector = feature.getDetector();
+      if (detector == null || feature.getModifier() == null) {
+        continue;
+      }
+      String value;
+      try {
+        value = detector.apply(player);
+      } catch (RuntimeException e) {
+        continue;
+      }
+      if (value == null || value.isBlank()) {
+        continue;
+      }
+      if (!encoded.isEmpty()) {
+        encoded.append(';');
+      }
+      encoded.append(feature.name()).append('=').append(value);
     }
+    return encoded.toString();
+  }
 
-    private @NotNull List<FeatureEntry> decodeFeatures(@NotNull String encoded) {
-        if (encoded.isBlank()) {
-            return List.of();
-        }
-        var features = new ArrayList<FeatureEntry>();
-        for (var part : encoded.split(";")) {
-            var index = part.indexOf('=');
-            if (index <= 0) {
-                continue;
-            }
-            try {
-                features.add(new FeatureEntry(Feature.valueOf(part.substring(0, index)), part.substring(index + 1)));
-            } catch (IllegalArgumentException e) {
-                log.warning("Failed to decode restored feature: " + part);
-            }
-        }
-        return features;
+  private @NotNull List<FeatureEntry> decodeFeatures(@NotNull String encoded) {
+    if (encoded.isBlank()) {
+      return List.of();
     }
-
-    /**
-     * 编码为 {@code TYPE,maximum,remains,interval,wait,message,tx,ty,tz}, 多个动作以 {@code ;} 分隔。
-     * <p>只有 message 是自由文本, 用 Base64 避免与分隔符冲突。</p>
-     */
-    private @NotNull String encodeActions(@NotNull Map<ActionType, ActionSetting> settings) {
-        if (settings.isEmpty()) {
-            return "";
-        }
-        var encoded = new StringBuilder();
-        for (var entry : settings.entrySet()) {
-            var setting = entry.getValue();
-            if (!encoded.isEmpty()) {
-                encoded.append(';');
-            }
-            encoded.append(entry.getKey().name()).append(',')
-                   .append(setting.maximum).append(',')
-                   .append(setting.remains).append(',')
-                   .append(setting.interval).append(',')
-                   .append(setting.wait).append(',')
-                   .append(setting.message == null ? "" : Base64.getUrlEncoder().withoutPadding().encodeToString(setting.message.getBytes(StandardCharsets.UTF_8))).append(',')
-                   .append(setting.targetX == null ? "" : setting.targetX).append(',')
-                   .append(setting.targetY == null ? "" : setting.targetY).append(',')
-                   .append(setting.targetZ == null ? "" : setting.targetZ);
-        }
-        return encoded.toString();
+    var features = new ArrayList<FeatureEntry>();
+    for (var part : encoded.split(";")) {
+      var index = part.indexOf('=');
+      if (index <= 0) {
+        continue;
+      }
+      try {
+        features.add(
+            new FeatureEntry(Feature.valueOf(part.substring(0, index)), part.substring(index + 1)));
+      } catch (IllegalArgumentException e) {
+        log.warning("Failed to decode restored feature: " + part);
+      }
     }
+    return features;
+  }
 
-    private @NotNull List<ActionEntry> decodeActions(@NotNull String encoded) {
-        if (encoded.isBlank()) {
-            return List.of();
-        }
-        var actions = new ArrayList<ActionEntry>();
-        for (var part : encoded.split(";")) {
-            var fields = part.split(",", -1);
-            if (fields.length < 9) {
-                continue;
-            }
-            try {
-                var setting = new ActionSetting(
-                        Integer.parseInt(fields[1]),
-                        Integer.parseInt(fields[3]),
-                        Integer.parseInt(fields[4]),
-                        fields[5].isEmpty() ? null : new String(Base64.getUrlDecoder().decode(fields[5]), StandardCharsets.UTF_8)
-                );
-                setting.remains = Integer.parseInt(fields[2]);
-                setting.targetX = fields[6].isEmpty() ? null : Double.parseDouble(fields[6]);
-                setting.targetY = fields[7].isEmpty() ? null : Double.parseDouble(fields[7]);
-                setting.targetZ = fields[8].isEmpty() ? null : Double.parseDouble(fields[8]);
-                actions.add(new ActionEntry(ActionType.valueOf(fields[0]), setting));
-            } catch (RuntimeException e) {
-                log.warning("Failed to decode restored action: " + part);
-            }
-        }
-        return actions;
+  /**
+   * 编码为 {@code TYPE,maximum,remains,interval,wait,message,tx,ty,tz}, 多个动作以 {@code ;} 分隔。
+   *
+   * <p>只有 message 是自由文本, 用 Base64 避免与分隔符冲突。
+   */
+  private @NotNull String encodeActions(@NotNull Map<ActionType, ActionSetting> settings) {
+    if (settings.isEmpty()) {
+      return "";
     }
-
-    private record ActionEntry(
-            @NotNull ActionType type,
-            @NotNull ActionSetting setting
-    ) {
+    var encoded = new StringBuilder();
+    for (var entry : settings.entrySet()) {
+      var setting = entry.getValue();
+      if (!encoded.isEmpty()) {
+        encoded.append(';');
+      }
+      encoded
+          .append(entry.getKey().name())
+          .append(',')
+          .append(setting.maximum)
+          .append(',')
+          .append(setting.remains)
+          .append(',')
+          .append(setting.interval)
+          .append(',')
+          .append(setting.wait)
+          .append(',')
+          .append(
+              setting.message == null
+                  ? ""
+                  : Base64.getUrlEncoder()
+                      .withoutPadding()
+                      .encodeToString(setting.message.getBytes(StandardCharsets.UTF_8)))
+          .append(',')
+          .append(setting.targetX == null ? "" : setting.targetX)
+          .append(',')
+          .append(setting.targetY == null ? "" : setting.targetY)
+          .append(',')
+          .append(setting.targetZ == null ? "" : setting.targetZ);
     }
+    return encoded.toString();
+  }
 
-    private record FeatureEntry(
-            @NotNull Feature feature,
-            @NotNull String value
-    ) {
+  private @NotNull List<ActionEntry> decodeActions(@NotNull String encoded) {
+    if (encoded.isBlank()) {
+      return List.of();
     }
-
-    private record Entry(
-            @NotNull String name,
-            @NotNull String creator,
-            @NotNull String world,
-            double x,
-            double y,
-            double z,
-            float yaw,
-            float pitch,
-            @NotNull List<FeatureEntry> features,
-            @NotNull List<ActionEntry> actions
-    ) {
+    var actions = new ArrayList<ActionEntry>();
+    for (var part : encoded.split(";")) {
+      var fields = part.split(",", -1);
+      if (fields.length < 9) {
+        continue;
+      }
+      try {
+        var setting =
+            new ActionSetting(
+                Integer.parseInt(fields[1]),
+                Integer.parseInt(fields[3]),
+                Integer.parseInt(fields[4]),
+                fields[5].isEmpty()
+                    ? null
+                    : new String(Base64.getUrlDecoder().decode(fields[5]), StandardCharsets.UTF_8));
+        setting.remains = Integer.parseInt(fields[2]);
+        setting.targetX = fields[6].isEmpty() ? null : Double.parseDouble(fields[6]);
+        setting.targetY = fields[7].isEmpty() ? null : Double.parseDouble(fields[7]);
+        setting.targetZ = fields[8].isEmpty() ? null : Double.parseDouble(fields[8]);
+        actions.add(new ActionEntry(ActionType.valueOf(fields[0]), setting));
+      } catch (RuntimeException e) {
+        log.warning("Failed to decode restored action: " + part);
+      }
     }
+    return actions;
+  }
 
+  private record ActionEntry(@NotNull ActionType type, @NotNull ActionSetting setting) {}
+
+  private record FeatureEntry(@NotNull Feature feature, @NotNull String value) {}
+
+  private record Entry(
+      @NotNull String name,
+      @NotNull String creator,
+      @NotNull String world,
+      double x,
+      double y,
+      double z,
+      float yaw,
+      float pitch,
+      @NotNull List<FeatureEntry> features,
+      @NotNull List<ActionEntry> actions) {}
 }

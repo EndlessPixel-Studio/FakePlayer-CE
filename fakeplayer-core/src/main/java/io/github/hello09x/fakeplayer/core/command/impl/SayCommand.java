@@ -1,5 +1,7 @@
 package io.github.hello09x.fakeplayer.core.command.impl;
 
+import static net.kyori.adventure.text.Component.translatable;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.executors.CommandExecutor;
@@ -12,61 +14,59 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import static net.kyori.adventure.text.Component.translatable;
-
 @Singleton
 public class SayCommand extends AbstractCommand {
 
-    private final ActionManager actionManager;
+  private final ActionManager actionManager;
 
-    @Inject
-    public SayCommand(ActionManager actionManager) {
-        this.actionManager = actionManager;
-    }
+  @Inject
+  public SayCommand(ActionManager actionManager) {
+    this.actionManager = actionManager;
+  }
 
-    /**
-     * 让假人发送聊天消息。支持一次性 / 持续 / 间隔执行。
-     *
-     * @param action  执行方式 (once / continuous / interval / stop)
-     * @param setting 执行设置 (含 message)
-     */
-    public @NotNull CommandExecutor say(@NotNull ActionSetting setting) {
-        return (sender, args) -> {
-            // name 在 once / continuous / interval 里是字符串 (为了兼容单参数回退成消息),
-            // 在 stop 里则来自假人参数 (Player), 所以这里不能直接强转 String
-            var rawName = args.get("name");
-            var name = rawName instanceof Player player ? player.getName() : (String) rawName;
-            var message = (String) args.get("message");
-            boolean messageOnly = false;
+  /**
+   * 让假人发送聊天消息。支持一次性 / 持续 / 间隔执行。
+   *
+   * @param action 执行方式 (once / continuous / interval / stop)
+   * @param setting 执行设置 (含 message)
+   */
+  public @NotNull CommandExecutor say(@NotNull ActionSetting setting) {
+    return (sender, args) -> {
+      // name 在 once / continuous / interval 里是字符串 (为了兼容单参数回退成消息),
+      // 在 stop 里则来自假人参数 (Player), 所以这里不能直接强转 String
+      var rawName = args.get("name");
+      var name = rawName instanceof Player player ? player.getName() : (String) rawName;
+      var message = (String) args.get("message");
+      boolean messageOnly = false;
 
-            // stop 只是停止动作, 不需要消息
-            if (!setting.equals(ActionSetting.stop())) {
-                // 单参数是消息而非假人名，必须让选中假人的回退逻辑正常运行
-                if (message == null || message.isBlank()) {
-                    if (name != null && !name.isBlank()) {
-                        message = name;
-                        messageOnly = true;
-                    } else {
-                        sender.sendMessage(translatable("fakeplayer.command.say.error.empty"));
-                        return;
-                    }
-                }
-            }
+      // stop 只是停止动作, 不需要消息
+      if (!setting.equals(ActionSetting.stop())) {
+        // 单参数是消息而非假人名，必须让选中假人的回退逻辑正常运行
+        if (message == null || message.isBlank()) {
+          if (name != null && !name.isBlank()) {
+            message = name;
+            messageOnly = true;
+          } else {
+            sender.sendMessage(translatable("fakeplayer.command.say.error.empty"));
+            return;
+          }
+        }
+      }
 
-            var fake = super.getFakeplayer(sender, args, null, messageOnly);
-            var copy = setting.clone();
-            copy.message = message;
+      var fake = super.getFakeplayer(sender, args, null, messageOnly);
+      var copy = setting.clone();
+      copy.message = message;
 
-            if (setting.equals(ActionSetting.once())) {
-                // once 不能走 ticker: 同一 tick 内连续执行会互相覆盖, 前几条消息直接丢掉
-                Schedulers.entity(Main.getInstance(), fake, () -> actionManager.executeOnce(fake, ActionType.SAY, copy));
-            } else {
-                actionManager.setAction(fake, ActionType.SAY, copy);
-            }
-            if (!setting.equals(ActionSetting.once()) || sender instanceof ConsoleCommandSender) {
-                sender.sendMessage(translatable("fakeplayer.command.generic.success"));
-            }
-        };
-    }
-
+      if (setting.equals(ActionSetting.once())) {
+        // once 不能走 ticker: 同一 tick 内连续执行会互相覆盖, 前几条消息直接丢掉
+        Schedulers.entity(
+            Main.getInstance(), fake, () -> actionManager.executeOnce(fake, ActionType.SAY, copy));
+      } else {
+        actionManager.setAction(fake, ActionType.SAY, copy);
+      }
+      if (!setting.equals(ActionSetting.once()) || sender instanceof ConsoleCommandSender) {
+        sender.sendMessage(translatable("fakeplayer.command.generic.success"));
+      }
+    };
+  }
 }

@@ -1,5 +1,9 @@
 package io.github.hello09x.fakeplayer.core.command.impl;
 
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.Component.translatable;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
+
 import com.google.common.base.Throwables;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.executors.CommandArguments;
@@ -9,6 +13,12 @@ import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.entity.FakeplayerTicker;
 import io.github.hello09x.fakeplayer.core.util.Mth;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
@@ -19,119 +29,128 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.Component.translatable;
-import static net.kyori.adventure.text.format.NamedTextColor.*;
-
 @Singleton
 public class SpawnCommand extends AbstractCommand {
 
-    private final static DateTimeFormatter REMOVE_AT_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
+  private static final DateTimeFormatter REMOVE_AT_FORMATTER =
+      DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
 
-    private static String toLocationString(@NotNull Location location) {
-        return location.getWorld().getName()
-                + ": "
-                + StringUtils.joinWith(", ",
-                                       Mth.floor(location.getX(), 0.5),
-                                       Mth.floor(location.getY(), 0.5),
-                                       Mth.floor(location.getZ(), 0.5));
+  private static String toLocationString(@NotNull Location location) {
+    return location.getWorld().getName()
+        + ": "
+        + StringUtils.joinWith(
+            ", ",
+            Mth.floor(location.getX(), 0.5),
+            Mth.floor(location.getY(), 0.5),
+            Mth.floor(location.getZ(), 0.5));
+  }
+
+  /** 创建假人 */
+  @HandleCommandException
+  public void spawn(@NotNull CommandSender sender, @NotNull CommandArguments args) {
+    var name = (String) args.get("name");
+    if (name != null && name.isEmpty()) {
+      name = null;
+    }
+    this.spawn(sender, name, this.resolveSpawnpoint(sender, args), null);
+  }
+
+  /** 用指定 UUID 创建假人 */
+  @HandleCommandException
+  public void spawnWithUuid(@NotNull CommandSender sender, @NotNull CommandArguments args) {
+    var name = (String) args.get("name");
+    var raw = (String) args.get("uuid");
+    UUID uuid;
+    try {
+      uuid = UUID.fromString(Objects.requireNonNull(raw).trim());
+    } catch (IllegalArgumentException | NullPointerException e) {
+      sender.sendMessage(
+          translatable("fakeplayer.spawn.error.uuid.invalid", text(String.valueOf(raw), GOLD))
+              .color(RED));
+      return;
     }
 
-    /**
-     * 创建假人
-     */
-    @HandleCommandException
-    public void spawn(@NotNull CommandSender sender, @NotNull CommandArguments args) {
-        var name = (String) args.get("name");
-        if (name != null && name.isEmpty()) {
-            name = null;
-        }
-        this.spawn(sender, name, this.resolveSpawnpoint(sender, args), null);
+    this.spawn(sender, name, this.resolveSpawnpoint(sender, args), uuid);
+  }
+
+  private @NotNull Location resolveSpawnpoint(
+      @NotNull CommandSender sender, @NotNull CommandArguments args) {
+    var world = (World) args.get("world");
+    var location = (Location) args.get("location");
+    if (world == null || location == null) {
+      return sender instanceof Player p
+          ? p.getLocation().clone()
+          : Bukkit.getWorlds().get(0).getSpawnLocation().clone();
     }
+    return new Location(world, location.getX(), location.getY(), location.getZ());
+  }
 
-    /**
-     * 用指定 UUID 创建假人
-     */
-    @HandleCommandException
-    public void spawnWithUuid(@NotNull CommandSender sender, @NotNull CommandArguments args) {
-        var name = (String) args.get("name");
-        var raw = (String) args.get("uuid");
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(Objects.requireNonNull(raw).trim());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            sender.sendMessage(translatable(
-                    "fakeplayer.spawn.error.uuid.invalid",
-                    text(String.valueOf(raw), GOLD)
-            ).color(RED));
-            return;
-        }
-
-        this.spawn(sender, name, this.resolveSpawnpoint(sender, args), uuid);
-    }
-
-    private @NotNull Location resolveSpawnpoint(@NotNull CommandSender sender, @NotNull CommandArguments args) {
-        var world = (World) args.get("world");
-        var location = (Location) args.get("location");
-        if (world == null || location == null) {
-            return sender instanceof Player p
-                    ? p.getLocation().clone()
-                    : Bukkit.getWorlds().get(0).getSpawnLocation().clone();
-        }
-        return new Location(world, location.getX(), location.getY(), location.getZ());
-    }
-
-    private void spawn(
-            @NotNull CommandSender sender,
-            @Nullable String name,
-            @NotNull Location spawnpoint,
-            @Nullable UUID uuid
-    ) {
-        var removedAt = Optional.ofNullable(config.getLifespan()).map(lifespan -> LocalDateTime.now().plus(lifespan)).orElse(null);
-        manager.spawnAsync(sender, name, spawnpoint, Optional.ofNullable(config.getLifespan()).map(Duration::toMillis).orElse(FakeplayerTicker.NON_REMOVE_AT), uuid)
-               .thenAcceptAsync(player -> {
-                   if (player == null) {
-                       return;
-                   }
-                   Component message;
-                   if (removedAt == null) {
-                       message = translatable(
-                               "fakeplayer.command.spawn.success.without-lifespan",
-                               text(player.getName(), WHITE),
-                               text(toLocationString(spawnpoint), WHITE)
-                       ).color(GRAY);
-                   } else {
-                       message = translatable(
-                               "fakeplayer.command.spawn.success.with-lifespan",
-                               text(player.getName(), WHITE),
-                               text(toLocationString(spawnpoint), WHITE),
-                               text(REMOVE_AT_FORMATTER.format(removedAt))
-                       ).color(GRAY);
-                   }
-                   Schedulers.runFor(Main.getInstance(), sender, () -> {
-                       sender.sendMessage(message);
-                       if (sender instanceof Player p && manager.countByCreator(sender) == 1) {
-                           // 有些命令在有假人的时候才会显示, 因此需要强制刷新一下
-                           p.updateCommands();
-                       }
-                   });
-               }).exceptionally(e -> {
-                   if (Throwables.getRootCause(e) instanceof CommandException ce) {
-                       Schedulers.runFor(Main.getInstance(), sender, () -> sender.sendMessage(ce.component()));
-                   } else {
-                       Schedulers.runFor(Main.getInstance(), sender, () -> sender.sendMessage(translatable("fakeplayer.command.spawn.error.unknown", RED)));
-                       log.severe(Throwables.getStackTraceAsString(e));
-                   }
-                   return null;
-               });
-    }
-
-
+  private void spawn(
+      @NotNull CommandSender sender,
+      @Nullable String name,
+      @NotNull Location spawnpoint,
+      @Nullable UUID uuid) {
+    var removedAt =
+        Optional.ofNullable(config.getLifespan())
+            .map(lifespan -> LocalDateTime.now().plus(lifespan))
+            .orElse(null);
+    manager
+        .spawnAsync(
+            sender,
+            name,
+            spawnpoint,
+            Optional.ofNullable(config.getLifespan())
+                .map(Duration::toMillis)
+                .orElse(FakeplayerTicker.NON_REMOVE_AT),
+            uuid)
+        .thenAcceptAsync(
+            player -> {
+              if (player == null) {
+                return;
+              }
+              Component message;
+              if (removedAt == null) {
+                message =
+                    translatable(
+                            "fakeplayer.command.spawn.success.without-lifespan",
+                            text(player.getName(), WHITE),
+                            text(toLocationString(spawnpoint), WHITE))
+                        .color(GRAY);
+              } else {
+                message =
+                    translatable(
+                            "fakeplayer.command.spawn.success.with-lifespan",
+                            text(player.getName(), WHITE),
+                            text(toLocationString(spawnpoint), WHITE),
+                            text(REMOVE_AT_FORMATTER.format(removedAt)))
+                        .color(GRAY);
+              }
+              Schedulers.runFor(
+                  Main.getInstance(),
+                  sender,
+                  () -> {
+                    sender.sendMessage(message);
+                    if (sender instanceof Player p && manager.countByCreator(sender) == 1) {
+                      // 有些命令在有假人的时候才会显示, 因此需要强制刷新一下
+                      p.updateCommands();
+                    }
+                  });
+            })
+        .exceptionally(
+            e -> {
+              if (Throwables.getRootCause(e) instanceof CommandException ce) {
+                Schedulers.runFor(
+                    Main.getInstance(), sender, () -> sender.sendMessage(ce.component()));
+              } else {
+                Schedulers.runFor(
+                    Main.getInstance(),
+                    sender,
+                    () ->
+                        sender.sendMessage(
+                            translatable("fakeplayer.command.spawn.error.unknown", RED)));
+                log.severe(Throwables.getStackTraceAsString(e));
+              }
+              return null;
+            });
+  }
 }
