@@ -124,6 +124,7 @@ On first launch only a template `config.tmpl.yml` is generated; rename it to `co
 | /fp changepassword | Change fake player login password (old password optional) | fakeplayer.command.changepassword | |
 | /fp reload | Reload config | OP | |
 | /fp update check | Check GitHub for a newer build | OP | |
+| /fp version | Show plugin, server and Java version | - | Anyone |
 
 ## HTTP Admin API
 
