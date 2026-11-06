@@ -24,8 +24,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static net.kyori.adventure.text.Component.text;
@@ -42,6 +44,17 @@ public class SysInfoCommand extends AbstractCommand {
             .create();
 
     private final static DateTimeFormatter FILE_NAME = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+
+    /**
+     * 与堆 / 元空间 / 直接内存相关的启动参数
+     */
+    private final static List<String> MEMORY_FLAGS = List.of(
+            "-Xms", "-Xmx", "-Xmn", "-Xss",
+            "-XX:MaxHeapSize", "-XX:InitialHeapSize",
+            "-XX:MaxMetaspaceSize", "-XX:MetaspaceSize",
+            "-XX:MaxDirectMemorySize", "-XX:SoftMaxHeapSize",
+            "-XX:NewSize", "-XX:MaxNewSize"
+    );
 
     @Inject
     private ActionManager actionManager;
@@ -76,6 +89,8 @@ public class SysInfoCommand extends AbstractCommand {
         root.put("generated_at", Instant.now().toString());
         root.put("plugin", map("version", Main.getInstance().getPluginMeta().getVersion()));
         root.put("server", this.server());
+        root.put("java", this.java());
+        root.put("jvm", this.jvm());
         root.put("cpu", this.cpu());
         root.put("memory", this.memory());
         root.put("disk", this.disk());
@@ -89,10 +104,66 @@ public class SysInfoCommand extends AbstractCommand {
                 "implementation", Bukkit.getName(),
                 "version", Bukkit.getServer().getVersion(),
                 "bukkit_version", Bukkit.getBukkitVersion(),
-                "java", System.getProperty("java.version"),
-                "vm", System.getProperty("java.vm.name"),
                 "os", "%s %s".formatted(os("os.name"), os("os.version")).trim()
         );
+    }
+
+    private @NotNull Map<String, Object> java() {
+        return map(
+                "version", os("java.version"),
+                "vendor", os("java.vendor"),
+                "vendor_version", os("java.vendor.version"),
+                "vm", os("java.vm.name"),
+                "vm_version", os("java.vm.version"),
+                "home", os("java.home"),
+                "bits", os("sun.arch.data.model")
+        );
+    }
+
+    /**
+     * 只挑内存与 GC 相关的启动参数。
+     * <p>整份参数里可能带 {@code -D} 形式的密码 / 令牌, 而这个文件是要贴到公开 issue 里的,
+     * 所以不做全量导出, 只给出这一类, 其余只报数量。</p>
+     */
+    private @NotNull Map<String, Object> jvm() {
+        var jvm = new LinkedHashMap<String, Object>();
+
+        var args = this.safely(() -> ManagementFactory.getRuntimeMXBean().getInputArguments());
+        var all = args == null ? List.<String>of() : List.copyOf(args);
+
+        var memoryFlags = pick(all, flag -> MEMORY_FLAGS.stream().anyMatch(flag::startsWith));
+        var gcFlags = pick(all, flag -> flag.contains("GC") || flag.toLowerCase(Locale.ROOT).startsWith("-xlog:gc"));
+
+        var categorized = all.stream()
+                              .filter(flag -> memoryFlags.contains(flag) || gcFlags.contains(flag))
+                              .count();
+
+        jvm.put("memory_flags", memoryFlags);
+        jvm.put("gc_flags", gcFlags);
+        jvm.put("other_arg_count", (int) (all.size() - categorized));
+        jvm.put("gc_collectors", this.gcCollectors());
+
+        var uptime = this.safely(() -> ManagementFactory.getRuntimeMXBean().getUptime());
+        if (uptime != null) {
+            jvm.put("uptime_seconds", uptime / 1000);
+        }
+        return jvm;
+    }
+
+    private @NotNull List<String> gcCollectors() {
+        var names = new ArrayList<String>();
+        try {
+            for (var gc : ManagementFactory.getGarbageCollectorMXBeans()) {
+                names.add(gc.getName());
+            }
+        } catch (RuntimeException ignored) {
+            // 拿不到就留空
+        }
+        return names;
+    }
+
+    private static @NotNull List<String> pick(@NotNull List<String> args, @NotNull Predicate<String> predicate) {
+        return args.stream().filter(predicate).toList();
     }
 
     private @NotNull Map<String, Object> cpu() {
