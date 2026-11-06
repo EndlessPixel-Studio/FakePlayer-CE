@@ -1,8 +1,10 @@
 package io.github.hello09x.fakeplayer.core.entity;
 
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.Component.translatable;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
+
 import io.github.hello09x.devtools.command.exception.CommandException;
-import io.github.hello09x.fakeplayer.core.listener.SpawnTeleportGuard;
-import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.devtools.core.utils.WorldUtils;
 import io.github.hello09x.fakeplayer.api.spi.*;
 import io.github.hello09x.fakeplayer.core.Main;
@@ -10,6 +12,7 @@ import io.github.hello09x.fakeplayer.core.compat.login.LoginCompatManager;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.config.PreventKicking;
 import io.github.hello09x.fakeplayer.core.constant.MetadataKeys;
+import io.github.hello09x.fakeplayer.core.listener.SpawnTeleportGuard;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerAutofishManager;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerReplenishManager;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerSkinManager;
@@ -18,6 +21,12 @@ import io.github.hello09x.fakeplayer.core.manager.naming.NameManager;
 import io.github.hello09x.fakeplayer.core.manager.naming.SequenceName;
 import io.github.hello09x.fakeplayer.core.util.Attributes;
 import io.github.hello09x.fakeplayer.core.util.InternalAddressGenerator;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
+import java.net.InetAddress;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.Getter;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
@@ -32,361 +41,340 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 
-import java.net.InetAddress;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadLocalRandom;
-
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.Component.translatable;
-import static net.kyori.adventure.text.format.NamedTextColor.*;
-
 public class Fakeplayer {
 
-    private final static InternalAddressGenerator ipGen = new InternalAddressGenerator();
-    private final FakeplayerConfig config;
-    private final NMSBridge bridge;
-    private final FakeplayerSkinManager skinManager;
-    private final FakeplayerReplenishManager replenishManager;
-    private final FakeplayerAutofishManager autofishManager;
-    private final LoginCompatManager loginCompatManager;
-    private final ActionManager actionManager;
+  private static final InternalAddressGenerator ipGen = new InternalAddressGenerator();
+  private final FakeplayerConfig config;
+  private final NMSBridge bridge;
+  private final FakeplayerSkinManager skinManager;
+  private final FakeplayerReplenishManager replenishManager;
+  private final FakeplayerAutofishManager autofishManager;
+  private final LoginCompatManager loginCompatManager;
+  private final ActionManager actionManager;
 
-    @NotNull
-    private final NameManager nameManager;
+  @NotNull private final NameManager nameManager;
 
+  @NotNull @Getter private final CommandSender creator;
 
-    @NotNull
-    @Getter
-    private final CommandSender creator;
+  @NotNull @Getter private final NMSServerPlayer handle;
 
-    @NotNull
-    @Getter
-    private final NMSServerPlayer handle;
+  @NotNull @Getter private final Player player;
 
-    @NotNull
-    @Getter
-    private final Player player;
+  @NotNull @Getter private final String creatorIp;
 
-    @NotNull
-    @Getter
-    private final String creatorIp;
+  @NotNull @Getter private final SequenceName sequenceName;
 
-    @NotNull
-    @Getter
-    private final SequenceName sequenceName;
+  @NotNull private final FakeplayerTicker ticker;
 
-    @NotNull
-    private final FakeplayerTicker ticker;
+  @Getter @NotNull private final String name;
 
-    @Getter
-    @NotNull
-    private final String name;
+  @NotNull private final UUID uuid;
 
-    @NotNull
-    private final UUID uuid;
+  @Getter @UnknownNullability private NMSNetwork network;
 
-    @Getter
-    @UnknownNullability
-    private NMSNetwork network;
+  /** 初始延迟 (ping), 负数表示不模拟 */
+  private volatile int firstPing = -1;
 
-    /**
-     * 初始延迟 (ping), 负数表示不模拟
-     */
-    private volatile int firstPing = -1;
+  /** 当前延迟, 会在初始值附近小幅波动 (仅用于显示) */
+  private volatile int currentPing = -1;
 
-    /**
-     * 当前延迟, 会在初始值附近小幅波动 (仅用于显示)
-     */
-    private volatile int currentPing = -1;
+  /**
+   * @param creator 创建者
+   * @param creatorIp 创建者 IP
+   * @param sequenceName 序列名
+   * @param lifespan 存活时间
+   */
+  public Fakeplayer(
+      @NotNull CommandSender creator,
+      @NotNull String creatorIp,
+      @NotNull SequenceName sequenceName,
+      long lifespan) {
+    var injector = Main.getInjector();
+    this.config = injector.getInstance(FakeplayerConfig.class);
+    this.bridge = injector.getInstance(NMSBridge.class);
+    this.skinManager = injector.getInstance(FakeplayerSkinManager.class);
+    this.replenishManager = injector.getInstance(FakeplayerReplenishManager.class);
+    this.autofishManager = injector.getInstance(FakeplayerAutofishManager.class);
+    this.loginCompatManager = injector.getInstance(LoginCompatManager.class);
+    this.actionManager = injector.getInstance(ActionManager.class);
+    this.nameManager = injector.getInstance(NameManager.class);
 
-    /**
-     * @param creator      创建者
-     * @param creatorIp    创建者 IP
-     * @param sequenceName 序列名
-     * @param lifespan     存活时间
-     */
-    public Fakeplayer(
-            @NotNull CommandSender creator,
-            @NotNull String creatorIp,
-            @NotNull SequenceName sequenceName,
-            long lifespan
-    ) {
-        var injector = Main.getInjector();
-        this.config = injector.getInstance(FakeplayerConfig.class);
-        this.bridge = injector.getInstance(NMSBridge.class);
-        this.skinManager = injector.getInstance(FakeplayerSkinManager.class);
-        this.replenishManager = injector.getInstance(FakeplayerReplenishManager.class);
-        this.autofishManager = injector.getInstance(FakeplayerAutofishManager.class);
-        this.loginCompatManager = injector.getInstance(LoginCompatManager.class);
-        this.actionManager = injector.getInstance(ActionManager.class);
-        this.nameManager = injector.getInstance(NameManager.class);
+    this.name = sequenceName.name();
+    this.uuid = sequenceName.uuid();
 
-        this.name = sequenceName.name();
-        this.uuid = sequenceName.uuid();
+    this.creator = creator;
+    this.creatorIp = creatorIp;
+    this.sequenceName = sequenceName;
+    this.handle = bridge.fromServer(Bukkit.getServer()).newPlayer(uuid, name);
+    this.player = handle.getPlayer();
 
-        this.creator = creator;
-        this.creatorIp = creatorIp;
-        this.sequenceName = sequenceName;
-        this.handle = bridge.fromServer(Bukkit.getServer()).newPlayer(uuid, name);
-        this.player = handle.getPlayer();
+    this.ticker = new FakeplayerTicker(this, lifespan);
+    this.player.setPersistent(config.isPersistData());
+    this.player.setSleepingIgnored(true);
+    this.handle.setPlayBefore(); // 可避免一些插件的第一次入服欢迎信息
+    if (!config.isAdvancements()) {
+      this.handle.disableAdvancements(Main.getInstance()); // 不授予成就, 也不播报
+    }
+  }
 
-        this.ticker = new FakeplayerTicker(this, lifespan);
-        this.player.setPersistent(config.isPersistData());
-        this.player.setSleepingIgnored(true);
-        this.handle.setPlayBefore(); // 可避免一些插件的第一次入服欢迎信息
-        if (!config.isAdvancements()) {
-            this.handle.disableAdvancements(Main.getInstance()); // 不授予成就, 也不播报
-        }
+  /** 按配置为假人设置初始延迟 (ping) */
+  private void applyConfiguredPing() {
+    var pings = config.getCustomPing();
+    if (pings == null || pings.isEmpty()) {
+      return;
     }
 
-    /**
-     * 按配置为假人设置初始延迟 (ping)
-     */
-    private void applyConfiguredPing() {
-        var pings = config.getCustomPing();
-        if (pings == null || pings.isEmpty()) {
-            return;
-        }
+    var ping =
+        pings.size() == 1
+            ? pings.get(0)
+            : ThreadLocalRandom.current().nextInt(pings.get(0), pings.get(1) + 1);
+    this.setPing(ping);
+  }
 
-        var ping = pings.size() == 1
-                ? pings.get(0)
-                : ThreadLocalRandom.current().nextInt(pings.get(0), pings.get(1) + 1);
-        this.setPing(ping);
+  /**
+   * 设置假人显示使用的延迟 (ping)
+   *
+   * @param ping 延迟 (毫秒), 负数表示改回使用服务端计算出的真实值
+   */
+  public void setPing(int ping) {
+    this.firstPing = ping;
+    this.currentPing = ping;
+    this.pushPing(ping, true);
+  }
+
+  /** 让延迟在设定值附近小幅波动, 避免 Tab 列表里一直显示同一个固定值 */
+  public void updateDynamicPing() {
+    var base = this.firstPing;
+    if (base < 0) {
+      return;
     }
 
-    /**
-     * 设置假人显示使用的延迟 (ping)
-     *
-     * @param ping 延迟 (毫秒), 负数表示改回使用服务端计算出的真实值
-     */
-    public void setPing(int ping) {
-        this.firstPing = ping;
-        this.currentPing = ping;
-        this.pushPing(ping, true);
+    var next = Math.max(0, this.currentPing + ThreadLocalRandom.current().nextInt(-2, 3));
+    next = Math.min(base + 8, Math.max(base - 8, next));
+    if (next == this.currentPing) {
+      return;
     }
 
-    /**
-     * 让延迟在设定值附近小幅波动, 避免 Tab 列表里一直显示同一个固定值
-     */
-    public void updateDynamicPing() {
-        var base = this.firstPing;
-        if (base < 0) {
-            return;
-        }
+    this.currentPing = next;
+    this.pushPing(next, false);
+  }
 
-        var next = Math.max(0, this.currentPing + ThreadLocalRandom.current().nextInt(-2, 3));
-        next = Math.min(base + 8, Math.max(base - 8, next));
-        if (next == this.currentPing) {
-            return;
-        }
-
-        this.currentPing = next;
-        this.pushPing(next, false);
+  private void pushPing(int ping, boolean broadcast) {
+    var network = this.network;
+    if (network == null) {
+      return;
     }
 
-    private void pushPing(int ping, boolean broadcast) {
-        var network = this.network;
-        if (network == null) {
-            return;
-        }
+    network.getServerGamePacketListener().setPing(ping, broadcast);
+  }
 
-        network.getServerGamePacketListener().setPing(ping, broadcast);
-    }
+  /** 让假人诞生 */
+  public CompletableFuture<Void> spawnAsync(@NotNull SpawnOption option) {
+    var address = ipGen.next();
+    return Schedulers.callAsync(
+            Main.getInstance(),
+            () -> {
+              if (!loginCompatManager.prepare(player, address)) {
+                throw new CommandException(
+                    text("Could not prepare login compatibility for fake player " + name));
+              }
 
-    /**
-     * 让假人诞生
-     */
-    public CompletableFuture<Void> spawnAsync(@NotNull SpawnOption option) {
-        var address = ipGen.next();
-        return Schedulers
-                .callAsync(Main.getInstance(), () -> {
-                    if (!loginCompatManager.prepare(player, address)) {
-                        throw new CommandException(text(
-                                "Could not prepare login compatibility for fake player " + name
-                        ));
-                    }
-
-                    var event = this.callPreLoginEvent(address);
-                    if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
-                        throw new CommandException(translatable(
-                                "fakeplayer.command.spawn.error.disallowed",
-                                text(player.getName(), WHITE),
-                                event.kickMessage()
-                        ).color(RED));
-                    }
-                    if (!loginCompatManager.afterPreLogin(player)) {
-                        throw new CommandException(text(
-                                "Could not complete login compatibility for fake player " + name
-                        ));
-                    }
-                })
-                .thenComposeAsync(nul -> Schedulers.callAt(Main.getInstance(), option.spawnAt(), () -> {
-                    this.player.setMetadata(MetadataKeys.SPAWNED_AT, new FixedMetadataValue(Main.getInstance(), Bukkit.getCurrentTick()));
-                    {
+              var event = this.callPreLoginEvent(address);
+              if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
+                throw new CommandException(
+                    translatable(
+                            "fakeplayer.command.spawn.error.disallowed",
+                            text(player.getName(), WHITE),
+                            event.kickMessage())
+                        .color(RED));
+              }
+              if (!loginCompatManager.afterPreLogin(player)) {
+                throw new CommandException(
+                    text("Could not complete login compatibility for fake player " + name));
+              }
+            })
+        .thenComposeAsync(
+            nul ->
+                Schedulers.callAt(
+                    Main.getInstance(),
+                    option.spawnAt(),
+                    () -> {
+                      this.player.setMetadata(
+                          MetadataKeys.SPAWNED_AT,
+                          new FixedMetadataValue(Main.getInstance(), Bukkit.getCurrentTick()));
+                      {
                         var event = this.callLoginEvent(address);
-                        if (event.getResult() != PlayerLoginEvent.Result.ALLOWED && config.getPreventKicking().ordinal() < PreventKicking.ON_SPAWNING.ordinal()) {
-                            throw new CommandException(translatable(
-                                    "fakeplayer.command.spawn.error.disallowed", RED,
-                                    text(player.getName(), WHITE),
-                                    event.kickMessage()
-                            ));
+                        if (event.getResult() != PlayerLoginEvent.Result.ALLOWED
+                            && config.getPreventKicking().ordinal()
+                                < PreventKicking.ON_SPAWNING.ordinal()) {
+                          throw new CommandException(
+                              translatable(
+                                  "fakeplayer.command.spawn.error.disallowed",
+                                  RED,
+                                  text(player.getName(), WHITE),
+                                  event.kickMessage()));
                         }
-                    }
+                      }
 
-                    if (config.isDropInventoryOnQuiting() && !nameManager.isRealPlayerUUID(this.uuid)) {
+                      if (config.isDropInventoryOnQuiting()
+                          && !nameManager.isRealPlayerUUID(this.uuid)) {
                         // 跨服背包同步插件可能导致假人既丢弃了一份到地上，在重新生成的时候又回来了
                         // 因此在生成的时候清空一次背包
                         // 但无法解决登陆后延迟同步背包的情况
                         // 如果该假人使用了真实玩家的 UUID(已玩过), 则保留其原有数据, 不清空背包
                         this.player.getInventory().clear();
-                    }
+                      }
 
-                    this.player.setInvulnerable(option.invulnerable());
-                    this.player.setCollidable(option.collidable());
-                    this.player.setCanPickupItems(option.pickupItems());
-                    if (option.lookAtEntity()) {
-                        actionManager.setAction(player, ActionType.LOOK_AT_NEAREST_ENTITY, ActionSetting.continuous());
-                    }
-                    if (option.skin()) {
+                      this.player.setInvulnerable(option.invulnerable());
+                      this.player.setCollidable(option.collidable());
+                      this.player.setCanPickupItems(option.pickupItems());
+                      if (option.lookAtEntity()) {
+                        actionManager.setAction(
+                            player, ActionType.LOOK_AT_NEAREST_ENTITY, ActionSetting.continuous());
+                      }
+                      if (option.skin()) {
                         skinManager.useDefaultSkin(creator, player);
-                    }
-                    if (option.replenish()) {
+                      }
+                      if (option.replenish()) {
                         replenishManager.setReplenish(player, true);
-                    }
-                    if (option.replaceTools()) {
+                      }
+                      if (option.replaceTools()) {
                         replenishManager.setReplaceTools(player, true);
-                    }
-                    if (option.autofish()) {
+                      }
+                      if (option.autofish()) {
                         autofishManager.setAutofish(player, true);
-                    }
+                      }
 
-                    this.network = bridge.createNetwork(address);
-                    this.network.placeNewPlayer(Bukkit.getServer(), this.player);
-                    this.applyConfiguredPing();
-                    this.player.setHealth(Optional.ofNullable(this.player.getAttribute(Attributes.maxHealth()))
-                                                  .map(AttributeInstance::getValue)
-                                                  .orElse(20D));    // 恢复生命值
-                    this.player.setFoodLevel(20);
-                    this.setupName();
-                    this.handle.setupClientOptions();   // 处理皮肤设置问题
+                      this.network = bridge.createNetwork(address);
+                      this.network.placeNewPlayer(Bukkit.getServer(), this.player);
+                      this.applyConfiguredPing();
+                      this.player.setHealth(
+                          Optional.ofNullable(this.player.getAttribute(Attributes.maxHealth()))
+                              .map(AttributeInstance::getValue)
+                              .orElse(20D)); // 恢复生命值
+                      this.player.setFoodLevel(20);
+                      this.setupName();
+                      this.handle.setupClientOptions(); // 处理皮肤设置问题
 
-                    this.teleportToSpawnpoint(option.spawnAt().clone());
-                    if (option.simulationDistance() >= 0) {
+                      this.teleportToSpawnpoint(option.spawnAt().clone());
+                      if (option.simulationDistance() >= 0) {
                         // 玩家进入世界后再设置, 否则区块追踪还没有建立
                         this.player.setSimulationDistance(option.simulationDistance());
-                    }
-                    this.ticker.run();
-                }))
-                .whenComplete((ignored, throwable) -> {
-                    if (throwable != null) {
-                        Schedulers.global(Main.getInstance(), () -> {
-                            if (!player.isOnline()) {
-                                loginCompatManager.cleanup(player);
-                            }
-                        });
-                    }
-                });
+                      }
+                      this.ticker.run();
+                    }))
+        .whenComplete(
+            (ignored, throwable) -> {
+              if (throwable != null) {
+                Schedulers.global(
+                    Main.getInstance(),
+                    () -> {
+                      if (!player.isOnline()) {
+                        loginCompatManager.cleanup(player);
+                      }
+                    });
+              }
+            });
+  }
+
+  /**
+   * 将假人传送到指定位置
+   *
+   * @param to 目标位置
+   */
+  private void teleportToSpawnpoint(@NotNull Location to) {
+    var from = this.player.getLocation();
+    var chain = CompletableFuture.completedFuture(true);
+    Location bridge = null;
+
+    if (from.getWorld().equals(to.getWorld())) {
+      // 如果生成世界等于目的世界, 则需要穿越一次维度才能获取刷怪能力
+      var otherWorld = WorldUtils.getOtherWorld(from.getWorld());
+      if (otherWorld == null) {
+        this.creator.sendMessage(
+            translatable(
+                    "fakeplayer.command.spawn.error.no-mob-spawning-ability",
+                    text(player.getName(), WHITE))
+                .color(GRAY));
+      } else {
+        bridge = otherWorld.getSpawnLocation();
+      }
     }
 
-    /**
-     * 将假人传送到指定位置
-     *
-     * @param to 目标位置
-     */
-    private void teleportToSpawnpoint(@NotNull Location to) {
-        var from = this.player.getLocation();
-        var chain = CompletableFuture.completedFuture(true);
-        Location bridge = null;
-
-        if (from.getWorld().equals(to.getWorld())) {
-            // 如果生成世界等于目的世界, 则需要穿越一次维度才能获取刷怪能力
-            var otherWorld = WorldUtils.getOtherWorld(from.getWorld());
-            if (otherWorld == null) {
-                this.creator.sendMessage(translatable(
-                        "fakeplayer.command.spawn.error.no-mob-spawning-ability",
-                        text(player.getName(), WHITE)
-                ).color(GRAY));
-            } else {
-                bridge = otherWorld.getSpawnLocation();
-            }
-        }
-
-        // 出生窗口内只允许传送到这两个点, 防止其它插件把假人搬走 (见 SpawnTeleportGuard)
-        var guard = Main.getInjector().getInstance(SpawnTeleportGuard.class);
-        guard.begin(this.player, bridge, to);
-        if (bridge != null) {
-            // Folia: 区域线程内禁止同步 teleport, 必须使用 teleportAsync
-            chain = this.player.teleportAsync(bridge);
-        }
-
-        chain.thenCompose(ignored -> this.player.teleportAsync(to))
-             .thenAccept(success -> {
-                 if (success) {
-                     to.getWorld().playSound(to, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F);
-                 } else {
-                     this.creator.sendMessage(translatable(
-                             "fakeplayer.command.spawn.error.teleport-failed",
-                             text(player.getName(), WHITE)
-                     ).color(GRAY));
-                 }
-                 // 传送会重新拉起「等待客户端加载世界」的倒计时, 假人没法自己回应, 只能在这里替它标记
-                 this.handle.markClientLoaded();
-             })
-             .whenComplete((ignored, error) -> guard.end(this.player));
+    // 出生窗口内只允许传送到这两个点, 防止其它插件把假人搬走 (见 SpawnTeleportGuard)
+    var guard = Main.getInjector().getInstance(SpawnTeleportGuard.class);
+    guard.begin(this.player, bridge, to);
+    if (bridge != null) {
+      // Folia: 区域线程内禁止同步 teleport, 必须使用 teleportAsync
+      chain = this.player.teleportAsync(bridge);
     }
 
-    public boolean isOnline() {
-        return this.player.isOnline();
-    }
+    chain
+        .thenCompose(ignored -> this.player.teleportAsync(to))
+        .thenAccept(
+            success -> {
+              if (success) {
+                to.getWorld().playSound(to, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F);
+              } else {
+                this.creator.sendMessage(
+                    translatable(
+                            "fakeplayer.command.spawn.error.teleport-failed",
+                            text(player.getName(), WHITE))
+                        .color(GRAY));
+              }
+              // 传送会重新拉起「等待客户端加载世界」的倒计时, 假人没法自己回应, 只能在这里替它标记
+              this.handle.markClientLoaded();
+            })
+        .whenComplete((ignored, error) -> guard.end(this.player));
+  }
 
-    public int getTickCount() {
-        return handle.getTickCount();
-    }
+  public boolean isOnline() {
+    return this.player.isOnline();
+  }
 
-    private @NotNull AsyncPlayerPreLoginEvent callPreLoginEvent(@NotNull InetAddress address) {
-        var event = new AsyncPlayerPreLoginEvent(
-                this.name,
-                address,
-                this.uuid
-        );
-        Bukkit.getPluginManager().callEvent(event);
-        return event;
-    }
+  public int getTickCount() {
+    return handle.getTickCount();
+  }
 
-    private @NotNull PlayerLoginEvent callLoginEvent(@NotNull InetAddress address) {
-        var event = new PlayerLoginEvent(
-                player,
-                address.getHostAddress(),
-                address
-        );
-        Bukkit.getPluginManager().callEvent(event);
-        return event;
-    }
+  private @NotNull AsyncPlayerPreLoginEvent callPreLoginEvent(@NotNull InetAddress address) {
+    var event = new AsyncPlayerPreLoginEvent(this.name, address, this.uuid);
+    Bukkit.getPluginManager().callEvent(event);
+    return event;
+  }
 
-    /**
-     * 判断是否是创建者
-     * <p>如果玩家下线再重新登陆, entityID 将会不一样导致 {@link Object#equals(Object)} 返回 {@code false}</p>
-     *
-     * @param sender 命令执行者
-     * @return 是否是创建者
-     */
-    public boolean isCreatedBy(@NotNull CommandSender sender) {
-        if (this.creator instanceof Player pc && sender instanceof Player ps) {
-            return pc.getUniqueId().equals(ps.getUniqueId());
-        }
-        return creator.getClass() == sender.getClass() && creator.getName().equals(sender.getName());
-    }
+  private @NotNull PlayerLoginEvent callLoginEvent(@NotNull InetAddress address) {
+    var event = new PlayerLoginEvent(player, address.getHostAddress(), address);
+    Bukkit.getPluginManager().callEvent(event);
+    return event;
+  }
 
-    public @NotNull UUID getUUID() {
-        return uuid;
+  /**
+   * 判断是否是创建者
+   *
+   * <p>如果玩家下线再重新登陆, entityID 将会不一样导致 {@link Object#equals(Object)} 返回 {@code false}
+   *
+   * @param sender 命令执行者
+   * @return 是否是创建者
+   */
+  public boolean isCreatedBy(@NotNull CommandSender sender) {
+    if (this.creator instanceof Player pc && sender instanceof Player ps) {
+      return pc.getUniqueId().equals(ps.getUniqueId());
     }
+    return creator.getClass() == sender.getClass() && creator.getName().equals(sender.getName());
+  }
 
-    private void setupName() {
-        var displayName = text(player.getName(), config.getNameStyleColor(), config.getNameStyleDecorations().toArray(new TextDecoration[0]));
-        player.playerListName(displayName);
-        player.displayName(displayName);
-        player.customName(displayName);
-    }
+  public @NotNull UUID getUUID() {
+    return uuid;
+  }
+
+  private void setupName() {
+    var displayName =
+        text(
+            player.getName(),
+            config.getNameStyleColor(),
+            config.getNameStyleDecorations().toArray(new TextDecoration[0]));
+    player.playerListName(displayName);
+    player.displayName(displayName);
+    player.customName(displayName);
+  }
 }

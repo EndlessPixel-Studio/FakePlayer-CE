@@ -1,5 +1,9 @@
 package io.github.hello09x.fakeplayer.core.command;
 
+import static io.github.hello09x.devtools.command.Commands.command;
+import static io.github.hello09x.devtools.command.Commands.int32;
+import static net.kyori.adventure.text.Component.translatable;
+
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
@@ -12,11 +16,6 @@ import io.github.hello09x.fakeplayer.core.command.impl.ActionCommand;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -24,223 +23,252 @@ import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import static io.github.hello09x.devtools.command.Commands.command;
-import static io.github.hello09x.devtools.command.Commands.int32;
-import static net.kyori.adventure.text.Component.translatable;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class CommandSupports {
 
-    private final static List<String> NUMERIC_SUGGESTIONS = List.of("-1", "4", "8", "12", "16");
+  private static final List<String> NUMERIC_SUGGESTIONS = List.of("-1", "4", "8", "12", "16");
 
-    private static @NotNull FakeplayerManager manager() {
-        return Main.getInjector().getInstance(FakeplayerManager.class);
-    }
+  private static @NotNull FakeplayerManager manager() {
+    return Main.getInjector().getInstance(FakeplayerManager.class);
+  }
 
-    private static @NotNull FakeplayerConfig config() {
-        return Main.getInjector().getInstance(FakeplayerConfig.class);
-    }
+  private static @NotNull FakeplayerConfig config() {
+    return Main.getInjector().getInstance(FakeplayerConfig.class);
+  }
 
-    private static @NotNull ActionCommand actionCommand() {
-        return Main.getInjector().getInstance(ActionCommand.class);
-    }
+  private static @NotNull ActionCommand actionCommand() {
+    return Main.getInjector().getInstance(ActionCommand.class);
+  }
 
-    public static @NotNull CommandAPICommand[] newActionCommands(@NotNull ActionType action) {
-        return new CommandAPICommand[]{
-                command("once")
-                        .withShortDescription("fakeplayer.command.action.once")
-                        .withOptionalArguments(fakeplayer("name"))
-                        .executes(actionCommand().action(action, ActionSetting.once())),
-                command("continuous")
-                        .withShortDescription("fakeplayer.command.action.continuous")
-                        .withOptionalArguments(fakeplayer("name"))
-                        .executes(actionCommand().action(action, ActionSetting.continuous())),
-                command("interval")
-                        .withShortDescription("fakeplayer.command.action.interval")
-                        .withOptionalArguments(
-                                int32("ticks", 1),
-                                fakeplayer("name"))
-                        .executes((sender, args) -> {
-                    int interval = (int) args.getOptional("ticks").orElse(1);
-                    actionCommand().action(sender, args, action, ActionSetting.interval(interval));
-                }),
-                command("stop")
-                        .withShortDescription("fakeplayer.command.action.stop")
-                        .withOptionalArguments(fakeplayer("name"))
-                        .executes(actionCommand().action(action, ActionSetting.stop()))
-        };
-    }
+  public static @NotNull CommandAPICommand[] newActionCommands(@NotNull ActionType action) {
+    return new CommandAPICommand[] {
+      command("once")
+          .withShortDescription("fakeplayer.command.action.once")
+          .withOptionalArguments(fakeplayer("name"))
+          .executes(actionCommand().action(action, ActionSetting.once())),
+      command("continuous")
+          .withShortDescription("fakeplayer.command.action.continuous")
+          .withOptionalArguments(fakeplayer("name"))
+          .executes(actionCommand().action(action, ActionSetting.continuous())),
+      command("interval")
+          .withShortDescription("fakeplayer.command.action.interval")
+          .withOptionalArguments(int32("ticks", 1), fakeplayer("name"))
+          .executes(
+              (sender, args) -> {
+                int interval = (int) args.getOptional("ticks").orElse(1);
+                actionCommand().action(sender, args, action, ActionSetting.interval(interval));
+              }),
+      command("stop")
+          .withShortDescription("fakeplayer.command.action.stop")
+          .withOptionalArguments(fakeplayer("name"))
+          .executes(actionCommand().action(action, ActionSetting.stop()))
+    };
+  }
 
-    public static @NotNull Argument<Player> fakeplayer(@NotNull String nodeName, @Nullable Predicate<Player> predicate) {
-        return new CustomArgument<>(new StringArgument(nodeName), info -> {
-            var sender = info.sender();
-            var target = sender.isOp()
-                    ? manager().get(info.currentInput())
-                    : manager().get(sender, info.currentInput());
-            if (predicate != null && target != null && !predicate.test(target)) {
+  public static @NotNull Argument<Player> fakeplayer(
+      @NotNull String nodeName, @Nullable Predicate<Player> predicate) {
+    return new CustomArgument<>(
+            new StringArgument(nodeName),
+            info -> {
+              var sender = info.sender();
+              var target =
+                  sender.isOp()
+                      ? manager().get(info.currentInput())
+                      : manager().get(sender, info.currentInput());
+              if (predicate != null && target != null && !predicate.test(target)) {
                 target = null;
-            }
-            return target;
-        }).replaceSuggestions(ArgumentSuggestions.strings(info -> {
-            var sender = info.sender();
-            var arg = info.currentArg();
+              }
+              return target;
+            })
+        .replaceSuggestions(
+            ArgumentSuggestions.strings(
+                info -> {
+                  var sender = info.sender();
+                  var arg = info.currentArg();
 
-            var targets = sender.isOp()
-                    ? manager().getAll(predicate)
-                    : manager().getAll(sender, predicate);
+                  var targets =
+                      sender.isOp()
+                          ? manager().getAll(predicate)
+                          : manager().getAll(sender, predicate);
 
-            var names = targets.stream().map(Player::getName);
-            if (!arg.isEmpty()) {
-                names = names.filter(n -> n.toLowerCase(Locale.ROOT).contains(arg));
-            }
+                  var names = targets.stream().map(Player::getName);
+                  if (!arg.isEmpty()) {
+                    names = names.filter(n -> n.toLowerCase(Locale.ROOT).contains(arg));
+                  }
 
-            return names.toArray(String[]::new);
-        }));
-    }
+                  return names.toArray(String[]::new);
+                }));
+  }
 
+  public static @NotNull Argument<Player> fakeplayer(@NotNull String nodeName) {
+    return fakeplayer(nodeName, null);
+  }
 
-    public static @NotNull Argument<Player> fakeplayer(@NotNull String nodeName) {
-        return fakeplayer(nodeName, null);
-    }
+  /**
+   * 与 {@link #fakeplayer(String)} 相同的假人名字补全, 但参数底层类型保持字符串。
+   *
+   * <p>供 `/fp say once|continuous|interval` 使用: 这些子命令的「单参数回退成消息」 (如 {@code /fp say once 1234}) 依赖
+   * name 是字符串, 不能换成 {@link CustomArgument} 那种假人参数 (否则 1234 会因为解析不出假人而直接报错), 所以这里只额外挂上 TAB 补全。
+   */
+  public static @NotNull Argument<String> fakeplayerName(@NotNull String nodeName) {
+    return new StringArgument(nodeName)
+        .replaceSuggestions(
+            ArgumentSuggestions.strings(
+                info -> {
+                  var sender = info.sender();
+                  var arg = info.currentArg().toLowerCase(Locale.ROOT);
 
-    /**
-     * 与 {@link #fakeplayer(String)} 相同的假人名字补全, 但参数底层类型保持字符串。
-     * <p>供 `/fp say once|continuous|interval` 使用: 这些子命令的「单参数回退成消息」
-     * (如 {@code /fp say once 1234}) 依赖 name 是字符串, 不能换成 {@link CustomArgument}
-     * 那种假人参数 (否则 1234 会因为解析不出假人而直接报错), 所以这里只额外挂上 TAB 补全。</p>
-     */
-    public static @NotNull Argument<String> fakeplayerName(@NotNull String nodeName) {
-        return new StringArgument(nodeName).replaceSuggestions(ArgumentSuggestions.strings(info -> {
-            var sender = info.sender();
-            var arg = info.currentArg().toLowerCase(Locale.ROOT);
+                  var targets = sender.isOp() ? manager().getAll() : manager().getAll(sender);
 
-            var targets = sender.isOp()
-                    ? manager().getAll()
-                    : manager().getAll(sender);
+                  return targets.stream()
+                      .map(Player::getName)
+                      .filter(name -> name.toLowerCase(Locale.ROOT).contains(arg))
+                      .toArray(String[]::new);
+                }));
+  }
 
-            return targets.stream()
-                    .map(Player::getName)
-                    .filter(name -> name.toLowerCase(Locale.ROOT).contains(arg))
-                    .toArray(String[]::new);
-        }));
-    }
+  public static @NotNull Argument<List<Player>> fakeplayers(@NotNull String nodeName) {
+    return new CustomArgument<List<Player>, String>(
+            new StringArgument(nodeName),
+            info -> {
+              var sender = info.sender();
+              var arg = info.currentInput();
 
-    public static @NotNull Argument<List<Player>> fakeplayers(@NotNull String nodeName) {
-        return new CustomArgument<List<Player>, String>(new StringArgument(nodeName), info -> {
-            var sender = info.sender();
-            var arg = info.currentInput();
-
-            if (arg.equals("-a")) {
+              if (arg.equals("-a")) {
                 // 与其他按名字找假人的命令保持一致: op / 控制台的「全部」是全服, 普通玩家只限自己召唤的
                 return sender.isOp() ? manager().getAll() : manager().getAll(sender);
-            }
+              }
 
-            var target = sender.isOp()
-                    ? manager().get(arg)
-                    : manager().get(sender, arg);
+              var target = sender.isOp() ? manager().get(arg) : manager().get(sender, arg);
 
-            return target == null ? Collections.emptyList() : Collections.singletonList(target);
-        }).replaceSuggestions(ArgumentSuggestions.strings(info -> {
-            var sender = info.sender();
-            var arg = info.currentArg().toLowerCase(Locale.ROOT);
+              return target == null ? Collections.emptyList() : Collections.singletonList(target);
+            })
+        .replaceSuggestions(
+            ArgumentSuggestions.strings(
+                info -> {
+                  var sender = info.sender();
+                  var arg = info.currentArg().toLowerCase(Locale.ROOT);
 
-            var fakes = sender.isOp()
-                    ? manager().getAll()
-                    : manager().getAll(sender);
+                  var fakes = sender.isOp() ? manager().getAll() : manager().getAll(sender);
 
-            var names = Stream.concat(fakes.stream().map(Player::getName), Stream.of("-a"));
-            if (!arg.isEmpty()) {
-                names = names.filter(n -> n.toLowerCase(Locale.ROOT).contains(arg));
-            }
+                  var names = Stream.concat(fakes.stream().map(Player::getName), Stream.of("-a"));
+                  if (!arg.isEmpty()) {
+                    names = names.filter(n -> n.toLowerCase(Locale.ROOT).contains(arg));
+                  }
 
-            return names.toArray(String[]::new);
-        }));
-    }
+                  return names.toArray(String[]::new);
+                }));
+  }
 
-    public static @NotNull Argument<Feature> configKey(@NotNull String nodeName) {
-        return configKey(nodeName, ignored -> true);
-    }
+  public static @NotNull Argument<Feature> configKey(@NotNull String nodeName) {
+    return configKey(nodeName, ignored -> true);
+  }
 
-    public static @NotNull Argument<Feature> configKey(@NotNull String nodeName, @NotNull Predicate<Feature> predicate) {
-        return new CustomArgument<>(new StringArgument(nodeName), info -> {
-            var arg = info.currentInput();
-            Feature key;
-            try {
+  public static @NotNull Argument<Feature> configKey(
+      @NotNull String nodeName, @NotNull Predicate<Feature> predicate) {
+    return new CustomArgument<>(
+            new StringArgument(nodeName),
+            info -> {
+              var arg = info.currentInput();
+              Feature key;
+              try {
                 key = Feature.valueOf(arg);
-            } catch (Exception e) {
-                throw CustomArgument.CustomArgumentException.fromAdventureComponent(translatable("fakeplayer.command.config.set.error.invalid-key"));
-            }
+              } catch (Exception e) {
+                throw CustomArgument.CustomArgumentException.fromAdventureComponent(
+                    translatable("fakeplayer.command.config.set.error.invalid-key"));
+              }
 
-            if (!predicate.test(key)) {
-                throw CustomArgument.CustomArgumentException.fromAdventureComponent(translatable("fakeplayer.command.config.set.error.invalid-key"));
-            }
+              if (!predicate.test(key)) {
+                throw CustomArgument.CustomArgumentException.fromAdventureComponent(
+                    translatable("fakeplayer.command.config.set.error.invalid-key"));
+              }
 
-            if (!key.testPermissions(info.sender())) {
-                throw CustomArgument.CustomArgumentException.fromAdventureComponent(translatable("fakeplayer.command.config.set.error.no-permission"));
-            }
-            return key;
-        }).replaceSuggestions(ArgumentSuggestions.strings(Arrays.stream(Feature.values()).filter(predicate).map(Enum::name).toArray(String[]::new)));
-    }
+              if (!key.testPermissions(info.sender())) {
+                throw CustomArgument.CustomArgumentException.fromAdventureComponent(
+                    translatable("fakeplayer.command.config.set.error.no-permission"));
+              }
+              return key;
+            })
+        .replaceSuggestions(
+            ArgumentSuggestions.strings(
+                Arrays.stream(Feature.values())
+                    .filter(predicate)
+                    .map(Enum::name)
+                    .toArray(String[]::new)));
+  }
 
-
-    public static @NotNull Argument<String> configValue(@NotNull String configKeyNodeName, @NotNull String nodeName) {
-        return new CustomArgument<String, String>(new StringArgument(nodeName), info -> {
-            var key = (Feature) info.previousArgs().get(configKeyNodeName);
-            if (key == null) {
-                throw CustomArgument.CustomArgumentException.fromAdventureComponent(translatable("fakeplayer.command.config.set.error.invalid-key"));
-            }
-            var arg = info.currentInput();
-            if (key.isNumeric()) {
+  public static @NotNull Argument<String> configValue(
+      @NotNull String configKeyNodeName, @NotNull String nodeName) {
+    return new CustomArgument<String, String>(
+            new StringArgument(nodeName),
+            info -> {
+              var key = (Feature) info.previousArgs().get(configKeyNodeName);
+              if (key == null) {
+                throw CustomArgument.CustomArgumentException.fromAdventureComponent(
+                    translatable("fakeplayer.command.config.set.error.invalid-key"));
+              }
+              var arg = info.currentInput();
+              if (key.isNumeric()) {
                 try {
-                    var value = Integer.parseInt(arg);
-                    // -1 表示沿用世界设置; 上限与 /gamerule 的模拟距离一致
-                    if (value < -1 || value > 32) {
-                        throw new NumberFormatException();
-                    }
+                  var value = Integer.parseInt(arg);
+                  // -1 表示沿用世界设置; 上限与 /gamerule 的模拟距离一致
+                  if (value < -1 || value > 32) {
+                    throw new NumberFormatException();
+                  }
                 } catch (NumberFormatException e) {
-                    throw CustomArgument.CustomArgumentException.fromAdventureComponent(translatable("fakeplayer.command.config.set.error.invalid-value"));
+                  throw CustomArgument.CustomArgumentException.fromAdventureComponent(
+                      translatable("fakeplayer.command.config.set.error.invalid-value"));
                 }
                 return arg;
-            }
+              }
 
-            if (!key.getOptions().contains(arg)) {
-                throw CustomArgument.CustomArgumentException.fromAdventureComponent(translatable("fakeplayer.command.config.set.error.invalid-value"));
-            }
+              if (!key.getOptions().contains(arg)) {
+                throw CustomArgument.CustomArgumentException.fromAdventureComponent(
+                    translatable("fakeplayer.command.config.set.error.invalid-value"));
+              }
 
-            return arg;
-        }).replaceSuggestions(ArgumentSuggestions.stringCollectionAsync(info -> CompletableFuture.supplyAsync(() -> {
-            var key = (Feature) info.previousArgs().get(configKeyNodeName);
-            if (key == null) {
-                return Collections.emptyList();
-            }
+              return arg;
+            })
+        .replaceSuggestions(
+            ArgumentSuggestions.stringCollectionAsync(
+                info ->
+                    CompletableFuture.supplyAsync(
+                        () -> {
+                          var key = (Feature) info.previousArgs().get(configKeyNodeName);
+                          if (key == null) {
+                            return Collections.emptyList();
+                          }
 
-            var arg = info.currentArg().toLowerCase(Locale.ENGLISH);
-            var options = key.isNumeric() ? NUMERIC_SUGGESTIONS : key.getOptions();
-            if (arg.isEmpty()) {
-                return options;
-            }
+                          var arg = info.currentArg().toLowerCase(Locale.ENGLISH);
+                          var options = key.isNumeric() ? NUMERIC_SUGGESTIONS : key.getOptions();
+                          if (arg.isEmpty()) {
+                            return options;
+                          }
 
-            return options.stream().filter(option -> option.contains(arg)).toList();
-        })));
+                          return options.stream().filter(option -> option.contains(arg)).toList();
+                        })));
+  }
+
+  public static boolean hasFakeplayerForRespawn(@NotNull CommandSender sender) {
+    if (config().isKickOnDead()) {
+      return false;
     }
+    return hasFakeplayer(sender);
+  }
 
-    public static boolean hasFakeplayerForRespawn(@NotNull CommandSender sender) {
-        if (config().isKickOnDead()) {
-            return false;
-        }
-        return hasFakeplayer(sender);
-    }
+  public static boolean needSelect(@NotNull CommandSender sender) {
+    return sender.isOp() || (config().getPlayerLimit() > 1 && manager().countByCreator(sender) > 0);
+  }
 
-    public static boolean needSelect(@NotNull CommandSender sender) {
-        return sender.isOp() || (config().getPlayerLimit() > 1 && manager().countByCreator(sender) > 0);
-    }
+  public static boolean hasFakeplayer(@NotNull CommandSender sender) {
+    return sender.isOp() || manager().countByCreator(sender) > 0;
+  }
 
-    public static boolean hasFakeplayer(@NotNull CommandSender sender) {
-        return sender.isOp() || manager().countByCreator(sender) > 0;
-    }
-
-    public static boolean isCmdAvailable(@NotNull CommandSender sender) {
-        return sender.hasPermission(Permission.cmd) && hasFakeplayer(sender);
-    }
-
+  public static boolean isCmdAvailable(@NotNull CommandSender sender) {
+    return sender.hasPermission(Permission.cmd) && hasFakeplayer(sender);
+  }
 }

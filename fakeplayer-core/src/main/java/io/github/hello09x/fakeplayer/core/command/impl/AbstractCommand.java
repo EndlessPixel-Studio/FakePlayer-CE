@@ -1,5 +1,7 @@
 package io.github.hello09x.fakeplayer.core.command.impl;
 
+import static net.kyori.adventure.text.Component.translatable;
+
 import com.google.inject.Inject;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
@@ -10,151 +12,155 @@ import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.logging.Logger;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.logging.Logger;
-
-import static net.kyori.adventure.text.Component.translatable;
-
 public abstract class AbstractCommand {
 
-    protected final static Logger log = Main.getInstance().getLogger();
+  protected static final Logger log = Main.getInstance().getLogger();
 
-    @Inject
-    protected NMSBridge bridge;
+  @Inject protected NMSBridge bridge;
 
-    @Inject
-    protected FakeplayerManager manager;
+  @Inject protected FakeplayerManager manager;
 
-    @Inject
-    protected FakeplayerConfig config;
+  @Inject protected FakeplayerConfig config;
 
-    protected @NotNull Player getFakeplayer(@NotNull CommandSender sender, @NotNull CommandArguments args) throws WrapperCommandSyntaxException {
-        return this.getFakeplayer(sender, args, null);
+  protected @NotNull Player getFakeplayer(
+      @NotNull CommandSender sender, @NotNull CommandArguments args)
+      throws WrapperCommandSyntaxException {
+    return this.getFakeplayer(sender, args, null);
+  }
+
+  /**
+   * 获取命令指定的假人
+   *
+   * <ol>
+   *   <li>如果玩家指定了名称, 则返回对应的假人
+   *   <li>如果玩家通过 /fp select 选择了假人, 则返回该假人
+   *   <li>如果玩家仅有一个假人, 则返回该假人
+   *   <li>不能找到唯一的一个假人时, 返回错误给玩家
+   * </ol>
+   *
+   * @param sender 命令发送方
+   * @param args 命令参数
+   * @param predicate 过滤条件
+   * @return 假人
+   * @throws WrapperCommandSyntaxException 找不到唯一的假人时抛出次异常
+   */
+  protected @NotNull Player getFakeplayer(
+      @NotNull CommandSender sender,
+      @NotNull CommandArguments args,
+      @Nullable Predicate<Player> predicate)
+      throws WrapperCommandSyntaxException {
+    return this.getFakeplayer(sender, args, predicate, false);
+  }
+
+  /** say 的单参数形式把 name 当作消息；此时必须忽略该参数并正常使用已选假人。 */
+  protected @NotNull Player getFakeplayer(
+      @NotNull CommandSender sender,
+      @NotNull CommandArguments args,
+      @Nullable Predicate<Player> predicate,
+      boolean ignoreName)
+      throws WrapperCommandSyntaxException {
+    var raw = ignoreName ? null : args.get("name");
+    Player fake = null;
+    if (raw instanceof Player p) {
+      fake = p;
+    } else if (raw instanceof String s && !s.isBlank()) {
+      // 兼容 say 命令: name 以字符串形式传入 (单参数时回退为消息, 该字符串通常不是有效假人名)
+      // 与 FakePlayerCommandArgument 保持一致的语义: op / 控制台可以指定任意假人,
+      // 普通玩家只能指定自己召唤的假人。此前只查自己召唤的假人, 导致控制台无法按名字操作别人召唤的假人
+      fake = sender.isOp() ? manager.get(s) : manager.get(sender, s);
+    }
+    if (fake == null && sender instanceof Player p && (ignoreName || args.getRaw("name") == null)) {
+      fake = manager.getSelection(p);
+    }
+    if (fake != null) {
+      return fake;
+    }
+    var locale = TranslatorUtils.getLocale(sender);
+
+    // 明确给了名字却没匹配到: 不能退回到「选中/唯一」的假人,
+    // 否则名字打错时会去操作另一个假人
+    if (!ignoreName && args.getRaw("name") != null) {
+      throw CommandAPI.failWithString(
+          ComponentUtils.toString(
+              translatable("fakeplayer.command.generic.error.non-matching-fake-player"), locale));
     }
 
-    /**
-     * 获取命令指定的假人
-     * <ol>
-     *     <li>如果玩家指定了名称, 则返回对应的假人</li>
-     *     <li>如果玩家通过 /fp select 选择了假人, 则返回该假人</li>
-     *     <li>如果玩家仅有一个假人, 则返回该假人</li>
-     *     <li>不能找到唯一的一个假人时, 返回错误给玩家</li>
-     * </ol>
-     *
-     * @param sender    命令发送方
-     * @param args      命令参数
-     * @param predicate 过滤条件
-     * @return 假人
-     * @throws WrapperCommandSyntaxException 找不到唯一的假人时抛出次异常
-     */
-    protected @NotNull Player getFakeplayer(@NotNull CommandSender sender, @NotNull CommandArguments args, @Nullable Predicate<Player> predicate) throws WrapperCommandSyntaxException {
-        return this.getFakeplayer(sender, args, predicate, false);
+    var all = manager.getAll(sender, predicate);
+    var count = all.size();
+    return switch (count) {
+      case 1 -> all.get(0);
+      case 0 -> {
+        if (predicate == null) {
+          throw CommandAPI.failWithString(
+              ComponentUtils.toString(
+                  translatable("fakeplayer.command.generic.error.non-fake-player"), locale));
+        } else {
+          throw CommandAPI.failWithString(
+              ComponentUtils.toString(
+                  translatable("fakeplayer.command.generic.error.non-matching-fake-player"),
+                  locale));
+        }
+      }
+      default ->
+          throw CommandAPI.failWithString(
+              ComponentUtils.toString(
+                  translatable("fakeplayer.command.generic.error.name-required"), locale));
+    };
+  }
+
+  protected @Nullable Player getTargetNullable(
+      @NotNull CommandSender sender, @NotNull CommandArguments args) {
+    return (Player) args.get("name");
+  }
+
+  protected @NotNull List<Player> getFakeplayers(
+      @NotNull CommandSender sender, @NotNull CommandArguments args)
+      throws WrapperCommandSyntaxException {
+    @SuppressWarnings("unchecked")
+    var players = (List<Player>) args.get("names");
+
+    // 给了名字却一个都没匹配上: 直接报错, 不能退回到「选中/唯一」的假人,
+    // 否则名字打错时会误操作另一个假人
+    if (players != null && players.isEmpty()) {
+      throw CommandAPI.failWithString(
+          ComponentUtils.toString(
+              translatable("fakeplayer.command.generic.error.non-matching-fake-player"),
+              TranslatorUtils.getLocale(sender)));
     }
 
-    /**
-     * say 的单参数形式把 name 当作消息；此时必须忽略该参数并正常使用已选假人。
-     */
-    protected @NotNull Player getFakeplayer(@NotNull CommandSender sender, @NotNull CommandArguments args,
-                                             @Nullable Predicate<Player> predicate, boolean ignoreName)
-            throws WrapperCommandSyntaxException {
-        var raw = ignoreName ? null : args.get("name");
-        Player fake = null;
-        if (raw instanceof Player p) {
-            fake = p;
-        } else if (raw instanceof String s && !s.isBlank()) {
-            // 兼容 say 命令: name 以字符串形式传入 (单参数时回退为消息, 该字符串通常不是有效假人名)
-            // 与 FakePlayerCommandArgument 保持一致的语义: op / 控制台可以指定任意假人,
-            // 普通玩家只能指定自己召唤的假人。此前只查自己召唤的假人, 导致控制台无法按名字操作别人召唤的假人
-            fake = sender.isOp() ? manager.get(s) : manager.get(sender, s);
-        }
-        if (fake == null && sender instanceof Player p && (ignoreName || args.getRaw("name") == null)) {
-            fake = manager.getSelection(p);
-        }
-        if (fake != null) {
-            return fake;
-        }
-        var locale = TranslatorUtils.getLocale(sender);
-
-        // 明确给了名字却没匹配到: 不能退回到「选中/唯一」的假人,
-        // 否则名字打错时会去操作另一个假人
-        if (!ignoreName && args.getRaw("name") != null) {
-            throw CommandAPI.failWithString(ComponentUtils.toString(
-                    translatable("fakeplayer.command.generic.error.non-matching-fake-player"),
-                    locale
-            ));
-        }
-
-        var all = manager.getAll(sender, predicate);
-        var count = all.size();
-        return switch (count) {
-            case 1 -> all.get(0);
-            case 0 -> {
-                if (predicate == null) {
-                    throw CommandAPI.failWithString(ComponentUtils.toString(
-                            translatable("fakeplayer.command.generic.error.non-fake-player"),
-                            locale
-                    ));
-                } else {
-                    throw CommandAPI.failWithString(ComponentUtils.toString(
-                            translatable("fakeplayer.command.generic.error.non-matching-fake-player"),
-                            locale
-                    ));
-                }
-            }
-            default -> throw CommandAPI.failWithString(ComponentUtils.toString(
-                    translatable("fakeplayer.command.generic.error.name-required"),
-                    locale
-            ));
-        };
+    if (players != null) {
+      return players;
     }
 
-    protected @Nullable Player getTargetNullable(@NotNull CommandSender sender, @NotNull CommandArguments args) {
-        return (Player) args.get("name");
+    // 未指定名字: 优先选中的假人
+    var fake = manager.getSelection(sender);
+    if (fake != null) {
+      return Collections.singletonList(fake);
     }
 
-    protected @NotNull List<Player> getFakeplayers(@NotNull CommandSender sender, @NotNull CommandArguments args) throws WrapperCommandSyntaxException {
-        @SuppressWarnings("unchecked")
-        var players = (List<Player>) args.get("names");
-
-        // 给了名字却一个都没匹配上: 直接报错, 不能退回到「选中/唯一」的假人,
-        // 否则名字打错时会误操作另一个假人
-        if (players != null && players.isEmpty()) {
-            throw CommandAPI.failWithString(ComponentUtils.toString(
-                    translatable("fakeplayer.command.generic.error.non-matching-fake-player"),
-                    TranslatorUtils.getLocale(sender)
-            ));
-        }
-
-        if (players != null) {
-            return players;
-        }
-
-        // 未指定名字: 优先选中的假人
-        var fake = manager.getSelection(sender);
-        if (fake != null) {
-            return Collections.singletonList(fake);
-        }
-
-        // 其次唯一假人
-        var fakeplayers = manager.getAll(sender);
-        return switch (fakeplayers.size()) {
-            case 1 -> fakeplayers;
-            case 0 -> throw CommandAPI.failWithString(ComponentUtils.toString(
-                    translatable("fakeplayer.command.generic.error.non-fake-player"),
-                    TranslatorUtils.getLocale(sender)
-            ));
-            default -> throw CommandAPI.failWithString(ComponentUtils.toString(
-                    translatable("fakeplayer.command.generic.error.name-required"),
-                    TranslatorUtils.getLocale(sender)
-            ));
-        };
-    }
-
+    // 其次唯一假人
+    var fakeplayers = manager.getAll(sender);
+    return switch (fakeplayers.size()) {
+      case 1 -> fakeplayers;
+      case 0 ->
+          throw CommandAPI.failWithString(
+              ComponentUtils.toString(
+                  translatable("fakeplayer.command.generic.error.non-fake-player"),
+                  TranslatorUtils.getLocale(sender)));
+      default ->
+          throw CommandAPI.failWithString(
+              ComponentUtils.toString(
+                  translatable("fakeplayer.command.generic.error.name-required"),
+                  TranslatorUtils.getLocale(sender)));
+    };
+  }
 }

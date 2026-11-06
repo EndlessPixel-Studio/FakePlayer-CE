@@ -1,63 +1,51 @@
 package io.github.hello09x.fakeplayer.v1_21_6.spi;
 
-import io.github.hello09x.fakeplayer.core.util.Reflections;
 import io.github.hello09x.fakeplayer.api.spi.NMSNetwork;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
+import io.github.hello09x.fakeplayer.core.util.Reflections;
 import io.github.hello09x.fakeplayer.v1_21_6.network.FakeConnection;
 import io.github.hello09x.fakeplayer.v1_21_6.network.FakeServerGamePacketListenerImpl;
-import net.minecraft.server.network.CommonListenerCookie;
+import java.net.InetAddress;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.InetAddress;
-
 public class NMSNetworkImpl implements NMSNetwork {
 
-    @NotNull
-    private final FakeConnection connection;
+  @NotNull private final FakeConnection connection;
 
-    private NMSServerGamePacketListener serverGamePacketListener;
+  private NMSServerGamePacketListener serverGamePacketListener;
 
-    public NMSNetworkImpl(
-            @NotNull InetAddress address
-    ) {
-        this.connection = new FakeConnection(address);
+  public NMSNetworkImpl(@NotNull InetAddress address) {
+    this.connection = new FakeConnection(address);
+  }
+
+  @NotNull
+  @Override
+  public NMSServerGamePacketListener placeNewPlayer(
+      @NotNull Server server, @NotNull Player player) {
+    var handle = (ServerPlayer) Reflections.getHandle(player);
+    var profile = player.getPlayerProfile();
+    var gameProfile = new com.mojang.authlib.GameProfile(profile.getUniqueId(), profile.getName());
+    var cookie = CommonListenerCookie.createInitial(gameProfile, false);
+    var mcServer = (MinecraftServer) Reflections.getServer(server);
+    mcServer.getPlayerList().placeNewPlayer(this.connection, handle, cookie);
+
+    var listener = new FakeServerGamePacketListenerImpl(mcServer, this.connection, handle, cookie);
+    this.serverGamePacketListener = listener;
+    handle.connection = listener;
+    return listener;
+  }
+
+  @NotNull
+  @Override
+  public NMSServerGamePacketListener getServerGamePacketListener() throws IllegalStateException {
+    if (this.serverGamePacketListener == null) {
+      throw new IllegalStateException("not initialized");
     }
-
-    @NotNull
-    @Override
-    public NMSServerGamePacketListener placeNewPlayer(
-            @NotNull Server server,
-            @NotNull Player player
-    ) {
-        var handle = (ServerPlayer) Reflections.getHandle(player);
-        var profile = player.getPlayerProfile();
-        var gameProfile = new com.mojang.authlib.GameProfile(profile.getUniqueId(), profile.getName());
-        var cookie = CommonListenerCookie.createInitial(gameProfile, false);
-        var mcServer = (MinecraftServer) Reflections.getServer(server);
-        mcServer.getPlayerList().placeNewPlayer(this.connection, handle, cookie);
-
-        var listener = new FakeServerGamePacketListenerImpl(
-                mcServer,
-                this.connection,
-                handle,
-                cookie
-        );
-        this.serverGamePacketListener = listener;
-        handle.connection = listener;
-        return listener;
-    }
-
-    @NotNull
-    @Override
-    public NMSServerGamePacketListener getServerGamePacketListener() throws IllegalStateException {
-        if (this.serverGamePacketListener == null) {
-            throw new IllegalStateException("not initialized");
-        }
-        return this.serverGamePacketListener;
-    }
-
+    return this.serverGamePacketListener;
+  }
 }

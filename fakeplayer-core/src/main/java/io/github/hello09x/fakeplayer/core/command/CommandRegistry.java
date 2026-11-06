@@ -1,5 +1,9 @@
 package io.github.hello09x.fakeplayer.core.command;
 
+import static io.github.hello09x.devtools.command.Commands.*;
+import static io.github.hello09x.fakeplayer.core.command.CommandSupports.*;
+import static net.kyori.adventure.text.Component.translatable;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.CommandPermission;
@@ -13,657 +17,568 @@ import io.github.hello09x.fakeplayer.core.command.impl.*;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.constant.Direction;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
+import java.util.List;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-
-import java.util.List;
-
-import static io.github.hello09x.devtools.command.Commands.*;
-import static io.github.hello09x.fakeplayer.core.command.CommandSupports.*;
-
-import static net.kyori.adventure.text.Component.translatable;
 
 @Singleton
 public class CommandRegistry {
 
-    @Inject
-    private ActionCommand actionCommand;
-    @Inject
-    private CmdCommand cmdCommand;
-    @Inject
-    private ConfigCommand configCommand;
-    @Inject
-    private DistanceCommand distanceCommand;
-    @Inject
-    private ExpmeCommand expmeCommand;
-    @Inject
-    private GotoCommand gotoCommand;
-    @Inject
-    private HoldCommand holdCommand;
-    @Inject
-    private InvseeCommand invseeCommand;
+  @Inject private ActionCommand actionCommand;
+  @Inject private CmdCommand cmdCommand;
+  @Inject private ConfigCommand configCommand;
+  @Inject private DistanceCommand distanceCommand;
+  @Inject private ExpmeCommand expmeCommand;
+  @Inject private GotoCommand gotoCommand;
+  @Inject private HoldCommand holdCommand;
+  @Inject private InvseeCommand invseeCommand;
 
-    @Inject
-    private EnderchestCommand enderchestCommand;
-    @Inject
-    private KickCommand kickCommand;
-    @Inject
-    private KickallCommand kickallCommand;
-    @Inject
-    private KillCommand killCommand;
-    @Inject
-    private KillallCommand killallCommand;
-    @Inject
-    private ListCommand listCommand;
-    @Inject
-    private MoveCommand moveCommand;
-    @Inject
-    private ReloadCommand reloadCommand;
-    @Inject
-    private RespawnCommand respawnCommand;
-    @Inject
-    private UpdateCommand updateCommand;
-    @Inject
-    private VersionCommand versionCommand;
-    @Inject
-    private SysInfoCommand sysInfoCommand;
-    @Inject
-    private RideCommand rideCommand;
-    @Inject
-    private RotationCommand rotationCommand;
-    @Inject
-    private SelectCommand selectCommand;
-    @Inject
-    private SetCommand setCommand;
-    @Inject
-    private SetPingCommand setPingCommand;
-    @Inject
-    private SkinCommand skinCommand;
-    @Inject
-    private SleepCommand sleepCommand;
-    @Inject
-    private SneakCommand sneakCommand;
-    @Inject
-    private SprintCommand sprintCommand;
-    @Inject
-    private SpawnCommand spawnCommand;
-    @Inject
-    private StatusCommand statusCommand;
-    @Inject
-    private SwapCommand swapCommand;
-    @Inject
-    private TeleportCommand teleportCommand;
-    @Inject
-    private DebugCommand debugCommand;
-    @Inject
-    private StopCommand stopCommand;
+  @Inject private EnderchestCommand enderchestCommand;
+  @Inject private KickCommand kickCommand;
+  @Inject private KickallCommand kickallCommand;
+  @Inject private KillCommand killCommand;
+  @Inject private KillallCommand killallCommand;
+  @Inject private ListCommand listCommand;
+  @Inject private MoveCommand moveCommand;
+  @Inject private ReloadCommand reloadCommand;
+  @Inject private RespawnCommand respawnCommand;
+  @Inject private UpdateCommand updateCommand;
+  @Inject private VersionCommand versionCommand;
+  @Inject private SysInfoCommand sysInfoCommand;
+  @Inject private RideCommand rideCommand;
+  @Inject private RotationCommand rotationCommand;
+  @Inject private SelectCommand selectCommand;
+  @Inject private SetCommand setCommand;
+  @Inject private SetPingCommand setPingCommand;
+  @Inject private SkinCommand skinCommand;
+  @Inject private SleepCommand sleepCommand;
+  @Inject private SneakCommand sneakCommand;
+  @Inject private SprintCommand sprintCommand;
+  @Inject private SpawnCommand spawnCommand;
+  @Inject private StatusCommand statusCommand;
+  @Inject private SwapCommand swapCommand;
+  @Inject private TeleportCommand teleportCommand;
+  @Inject private DebugCommand debugCommand;
+  @Inject private StopCommand stopCommand;
 
-    @Inject
-    private SayCommand sayCommand;
-    @Inject
-    private AiChatCommand aiChatCommand;
+  @Inject private SayCommand sayCommand;
+  @Inject private AiChatCommand aiChatCommand;
 
-    @Inject
-    private PasswordCommand passwordCommand;
+  @Inject private PasswordCommand passwordCommand;
 
-    @Inject
-    private ChangepasswordCommand changepasswordCommand;
+  @Inject private ChangepasswordCommand changepasswordCommand;
 
-    @Inject
-    private FakeplayerConfig config;
+  @Inject private FakeplayerConfig config;
 
-    public void register() {
-        var helpLocale = TranslatorUtils.getDefaultLocale(Main.getInstance());
-        var helpLocalizer = new CommandHelpLocalizer(Main.getInstance(), helpLocale);
-        var root = command("fakeplayer")
-                .withAliases("fp")
-                .withUsage(
-                        "type fp ? for more information",
-                        "hello09x [汤姆]"
-                )
-                .withPermission(Permission.spawn)
-                .withSubcommands(
-                        command("select")
-                                .withPermission(Permission.select)
-                                .withShortDescription("fakeplayer.command.select.description")
-                                .withRequirement(CommandSupports::needSelect)
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executesPlayer(selectCommand::select),
-                        command("selection")
-                                .withPermission(Permission.select)
-                                .withShortDescription("fakeplayer.command.selection.description")
-                                .withRequirement(CommandSupports::needSelect)
-                                .executesPlayer(selectCommand::selection),
-
-                        command("spawn")
-                                .withPermission(Permission.spawn)
-                                .withShortDescription("fakeplayer.command.spawn.description")
-                                .withOptionalArguments(
-                                        text("name").withPermission(Permission.spawnName),
-                                        world("world").withPermission(Permission.spawnLocation),
-                                        location("location").withPermission(Permission.spawnLocation))
-                                .executes(spawnCommand::spawn),
-                        command("spawnuuid")
-                                .withPermission(Permission.spawnUUID)
-                                .withShortDescription("fakeplayer.command.spawnuuid.description")
-                                .withArguments(
-                                        text("name").withPermission(Permission.spawnName),
-                                        text("uuid"))
-                                .withOptionalArguments(
-                                        world("world").withPermission(Permission.spawnLocation),
-                                        location("location").withPermission(Permission.spawnLocation))
-                                .executes(spawnCommand::spawnWithUuid),
-                        command("kick")
-                                .withPermission(Permission.kick)
-                                .withShortDescription("fakeplayer.command.kick.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayers("names"))
-                                .executes(kickCommand::kick),
-                        command("kill")
-                                .withPermission(Permission.kill)
-                                .withShortDescription("fakeplayer.command.kill.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayers("names"))
-                                .executes(killCommand::kill),
-                        command("list")
-                                .withPermission(Permission.list)
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withShortDescription("fakeplayer.command.list.description")
-                                .withOptionalArguments(
-                                        int32("page", 1),
-                                        int32("size", 1))
-                                .executes(listCommand::list),
-                        command("distance")
-                                .withPermission(Permission.distance)
-                                .withShortDescription("fakeplayer.command.distance.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executesPlayer(distanceCommand::distance),
-                        command("skin")
-                                .withPermission(Permission.skin)
-                                .withShortDescription("fakeplayer.command.skin.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withArguments(offlinePlayer("player"))
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executes(skinCommand::skin),
-                        command("invsee")
-                                .withShortDescription("fakeplayer.command.invsee.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executesPlayer(invseeCommand::invsee),
-                        command("enderchest")
-                                .withAliases("ec")
-                                .withShortDescription("fakeplayer.command.enderchest.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executesPlayer(enderchestCommand::enderchest),
-                        command("hold")
-                                .withPermission(Permission.hold)
-                                .withShortDescription("fakeplayer.command.hold.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withArguments(int32("slot", 1, 9))
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executes(holdCommand::hold),
-                        command("status")
-                                .withPermission(Permission.status)
-                                .withShortDescription("fakeplayer.command.status.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executes(statusCommand::status),
-                        command("respawn")
-                                .withRequirement(CommandSupports::hasFakeplayerForRespawn)
-                                .withShortDescription("fakeplayer.command.respawn.description")
-                                .withPermission(Permission.respawn)
-                                .withOptionalArguments(fakeplayer("name", Entity::isDead))
-                                .executes(respawnCommand::respawn),
+  public void register() {
+    var helpLocale = TranslatorUtils.getDefaultLocale(Main.getInstance());
+    var helpLocalizer = new CommandHelpLocalizer(Main.getInstance(), helpLocale);
+    var root =
+        command("fakeplayer")
+            .withAliases("fp")
+            .withUsage("type fp ? for more information", "hello09x [汤姆]")
+            .withPermission(Permission.spawn)
+            .withSubcommands(
+                command("select")
+                    .withPermission(Permission.select)
+                    .withShortDescription("fakeplayer.command.select.description")
+                    .withRequirement(CommandSupports::needSelect)
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executesPlayer(selectCommand::select),
+                command("selection")
+                    .withPermission(Permission.select)
+                    .withShortDescription("fakeplayer.command.selection.description")
+                    .withRequirement(CommandSupports::needSelect)
+                    .executesPlayer(selectCommand::selection),
+                command("spawn")
+                    .withPermission(Permission.spawn)
+                    .withShortDescription("fakeplayer.command.spawn.description")
+                    .withOptionalArguments(
+                        text("name").withPermission(Permission.spawnName),
+                        world("world").withPermission(Permission.spawnLocation),
+                        location("location").withPermission(Permission.spawnLocation))
+                    .executes(spawnCommand::spawn),
+                command("spawnuuid")
+                    .withPermission(Permission.spawnUUID)
+                    .withShortDescription("fakeplayer.command.spawnuuid.description")
+                    .withArguments(text("name").withPermission(Permission.spawnName), text("uuid"))
+                    .withOptionalArguments(
+                        world("world").withPermission(Permission.spawnLocation),
+                        location("location").withPermission(Permission.spawnLocation))
+                    .executes(spawnCommand::spawnWithUuid),
+                command("kick")
+                    .withPermission(Permission.kick)
+                    .withShortDescription("fakeplayer.command.kick.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayers("names"))
+                    .executes(kickCommand::kick),
+                command("kill")
+                    .withPermission(Permission.kill)
+                    .withShortDescription("fakeplayer.command.kill.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayers("names"))
+                    .executes(killCommand::kill),
+                command("list")
+                    .withPermission(Permission.list)
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withShortDescription("fakeplayer.command.list.description")
+                    .withOptionalArguments(int32("page", 1), int32("size", 1))
+                    .executes(listCommand::list),
+                command("distance")
+                    .withPermission(Permission.distance)
+                    .withShortDescription("fakeplayer.command.distance.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executesPlayer(distanceCommand::distance),
+                command("skin")
+                    .withPermission(Permission.skin)
+                    .withShortDescription("fakeplayer.command.skin.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withArguments(offlinePlayer("player"))
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executes(skinCommand::skin),
+                command("invsee")
+                    .withShortDescription("fakeplayer.command.invsee.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executesPlayer(invseeCommand::invsee),
+                command("enderchest")
+                    .withAliases("ec")
+                    .withShortDescription("fakeplayer.command.enderchest.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executesPlayer(enderchestCommand::enderchest),
+                command("hold")
+                    .withPermission(Permission.hold)
+                    .withShortDescription("fakeplayer.command.hold.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withArguments(int32("slot", 1, 9))
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executes(holdCommand::hold),
+                command("status")
+                    .withPermission(Permission.status)
+                    .withShortDescription("fakeplayer.command.status.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executes(statusCommand::status),
+                command("respawn")
+                    .withRequirement(CommandSupports::hasFakeplayerForRespawn)
+                    .withShortDescription("fakeplayer.command.respawn.description")
+                    .withPermission(Permission.respawn)
+                    .withOptionalArguments(fakeplayer("name", Entity::isDead))
+                    .executes(respawnCommand::respawn),
+                command("set")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withShortDescription("fakeplayer.command.set.description")
+                    .withPermission(Permission.set)
+                    .withArguments(
+                        configKey("feature", Feature::hasModifier),
+                        configValue("feature", "option"))
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executes(setCommand::set),
+                command("setping")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withShortDescription("fakeplayer.command.setping.description")
+                    .withPermission(Permission.setping)
+                    .withArguments(int32("ping", 0, Integer.MAX_VALUE))
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executes(setPingCommand::setPing),
+                command("config")
+                    .withPermission(Permission.config)
+                    .withShortDescription("fakeplayer.command.config.description")
+                    .withSubcommands(
                         command("set")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withShortDescription("fakeplayer.command.set.description")
-                                .withPermission(Permission.set)
-                                .withArguments(
-                                        configKey("feature", Feature::hasModifier),
-                                        configValue("feature", "option")
-                                )
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executes(setCommand::set),
-                        command("setping")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withShortDescription("fakeplayer.command.setping.description")
-                                .withPermission(Permission.setping)
-                                .withArguments(int32("ping", 0, Integer.MAX_VALUE))
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executes(setPingCommand::setPing),
-                        command("config")
-                                .withPermission(Permission.config)
-                                .withShortDescription("fakeplayer.command.config.description")
-                                .withSubcommands(
-                                        command("set")
-                                                .withArguments(
-                                                        configKey("feature"),
-                                                        configValue("feature", "option"))
-                                                .withOptionalArguments(offlinePlayer("player"))
-                                                .executes(configCommand::setConfig),
-                                        command("list")
-                                                .withOptionalArguments(offlinePlayer("player"))
-                                                .executes(configCommand::listConfig),
-                                        command("help")
-                                                .withShortDescription("fakeplayer.command.config.help")
-                                                .executes((sender, args) -> {
-                                                    sender.sendMessage(translatable("fakeplayer.command.config.help"));
-                                                })
-                                )
-                                .executes(configCommand::listConfig),
-
-                        command("expme")
-                                .withPermission(Permission.expme)
-                                .withShortDescription("fakeplayer.command.expme.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executesPlayer(expmeCommand::expme),
-
-                        command("goto")
-                                .withPermission(Permission.goto_)
-                                .withShortDescription("fakeplayer.command.goto.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withArguments(location("location"))
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executes(gotoCommand::goTo),
-                        // 不能做成 goto 的子命令: CommandAPI 会把父命令的 [name] 拼到子命令字面量前面,
-                        // 可选参数后面跟必选字面量会在注册期抛 OptionalArgumentException (build17 启动失败即此)
-                        command("gotostop")
-                                .withPermission(Permission.goto_)
-                                .withShortDescription("fakeplayer.command.goto.stop.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executes(gotoCommand::stopGoTo),
-
-                        command("tp")
-                                .withAliases("tpto")
-                                .withPermission(Permission.tp)
-                                .withShortDescription("fakeplayer.command.tp.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executesPlayer(teleportCommand::tp),
-                        command("tphere")
-                                .withPermission(Permission.tphere)
-                                .withShortDescription("fakeplayer.command.tphere.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executesPlayer(teleportCommand::tphere),
-                        command("tps")
-                                .withPermission(Permission.tps)
-                                .withShortDescription("fakeplayer.command.tps.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executesPlayer(teleportCommand::tps),
-
-                        command("attack")
-                                .withPermission(Permission.attack)
-                                .withShortDescription("fakeplayer.command.attack.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withSubcommands(newActionCommands(ActionType.ATTACK))
-                                .executes(actionCommand.action(ActionType.ATTACK, ActionSetting.once())),
-                        command("mine")
-                                .withPermission(Permission.mine)
-                                .withShortDescription("fakeplayer.command.mine.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withSubcommands(newActionCommands(ActionType.MINE))
-                                .executes(actionCommand.action(ActionType.MINE, ActionSetting.once())),
-                        command("use")
-                                .withPermission(Permission.use)
-                                .withShortDescription("fakeplayer.command.use.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withSubcommands(newActionCommands(ActionType.USE))
-                                .executes(actionCommand.action(ActionType.USE, ActionSetting.once())),
-                        command("jump")
-                                .withPermission(Permission.jump)
-                                .withShortDescription("fakeplayer.command.jump.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withSubcommands(newActionCommands(ActionType.JUMP))
-                                .executes(actionCommand.action(ActionType.JUMP, ActionSetting.once())),
-                        command("drop")
-                                .withPermission(Permission.drop)
-                                .withShortDescription("fakeplayer.command.drop.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withSubcommands(newActionCommands(ActionType.DROP_ITEM))
-                                .executes(actionCommand.action(ActionType.DROP_ITEM, ActionSetting.once())),
-                        command("dropstack")
-                                .withPermission(Permission.dropstack)
-                                .withShortDescription("fakeplayer.command.dropstack.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withSubcommands(newActionCommands(ActionType.DROP_STACK))
-                                .executes(actionCommand.action(ActionType.DROP_STACK, ActionSetting.once())),
-                        command("dropinv")
-                                .withPermission(Permission.dropinv)
-                                .withShortDescription("fakeplayer.command.dropinv.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withSubcommands(newActionCommands(ActionType.DROP_INVENTORY))
-                                .executes(actionCommand.action(ActionType.DROP_INVENTORY, ActionSetting.once())),
-                        command("sneak")
-                                .withPermission(Permission.sneak)
-                                .withShortDescription("fakeplayer.command.sneak.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(
-                                        fakeplayer("name"),
-                                        literals("sneaking", List.of("true", "false")))
-                                .executes(sneakCommand::sneak),
-                        command("sprint")
-                                .withPermission(Permission.sprint)
-                                .withShortDescription("fakeplayer.command.sprint.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(
-                                        fakeplayer("name"),
-                                        literals("sprinting", List.of("true", "false")))
-                                .executes(sprintCommand::sprint),
-                        command("look")
-                                .withPermission(Permission.look)
-                                .withShortDescription("fakeplayer.command.look.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withSubcommands(
-                                        command("north")
-                                                .withShortDescription("fakeplayer.command.look.north.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rotationCommand.look(Direction.NORTH)),
-                                        command("south")
-                                                .withShortDescription("fakeplayer.command.look.south.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rotationCommand.look(Direction.SOUTH)),
-                                        command("west")
-                                                .withShortDescription("fakeplayer.command.look.west.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rotationCommand.look(Direction.WEST)),
-                                        command("east")
-                                                .withShortDescription("fakeplayer.command.look.east.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rotationCommand.look(Direction.EAST)),
-                                        command("up")
-                                                .withShortDescription("fakeplayer.command.look.up.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rotationCommand.look(Direction.UP)),
-                                        command("down")
-                                                .withShortDescription("fakeplayer.command.look.down.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rotationCommand.look(Direction.DOWN)),
-                                        command("at")
-                                                .withShortDescription("fakeplayer.command.look.at.description")
-                                                .withArguments(location("location"))
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rotationCommand::lookAt),
-                                        command("me")
-                                                .withShortDescription("fakeplayer.command.look.me.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executesPlayer(rotationCommand::lookMe),
-                                        command("entity")
-                                                .withShortDescription("fakeplayer.command.look.entity.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .withSubcommands(newActionCommands(ActionType.LOOK_AT_NEAREST_ENTITY))
-                                ),
-                        command("turn")
-                                .withPermission(Permission.turn)
-                                .withShortDescription("fakeplayer.command.turn.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withSubcommands(
-                                        command("left")
-                                                .withShortDescription("fakeplayer.command.turn.left.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rotationCommand.turn(-90, 0)),
-                                        command("right")
-                                                .withShortDescription("fakeplayer.command.turn.right.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rotationCommand.turn(90, 0)),
-                                        command("back")
-                                                .withShortDescription("fakeplayer.command.turn.back.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rotationCommand.turn(180, 0)),
-                                        command("to")
-                                                .withShortDescription("fakeplayer.command.turn.to.description")
-                                                .withArguments(rotation("rotation"))
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rotationCommand::turnTo)
-                                ),
-                        command("move")
-                                .withShortDescription("fakeplayer.command.move.description")
-                                .withPermission(Permission.move)
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withSubcommands(
-                                        command("forward")
-                                                .withShortDescription("fakeplayer.command.move.forward.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(moveCommand.move(1, 0)),
-                                        command("backward")
-                                                .withShortDescription("fakeplayer.command.move.backward.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(moveCommand.move(-1, 0)),
-                                        command("left")
-                                                .withShortDescription("fakeplayer.command.move.left.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(moveCommand.move(0, 1)),
-                                        command("right")
-                                                .withShortDescription("fakeplayer.command.move.right.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(moveCommand.move(0, -1))
-                                )
-                                .executes(moveCommand.move(1, 0)),
-
-                        command("ride")
-                                .withShortDescription("fakeplayer.command.ride.description")
-                                .withPermission(Permission.ride)
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withSubcommands(
-                                        command("me")
-                                                .withShortDescription("fakeplayer.command.ride.me.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executesPlayer(rideCommand::rideMe),
-                                        command("target")
-                                                .withShortDescription("fakeplayer.command.ride.target.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rideCommand::rideTarget),
-                                        command("anything")
-                                                .withShortDescription("fakeplayer.command.ride.anything.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rideCommand::rideAnything),
-                                        command("vehicle")
-                                                .withShortDescription("fakeplayer.command.ride.vehicle.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rideCommand::rideVehicle),
-                                        command("entity")
-                                                .withShortDescription("fakeplayer.command.ride.entity.description")
-                                                .withArguments(new EntitySelectorArgument.OneEntity("entity"))
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rideCommand::rideEntity),
-                                        command("stop")
-                                                .withShortDescription("fakeplayer.command.ride.stop.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(rideCommand::stopRiding)
-                                ),
-                        command("swap")
-                                .withShortDescription("fakeplayer.command.swap.description")
-                                .withPermission(Permission.swap)
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executes(swapCommand::swap),
-                        command("sleep")
-                                .withShortDescription("fakeplayer.command.sleep.description")
-                                .withPermission(Permission.sleep)
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayer("name", p -> !p.isSleeping()))
-                                .executes(sleepCommand::sleep),
-                        command("wakeup")
-                                .withShortDescription("fakeplayer.command.wakeup.description")
-                                .withPermission(Permission.wakeup)
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayer("name", LivingEntity::isSleeping))
-                                .executes(sleepCommand::wakeup),
+                            .withArguments(configKey("feature"), configValue("feature", "option"))
+                            .withOptionalArguments(offlinePlayer("player"))
+                            .executes(configCommand::setConfig),
+                        command("list")
+                            .withOptionalArguments(offlinePlayer("player"))
+                            .executes(configCommand::listConfig),
+                        command("help")
+                            .withShortDescription("fakeplayer.command.config.help")
+                            .executes(
+                                (sender, args) -> {
+                                  sender.sendMessage(
+                                      translatable("fakeplayer.command.config.help"));
+                                }))
+                    .executes(configCommand::listConfig),
+                command("expme")
+                    .withPermission(Permission.expme)
+                    .withShortDescription("fakeplayer.command.expme.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executesPlayer(expmeCommand::expme),
+                command("goto")
+                    .withPermission(Permission.goto_)
+                    .withShortDescription("fakeplayer.command.goto.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withArguments(location("location"))
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executes(gotoCommand::goTo),
+                // 不能做成 goto 的子命令: CommandAPI 会把父命令的 [name] 拼到子命令字面量前面,
+                // 可选参数后面跟必选字面量会在注册期抛 OptionalArgumentException (build17 启动失败即此)
+                command("gotostop")
+                    .withPermission(Permission.goto_)
+                    .withShortDescription("fakeplayer.command.goto.stop.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executes(gotoCommand::stopGoTo),
+                command("tp")
+                    .withAliases("tpto")
+                    .withPermission(Permission.tp)
+                    .withShortDescription("fakeplayer.command.tp.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executesPlayer(teleportCommand::tp),
+                command("tphere")
+                    .withPermission(Permission.tphere)
+                    .withShortDescription("fakeplayer.command.tphere.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executesPlayer(teleportCommand::tphere),
+                command("tps")
+                    .withPermission(Permission.tps)
+                    .withShortDescription("fakeplayer.command.tps.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executesPlayer(teleportCommand::tps),
+                command("attack")
+                    .withPermission(Permission.attack)
+                    .withShortDescription("fakeplayer.command.attack.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withSubcommands(newActionCommands(ActionType.ATTACK))
+                    .executes(actionCommand.action(ActionType.ATTACK, ActionSetting.once())),
+                command("mine")
+                    .withPermission(Permission.mine)
+                    .withShortDescription("fakeplayer.command.mine.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withSubcommands(newActionCommands(ActionType.MINE))
+                    .executes(actionCommand.action(ActionType.MINE, ActionSetting.once())),
+                command("use")
+                    .withPermission(Permission.use)
+                    .withShortDescription("fakeplayer.command.use.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withSubcommands(newActionCommands(ActionType.USE))
+                    .executes(actionCommand.action(ActionType.USE, ActionSetting.once())),
+                command("jump")
+                    .withPermission(Permission.jump)
+                    .withShortDescription("fakeplayer.command.jump.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withSubcommands(newActionCommands(ActionType.JUMP))
+                    .executes(actionCommand.action(ActionType.JUMP, ActionSetting.once())),
+                command("drop")
+                    .withPermission(Permission.drop)
+                    .withShortDescription("fakeplayer.command.drop.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withSubcommands(newActionCommands(ActionType.DROP_ITEM))
+                    .executes(actionCommand.action(ActionType.DROP_ITEM, ActionSetting.once())),
+                command("dropstack")
+                    .withPermission(Permission.dropstack)
+                    .withShortDescription("fakeplayer.command.dropstack.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withSubcommands(newActionCommands(ActionType.DROP_STACK))
+                    .executes(actionCommand.action(ActionType.DROP_STACK, ActionSetting.once())),
+                command("dropinv")
+                    .withPermission(Permission.dropinv)
+                    .withShortDescription("fakeplayer.command.dropinv.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withSubcommands(newActionCommands(ActionType.DROP_INVENTORY))
+                    .executes(
+                        actionCommand.action(ActionType.DROP_INVENTORY, ActionSetting.once())),
+                command("sneak")
+                    .withPermission(Permission.sneak)
+                    .withShortDescription("fakeplayer.command.sneak.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(
+                        fakeplayer("name"), literals("sneaking", List.of("true", "false")))
+                    .executes(sneakCommand::sneak),
+                command("sprint")
+                    .withPermission(Permission.sprint)
+                    .withShortDescription("fakeplayer.command.sprint.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(
+                        fakeplayer("name"), literals("sprinting", List.of("true", "false")))
+                    .executes(sprintCommand::sprint),
+                command("look")
+                    .withPermission(Permission.look)
+                    .withShortDescription("fakeplayer.command.look.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withSubcommands(
+                        command("north")
+                            .withShortDescription("fakeplayer.command.look.north.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rotationCommand.look(Direction.NORTH)),
+                        command("south")
+                            .withShortDescription("fakeplayer.command.look.south.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rotationCommand.look(Direction.SOUTH)),
+                        command("west")
+                            .withShortDescription("fakeplayer.command.look.west.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rotationCommand.look(Direction.WEST)),
+                        command("east")
+                            .withShortDescription("fakeplayer.command.look.east.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rotationCommand.look(Direction.EAST)),
+                        command("up")
+                            .withShortDescription("fakeplayer.command.look.up.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rotationCommand.look(Direction.UP)),
+                        command("down")
+                            .withShortDescription("fakeplayer.command.look.down.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rotationCommand.look(Direction.DOWN)),
+                        command("at")
+                            .withShortDescription("fakeplayer.command.look.at.description")
+                            .withArguments(location("location"))
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rotationCommand::lookAt),
+                        command("me")
+                            .withShortDescription("fakeplayer.command.look.me.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executesPlayer(rotationCommand::lookMe),
+                        command("entity")
+                            .withShortDescription("fakeplayer.command.look.entity.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .withSubcommands(newActionCommands(ActionType.LOOK_AT_NEAREST_ENTITY))),
+                command("turn")
+                    .withPermission(Permission.turn)
+                    .withShortDescription("fakeplayer.command.turn.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withSubcommands(
+                        command("left")
+                            .withShortDescription("fakeplayer.command.turn.left.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rotationCommand.turn(-90, 0)),
+                        command("right")
+                            .withShortDescription("fakeplayer.command.turn.right.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rotationCommand.turn(90, 0)),
+                        command("back")
+                            .withShortDescription("fakeplayer.command.turn.back.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rotationCommand.turn(180, 0)),
+                        command("to")
+                            .withShortDescription("fakeplayer.command.turn.to.description")
+                            .withArguments(rotation("rotation"))
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rotationCommand::turnTo)),
+                command("move")
+                    .withShortDescription("fakeplayer.command.move.description")
+                    .withPermission(Permission.move)
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withSubcommands(
+                        command("forward")
+                            .withShortDescription("fakeplayer.command.move.forward.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(moveCommand.move(1, 0)),
+                        command("backward")
+                            .withShortDescription("fakeplayer.command.move.backward.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(moveCommand.move(-1, 0)),
+                        command("left")
+                            .withShortDescription("fakeplayer.command.move.left.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(moveCommand.move(0, 1)),
+                        command("right")
+                            .withShortDescription("fakeplayer.command.move.right.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(moveCommand.move(0, -1)))
+                    .executes(moveCommand.move(1, 0)),
+                command("ride")
+                    .withShortDescription("fakeplayer.command.ride.description")
+                    .withPermission(Permission.ride)
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withSubcommands(
+                        command("me")
+                            .withShortDescription("fakeplayer.command.ride.me.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executesPlayer(rideCommand::rideMe),
+                        command("target")
+                            .withShortDescription("fakeplayer.command.ride.target.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rideCommand::rideTarget),
+                        command("anything")
+                            .withShortDescription("fakeplayer.command.ride.anything.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rideCommand::rideAnything),
+                        command("vehicle")
+                            .withShortDescription("fakeplayer.command.ride.vehicle.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rideCommand::rideVehicle),
+                        command("entity")
+                            .withShortDescription("fakeplayer.command.ride.entity.description")
+                            .withArguments(new EntitySelectorArgument.OneEntity("entity"))
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rideCommand::rideEntity),
                         command("stop")
-                                .withShortDescription("fakeplayer.command.stop.description")
-                                .withPermission(Permission.stop)
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withOptionalArguments(fakeplayer("name"))
-                                .executes(stopCommand::stop),
+                            .withShortDescription("fakeplayer.command.ride.stop.description")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(rideCommand::stopRiding)),
+                command("swap")
+                    .withShortDescription("fakeplayer.command.swap.description")
+                    .withPermission(Permission.swap)
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executes(swapCommand::swap),
+                command("sleep")
+                    .withShortDescription("fakeplayer.command.sleep.description")
+                    .withPermission(Permission.sleep)
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayer("name", p -> !p.isSleeping()))
+                    .executes(sleepCommand::sleep),
+                command("wakeup")
+                    .withShortDescription("fakeplayer.command.wakeup.description")
+                    .withPermission(Permission.wakeup)
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayer("name", LivingEntity::isSleeping))
+                    .executes(sleepCommand::wakeup),
+                command("stop")
+                    .withShortDescription("fakeplayer.command.stop.description")
+                    .withPermission(Permission.stop)
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withOptionalArguments(fakeplayer("name"))
+                    .executes(stopCommand::stop),
+                command("password")
+                    .withShortDescription("fakeplayer.command.password.description")
+                    .withPermission(Permission.password)
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withArguments(fakeplayer("name"), new GreedyStringArgument("password"))
+                    .executes(passwordCommand::setPassword),
+                command("changepassword")
+                    .withAliases("changepw")
+                    .withShortDescription("fakeplayer.command.changepassword.description")
+                    .withPermission(Permission.changepassword)
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withArguments(fakeplayer("name"), text("new"))
+                    .withOptionalArguments(text("old"))
+                    .executes(changepasswordCommand::change),
+                command("cmd")
+                    .withShortDescription("fakeplayer.command.cmd.description")
+                    .withRequirement(CommandSupports::isCmdAvailable)
+                    .withArguments(fakeplayer("name"), new FakePlayerCommandArgument("command"))
+                    .executes(cmdCommand::cmd),
+                command("say")
+                    .withShortDescription("fakeplayer.command.say.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withPermission(Permission.say)
+                    .executes(
+                        (sender, args) -> {
+                          sender.sendMessage(translatable("fakeplayer.command.say.help"));
+                        })
+                    .withSubcommands(
+                        command("once")
+                            .withShortDescription("fakeplayer.command.say.once")
+                            .withOptionalArguments(
+                                fakeplayerName("name"), new GreedyStringArgument("message"))
+                            .executes(sayCommand.say(ActionSetting.once())),
+                        command("continuous")
+                            .withShortDescription("fakeplayer.command.say.continuous")
+                            .withOptionalArguments(
+                                fakeplayerName("name"), new GreedyStringArgument("message"))
+                            .executes(sayCommand.say(ActionSetting.continuous())),
+                        command("interval")
+                            .withShortDescription("fakeplayer.command.say.interval")
+                            .withOptionalArguments(
+                                int32("ticks", 1),
+                                fakeplayerName("name"),
+                                new GreedyStringArgument("message"))
+                            .executes(
+                                (sender, args) -> {
+                                  int interval = (int) args.getOptional("ticks").orElse(1);
+                                  sayCommand
+                                      .say(ActionSetting.interval(interval))
+                                      .run(sender, args);
+                                }),
+                        command("stop")
+                            .withShortDescription("fakeplayer.command.say.stop")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(sayCommand.say(ActionSetting.stop()))),
+                command("aichat")
+                    .withShortDescription("fakeplayer.command.aichat.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withPermission(Permission.aichat)
+                    .executes(
+                        (sender, args) -> {
+                          sender.sendMessage(translatable("fakeplayer.command.aichat.help"));
+                        })
+                    .withSubcommands(
+                        command("public")
+                            .withShortDescription("fakeplayer.command.aichat.public")
+                            .executes(aiChatCommand::publicOnce)
+                            .withSubcommands(
+                                command("once")
+                                    .withOptionalArguments(fakeplayer("name"))
+                                    .executes(aiChatCommand::publicOnce),
+                                command("continuous")
+                                    .withOptionalArguments(fakeplayer("name"))
+                                    .executes(aiChatCommand::publicContinuous),
+                                command("interval")
+                                    .withOptionalArguments(int32("ticks", 20), fakeplayer("name"))
+                                    .executes(aiChatCommand::publicContinuous)),
+                        command("private")
+                            .withShortDescription("fakeplayer.command.aichat.private")
+                            .withArguments(new EntitySelectorArgument.OnePlayer("target"))
+                            .executes(aiChatCommand::privateOnce)
+                            .withSubcommands(
+                                command("once")
+                                    .withOptionalArguments(fakeplayer("name"))
+                                    .executes(aiChatCommand::privateOnce),
+                                command("continuous")
+                                    .withOptionalArguments(fakeplayer("name"))
+                                    .executes(aiChatCommand::privateContinuous),
+                                command("interval")
+                                    .withOptionalArguments(int32("ticks", 20), fakeplayer("name"))
+                                    .executes(aiChatCommand::privateContinuous)),
+                        command("stop")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(aiChatCommand::stop)),
+                command("kickall")
+                    .withShortDescription("fakeplayer.command.kickall.description")
+                    .withPermission(CommandPermission.OP)
+                    .executes(kickallCommand::kickall),
+                command("killall")
+                    .withShortDescription("fakeplayer.command.killall.description")
+                    .withPermission(CommandPermission.OP)
+                    .executes(killallCommand::killall),
+                command("reload")
+                    .withShortDescription("fakeplayer.command.reload.description")
+                    .withPermission(CommandPermission.OP)
+                    .executes(reloadCommand::reload),
+                command("reload-translation")
+                    .withShortDescription("fakeplayer.command.reload-translation.description")
+                    .withPermission(CommandPermission.OP)
+                    .executes(reloadCommand::reloadTranslation),
+                command("update")
+                    .withShortDescription("fakeplayer.command.update.description")
+                    .withPermission(CommandPermission.OP)
+                    .executes(updateCommand::check)
+                    .withSubcommands(
+                        command("check")
+                            .withShortDescription("fakeplayer.command.update.check.description")
+                            .executes(updateCommand::check)),
+                command("version")
+                    .withShortDescription("fakeplayer.command.version.description")
+                    .executes(versionCommand::version),
+                command("sysinfo")
+                    .withShortDescription("fakeplayer.command.sysinfo.description")
+                    .withPermission(CommandPermission.OP)
+                    .executes(sysInfoCommand::sysinfo),
 
-                        command("password")
-                                .withShortDescription("fakeplayer.command.password.description")
-                                .withPermission(Permission.password)
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withArguments(
-                                        fakeplayer("name"),
-                                        new GreedyStringArgument("password"))
-                                .executes(passwordCommand::setPassword),
+                // developer debug
+                command("debug")
+                    .withPermission(CommandPermission.OP)
+                    .withRequirement(sender -> config.isDebug())
+                    .withSubcommands(
+                        command("send-plugin-message")
+                            .withArguments(player("player"), text("channel"), text("message"))
+                            .executes(debugCommand::sendPluginMessage)));
 
-                        command("changepassword")
-                                .withAliases("changepw")
-                                .withShortDescription("fakeplayer.command.changepassword.description")
-                                .withPermission(Permission.changepassword)
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withArguments(
-                                        fakeplayer("name"),
-                                        text("new"))
-                                .withOptionalArguments(text("old"))
-                                .executes(changepasswordCommand::change),
-
-                        command("cmd")
-                                .withShortDescription("fakeplayer.command.cmd.description")
-                                .withRequirement(CommandSupports::isCmdAvailable)
-                                .withArguments(
-                                        fakeplayer("name"),
-                                        new FakePlayerCommandArgument("command")
-                                )
-                                .executes(cmdCommand::cmd),
-
-                        command("say")
-                                .withShortDescription("fakeplayer.command.say.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withPermission(Permission.say)
-                                .executes((sender, args) -> {
-                                    sender.sendMessage(translatable("fakeplayer.command.say.help"));
-                                })
-                                .withSubcommands(
-                                        command("once")
-                                                .withShortDescription("fakeplayer.command.say.once")
-                                                .withOptionalArguments(
-                                                        fakeplayerName("name"),
-                                                        new GreedyStringArgument("message"))
-                                                .executes(sayCommand.say(ActionSetting.once())),
-                                        command("continuous")
-                                                .withShortDescription("fakeplayer.command.say.continuous")
-                                                .withOptionalArguments(
-                                                        fakeplayerName("name"),
-                                                        new GreedyStringArgument("message"))
-                                                .executes(sayCommand.say(ActionSetting.continuous())),
-                                        command("interval")
-                                                .withShortDescription("fakeplayer.command.say.interval")
-                                                .withOptionalArguments(
-                                                        int32("ticks", 1),
-                                                        fakeplayerName("name"),
-                                                        new GreedyStringArgument("message"))
-                                                .executes((sender, args) -> {
-                                                    int interval = (int) args.getOptional("ticks").orElse(1);
-                                                    sayCommand.say(ActionSetting.interval(interval)).run(sender, args);
-                                                }),
-                                        command("stop")
-                                                .withShortDescription("fakeplayer.command.say.stop")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(sayCommand.say(ActionSetting.stop()))
-                                ),
-
-                        command("aichat")
-                                .withShortDescription("fakeplayer.command.aichat.description")
-                                .withRequirement(CommandSupports::hasFakeplayer)
-                                .withPermission(Permission.aichat)
-                                .executes((sender, args) -> {
-                                    sender.sendMessage(translatable("fakeplayer.command.aichat.help"));
-                                })
-                                .withSubcommands(
-                                        command("public")
-                                                .withShortDescription("fakeplayer.command.aichat.public")
-                                                .executes(aiChatCommand::publicOnce)
-                                                .withSubcommands(
-                                                        command("once")
-                                                                .withOptionalArguments(fakeplayer("name"))
-                                                                .executes(aiChatCommand::publicOnce),
-                                                        command("continuous")
-                                                                .withOptionalArguments(fakeplayer("name"))
-                                                                .executes(aiChatCommand::publicContinuous),
-                                                        command("interval")
-                                                                .withOptionalArguments(int32("ticks", 20), fakeplayer("name"))
-                                                                .executes(aiChatCommand::publicContinuous)
-                                                ),
-                                        command("private")
-                                                .withShortDescription("fakeplayer.command.aichat.private")
-                                                .withArguments(new EntitySelectorArgument.OnePlayer("target"))
-                                                .executes(aiChatCommand::privateOnce)
-                                                .withSubcommands(
-                                                        command("once")
-                                                                .withOptionalArguments(fakeplayer("name"))
-                                                                .executes(aiChatCommand::privateOnce),
-                                                        command("continuous")
-                                                                .withOptionalArguments(fakeplayer("name"))
-                                                                .executes(aiChatCommand::privateContinuous),
-                                                        command("interval")
-                                                                .withOptionalArguments(int32("ticks", 20), fakeplayer("name"))
-                                                                .executes(aiChatCommand::privateContinuous)
-                                                ),
-                                        command("stop")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(aiChatCommand::stop)
-                                ),
-
-                        command("kickall")
-                                .withShortDescription("fakeplayer.command.kickall.description")
-                                .withPermission(CommandPermission.OP)
-                                .executes(kickallCommand::kickall),
-                        command("killall")
-                                .withShortDescription("fakeplayer.command.killall.description")
-                                .withPermission(CommandPermission.OP)
-                                .executes(killallCommand::killall),
-                        command("reload")
-                                .withShortDescription("fakeplayer.command.reload.description")
-                                .withPermission(CommandPermission.OP)
-                                .executes(reloadCommand::reload),
-                        command("reload-translation")
-                                .withShortDescription("fakeplayer.command.reload-translation.description")
-                                .withPermission(CommandPermission.OP)
-                                .executes(reloadCommand::reloadTranslation),
-                        command("update")
-                                .withShortDescription("fakeplayer.command.update.description")
-                                .withPermission(CommandPermission.OP)
-                                .executes(updateCommand::check)
-                                .withSubcommands(
-                                        command("check")
-                                                .withShortDescription("fakeplayer.command.update.check.description")
-                                                .executes(updateCommand::check)
-                                ),
-                        command("version")
-                                .withShortDescription("fakeplayer.command.version.description")
-                                .executes(versionCommand::version),
-                        command("sysinfo")
-                                .withShortDescription("fakeplayer.command.sysinfo.description")
-                                .withPermission(CommandPermission.OP)
-                                .executes(sysInfoCommand::sysinfo),
-
-                        // developer debug
-                        command("debug")
-                                .withPermission(CommandPermission.OP)
-                                .withRequirement(sender -> config.isDebug())
-                                .withSubcommands(
-                                        command("send-plugin-message")
-                                                .withArguments(
-                                                        player("player"),
-                                                        text("channel"),
-                                                        text("message")
-                                                )
-                                                .executes(debugCommand::sendPluginMessage)
-                                )
-
-                );
-        root.withHelp(
-                helpLocalizer.translate("fakeplayer.command.fp.short-description"),
-                helpLocalizer.translate("fakeplayer.command.fp.full-description")
-        );
-        helpLocalizer.localizeDescriptions(root);
-        CommandHelpGenerator.generate(root, helpLocalizer);
-        root.register();
-    }
-
-
+    root.withHelp(
+        helpLocalizer.translate("fakeplayer.command.fp.short-description"),
+        helpLocalizer.translate("fakeplayer.command.fp.full-description"));
+    helpLocalizer.localizeDescriptions(root);
+    CommandHelpGenerator.generate(root, helpLocalizer);
+    root.register();
+  }
 }
