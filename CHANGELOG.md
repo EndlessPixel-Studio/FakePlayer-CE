@@ -13,6 +13,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **New `/fp update check`.** Prints the build you are running, whether a newer `fp.buildN` release exists on GitHub, and where to download it; `/fp update` does the same. Until now the check only ran at startup and logged to the console, so nobody in-game could see it.
 - **Japanese localization.** Messages, command descriptions and help text now ship in Japanese; set `i18n.locale: ja` to use it. `config.yml` bumped to 33.
 - **New `/fp goto stop [name]`.** Cancels an ongoing walk without touching other actions; previously only `/fp stop` could end it, which also aborted everything else.
 - **Fixed `/fp kick -a` and `/fp kill -a` doing nothing for operators.** The `-a` shortcut was filtering by creator even for ops and the console, so it only ever matched fake players that sender had spawned; it now means every fake player on the server, matching `/fp kickall`. A name that matches nothing also reports an error instead of falling back to the selected fake player.
@@ -25,6 +26,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
+- **新增 `/fp update check`。** 输出当前版本、GitHub 上是否有更新的 `fp.buildN`，以及下载地址；`/fp update` 等价。此前只在开服时往控制台打日志，游戏内看不到。
 - **新增日语本地化。** 消息、命令描述与帮助文本均已提供日语版本，把 `i18n.locale` 设为 `ja` 即可使用。`config.yml` 版本提升至 33。
 - **新增 `/fp goto stop [假人]`。** 只中止正在进行的寻路，不影响其它动作；此前只能用 `/fp stop` 把该假人的所有动作一起停掉。
 - **修复 `/fp kick -a` 与 `/fp kill -a` 对 op 无效。** `-a` 原先只按创建者过滤，即使 op / 控制台执行也只看自己召唤的假人；现在与 `/fp kickall` 一致，作用于全服假人。另外，名字匹配不到时改为直接报错，不再回退到选中的假人——避免打错名字误操作。

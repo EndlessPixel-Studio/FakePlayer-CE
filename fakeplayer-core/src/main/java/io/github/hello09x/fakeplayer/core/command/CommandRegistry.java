@@ -62,6 +62,8 @@ public class CommandRegistry {
     @Inject
     private RespawnCommand respawnCommand;
     @Inject
+    private UpdateCommand updateCommand;
+    @Inject
     private RideCommand rideCommand;
     @Inject
     private RotationCommand rotationCommand;
@@ -615,6 +617,15 @@ public class CommandRegistry {
                                 .withShortDescription("fakeplayer.command.reload-translation.description")
                                 .withPermission(CommandPermission.OP)
                                 .executes(reloadCommand::reloadTranslation),
+                        command("update")
+                                .withShortDescription("fakeplayer.command.update.description")
+                                .withPermission(CommandPermission.OP)
+                                .executes(updateCommand::check)
+                                .withSubcommands(
+                                        command("check")
+                                                .withShortDescription("fakeplayer.command.update.check.description")
+                                                .executes(updateCommand::check)
+                                ),
 
                         // developer debug
                         command("debug")

@@ -120,30 +120,21 @@ public final class Main extends JavaPlugin {
             // 本项目的版本号为 fp.buildN 格式, 因此检查本仓库自己的 GitHub Releases
             var checker = new UpdateChecker("EndlessPixel-Studio", "FakePlayer-CE");
             try {
-                var release = checker.getLastRelease();
-
-                var current = meta.getVersion();
-                var other = release.getTagName();
-                if (other == null || other.isBlank()) {
+                var result = checker.check(meta.getVersion());
+                if (!result.outdated()) {
                     return;
                 }
-                if (other.charAt(0) == 'v' || other.charAt(0) == 'V') {
-                    other = other.substring(1);
-                }
 
-                if (UpdateChecker.isNew(current, other)) {
-                    var log = getLogger();
-                    log.info("New version: %s (current: %s)".formatted(release.getTagName(), current));
-                    log.info("Address: " + (release.getHtmlUrl() != null ? release.getHtmlUrl() : meta.getWebsite()));
-                    log.info("Update Log");
-                    var body = release.getBody();
-                    if (body != null) {
-                        for (var line : body.split("\n")) {
-                            log.info("\t" + line);
-                        }
+                var log = getLogger();
+                log.info("New version: %s (current: %s)".formatted(result.latest(), result.current()));
+                log.info("Address: " + (result.url() != null ? result.url() : meta.getWebsite()));
+                log.info("Update Log");
+                var body = result.body();
+                if (body != null) {
+                    for (var line : body.split("\n")) {
+                        log.info("\t" + line);
                     }
                 }
-
             } catch (Throwable e) {
                 getLogger().warning("Error on checking for updates: " + e.getMessage());
             }
