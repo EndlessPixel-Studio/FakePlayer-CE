@@ -7,7 +7,7 @@
 [English](README.md) | [简体中文](README_zh.md) | [繁體中文](README_zh_TW.md) | 日本語
 
 [![CI](https://github.com/EndlessPixel-Studio/FakePlayer-CE/actions/workflows/ci.yml/badge.svg)](https://github.com/EndlessPixel-Studio/FakePlayer-CE/actions/workflows/ci.yml)
-[![License](https://img.shields.io/github/license/EndlessPixel-Studio/FakePlayer-CE)](LICENSE.txt)
+[![License](https://img.shields.io/github/license/EndlessPixel-Studio/FakePlayer-CE)](LICENSE)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1%20~%2026.3-5fbb47)](https://github.com/EndlessPixel-Studio/FakePlayer-CE)
 [![Hangar](https://img.shields.io/badge/Hangar-FakePlayer--CE-1f7ae0)](https://hangar.papermc.io/EndlessPixel/FakePlayer-CE)
 [![Built with JDK 25](https://img.shields.io/badge/Built%20with-JDK%2025-ED8B00?logo=openjdk&logoColor=white)](https://www.java.com)
@@ -350,7 +350,7 @@ auto-login:
 
 ## ビルド
 
-[BUILD.md](./BUILD.md) を参照してください。本プロジェクトの Gradle マルチモジュール手順専用であり、上流の Maven ビルドには適用できません。
+[BUILD.md](./docs/BUILD.md) を参照してください。本プロジェクトの Gradle マルチモジュール手順専用であり、上流の Maven ビルドには適用できません。
 
 ## スター履歴
 

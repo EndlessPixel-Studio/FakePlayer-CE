@@ -60,7 +60,7 @@ fakeplayer-dist    すべてを単一の fakeplayer-fp.buildN.jar にまとめ�
 ### ドキュメント
 
 - `README.md`、`README_zh.md`、`README_zh_TW.md`、`README_ja.md` は構成を揃えます。コマンド・設定項目・権限を追加したら 4 つとも更新してください。
-- `BUILD*.md` も同様です。
+- `docs/BUILD*.md` も同様です。
 - `README.md` を `master` へ push すると Hangar のプロジェクトページが自動更新されるため、内容は正確に保ってください。
 
 ### 権限
