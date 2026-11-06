@@ -158,34 +158,58 @@ def publish_version(tag):
 
 
 def check_links():
-    """校验 Hangar 上各版本记录的外链, 与 GitHub Release 的真实资产名是否一致。
+    """校验 Hangar 上各版本记录的外链能不能真的下到文件。
 
-    外链模式 (externalUrl) 下 Hangar 不落文件, 也不计下载数, 一旦写错就是
-    一条 404 —— 只有主动比对才能发现。
+    外链模式 (externalUrl) 下 Hangar 不落文件, 也不计下载数, 写错了永远不会
+    报错, 只会给用户一条 404。所以判据是 HEAD 状态码, 而不是字符串比对:
+    历史上 build3~build16 的文件名多写了一层 fp., 后来在 Release 上补了同内容
+    的别名资产修正, 那条路仍然可用, 不该被判为异常。
+
+    记录值与 asset_url(tag) 不一致时单独提示, 提醒命名可能偏离约定。
     """
-    status, text = http(f"{BASE}/projects/{PROJECT}/versions?limit=100")
-    if status != 200:
-        sys.exit(f"读取版本列表失败 HTTP {status}: {text[:300]}")
+    entries, offset = [], 0
+    while True:  # Hangar 的 limit 上限是 25, 超过会被压回去, 只能翻页
+        status, text = http(f"{BASE}/projects/{PROJECT}/versions?limit=25&offset={offset}")
+        if status != 200:
+            sys.exit(f"读取版本列表失败 HTTP {status}: {text[:300]}")
+        page = json.loads(text)
+        batch = page["result"]
+        entries.extend(batch)
+        offset += len(batch)
+        if not batch or offset >= page["pagination"]["count"]:
+            break
 
     ok, bad, skipped = [], [], []
-    for entry in json.loads(text)["result"]:
+    for entry in entries:
         tag = entry["name"]
-        expected = asset_url(tag)
         downloads = entry.get("downloads") or {}
         urls = [(p, (d or {}).get("externalUrl")) for p, d in downloads.items()]
         urls = [(p, u) for p, u in urls if u]
         if not urls:
             skipped.append(tag)
             continue
-        wrong = [(p, u) for p, u in urls if u != expected]
-        (bad if wrong else ok).append((tag, wrong, expected))
+        problems, warnings = [], []
+        for platform, url in urls:
+            code, _ = http(url, method="HEAD", timeout=30)
+            if code != 200:
+                problems.append(f"{platform} HTTP {code} {url}")
+            elif url != asset_url(tag):
+                warnings.append(f"{platform} 可下载但命名偏离约定: {url}")
+        (bad if problems else ok).append((tag, problems, warnings))
 
-    log(f"正常 {len(ok)} / 异常 {len(bad)} / 无外链 {len(skipped)}")
-    for tag, wrong, expected in bad:
+    log(f"可下载 {len(ok)} / 不可下载 {len(bad)} / 无外链 {len(skipped)}")
+    warned = 0
+    for tag, problems, warnings in ok + bad:
+        if not problems and not warnings:
+            continue
         log(f"\n[{tag}]")
-        for platform, url in wrong:
-            log(f"  记录: {platform} {url}")
-        log(f"  应为: {expected}")
+        for line in problems:
+            log(f"  错误: {line}")
+        for line in warnings:
+            log(f"  提示: {line}")
+            warned += 1
+    if warned:
+        log(f"\n{len(set(t for t, p, w in ok + bad if w))} 个版本命名偏离约定但可下载")
     if bad:
         sys.exit(1)
 
