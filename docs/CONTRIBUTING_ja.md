@@ -34,6 +34,11 @@ fakeplayer-dist    すべてを単一の fakeplayer-fp.buildN.jar にまとめ�
 
 ## 慣例
 
+### コードスタイル
+
+- **google-java-format**（2 スペースインデント、100 桁）で統一し、CI の `spotlessCheck` で強制します。
+- コミット前に `./gradlew spotlessApply` を実行してください。未整形のコードは CI が失敗します。
+
 ### コミット
 
 - 英語のプレフィックス + 中国語の説明：`feat:`、`fix:`、`docs:`、`refactor:`、`ci:`、`chore:`。

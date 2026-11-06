@@ -12,32 +12,30 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-
 /**
  * @author tanyaofei
  * @since 2024/7/26
- **/
+ */
 @Singleton
 public class DebugCommand {
 
-    private final FakeplayerManager manager;
-    private final NMSBridge bridge;
+  private final FakeplayerManager manager;
+  private final NMSBridge bridge;
 
-    @Inject
-    public DebugCommand(FakeplayerManager manager, NMSBridge bridge) {
-        this.manager = manager;
-        this.bridge = bridge;
-    }
+  @Inject
+  public DebugCommand(FakeplayerManager manager, NMSBridge bridge) {
+    this.manager = manager;
+    this.bridge = bridge;
+  }
 
-    public void sendPluginMessage(@NotNull CommandSender sender, @NotNull CommandArguments args) {
-        var player = (Player) args.get("player");
-        var channel = (String) args.get("channel");
-        var message = (String) args.get("message");
-        Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(Main.getInstance(), channel);
+  public void sendPluginMessage(@NotNull CommandSender sender, @NotNull CommandArguments args) {
+    var player = (Player) args.get("player");
+    var channel = (String) args.get("channel");
+    var message = (String) args.get("message");
+    Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(Main.getInstance(), channel);
 
-        var msg = ByteStreams.newDataOutput();
-        msg.writeUTF(message);
-        player.sendPluginMessage(Main.getInstance(), channel, msg.toByteArray());
-    }
-
+    var msg = ByteStreams.newDataOutput();
+    msg.writeUTF(message);
+    player.sendPluginMessage(Main.getInstance(), channel, msg.toByteArray());
+  }
 }

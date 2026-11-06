@@ -8,11 +8,8 @@ import org.jetbrains.annotations.NotNull;
 @Singleton
 public class KickallCommand extends AbstractCommand {
 
-    /**
-     * 移除服务器所有假人
-     */
-    public void kickall(@NotNull CommandSender sender, @NotNull CommandArguments args) {
-        manager.removeAll("Command kickall");
-    }
-
+  /** 移除服务器所有假人 */
+  public void kickall(@NotNull CommandSender sender, @NotNull CommandArguments args) {
+    manager.removeAll("Command kickall");
+  }
 }

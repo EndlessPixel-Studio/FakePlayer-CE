@@ -47,6 +47,11 @@ are handled inside the version modules.
 
 ## Conventions
 
+### Code style
+
+- Formatting is **google-java-format** (2-space indent, 100 columns), enforced by `spotlessCheck` in CI.
+- Run `./gradlew spotlessApply` before committing; CI fails on unformatted code.
+
 ### Commits
 
 - English prefix + a description in Chinese: `feat:`, `fix:`, `docs:`, `refactor:`, `ci:`, `chore:`.

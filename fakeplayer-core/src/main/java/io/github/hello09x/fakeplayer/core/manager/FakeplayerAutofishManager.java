@@ -20,52 +20,59 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author tanyaofei
  * @since 2024/8/11
- **/
+ */
 @Singleton
 public class FakeplayerAutofishManager implements Listener {
 
-    private final FakeplayerManager manager;
-    private final ActionManager actionManager;
+  private final FakeplayerManager manager;
+  private final ActionManager actionManager;
 
-    @Inject
-    public FakeplayerAutofishManager(FakeplayerManager manager, ActionManager actionManager) {
-        this.manager = manager;
-        this.actionManager = actionManager;
+  @Inject
+  public FakeplayerAutofishManager(FakeplayerManager manager, ActionManager actionManager) {
+    this.manager = manager;
+    this.actionManager = actionManager;
+  }
+
+  public boolean isAutofish(@NotNull Player fake) {
+    return fake.hasMetadata(MetadataKeys.AUTOFISH);
+  }
+
+  public void setAutofish(@NotNull Player target, boolean autofish) {
+    if (!autofish) {
+      target.removeMetadata(MetadataKeys.AUTOFISH, Main.getInstance());
+    } else {
+      target.setMetadata(MetadataKeys.AUTOFISH, new FixedMetadataValue(Main.getInstance(), true));
+    }
+  }
+
+  @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+  public void autoFishing(@NotNull PlayerFishEvent event) {
+    if (event.getState() != PlayerFishEvent.State.BITE) {
+      return;
     }
 
-    public boolean isAutofish(@NotNull Player fake) {
-        return fake.hasMetadata(MetadataKeys.AUTOFISH);
+    var player = event.getPlayer();
+    if (manager.isNotFake(player)) {
+      return;
     }
 
-    public void setAutofish(@NotNull Player target, boolean autofish) {
-        if (!autofish) {
-            target.removeMetadata(MetadataKeys.AUTOFISH, Main.getInstance());
-        } else {
-            target.setMetadata(MetadataKeys.AUTOFISH, new FixedMetadataValue(Main.getInstance(), true));
-        }
+    if (!player.hasMetadata(MetadataKeys.AUTOFISH)) {
+      return;
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void autoFishing(@NotNull PlayerFishEvent event) {
-        if (event.getState() != PlayerFishEvent.State.BITE) {
-            return;
-        }
-
-        var player = event.getPlayer();
-        if (manager.isNotFake(player)) {
-            return;
-        }
-
-        if (!player.hasMetadata(MetadataKeys.AUTOFISH)) {
-            return;
-        }
-
-        Schedulers.entityLater(Main.getInstance(), player, 1, () -> {
-            actionManager.setAction(player, ActionType.USE, ActionSetting.once());
-            Schedulers.entityLater(Main.getInstance(), player, Ticks.TICKS_PER_SECOND, () -> {
+    Schedulers.entityLater(
+        Main.getInstance(),
+        player,
+        1,
+        () -> {
+          actionManager.setAction(player, ActionType.USE, ActionSetting.once());
+          Schedulers.entityLater(
+              Main.getInstance(),
+              player,
+              Ticks.TICKS_PER_SECOND,
+              () -> {
                 actionManager.setAction(player, ActionType.USE, ActionSetting.once());
-            });
+              });
         });
-    }
-
+  }
 }
