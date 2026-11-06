@@ -1,6 +1,0 @@
-# 纯格式化提交, `git blame` 时忽略它们:
-#   git config blame.ignoreRevsFile .git-blame-ignore-revs
-# GitHub 也会读取此文件 (需要在仓库设置里启用 "Ignore revs")。
-#
-# 全仓库套用 google-java-format (2 空格缩进、100 列), 无任何逻辑改动
-8d532c6
