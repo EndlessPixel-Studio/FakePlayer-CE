@@ -6,23 +6,14 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author tanyaofei
  * @since 2024/8/13
- **/
-public record FeatureInstance(
+ */
+public record FeatureInstance(@NotNull Feature key, @NotNull String value) {
 
-        @NotNull
-        Feature key,
+  public @NotNull String asString() {
+    return value;
+  }
 
-        @NotNull
-        String value
-
-) {
-
-    public @NotNull String asString() {
-        return value;
-    }
-
-    public boolean asBoolean() {
-        return Boolean.parseBoolean(value);
-    }
-
+  public boolean asBoolean() {
+    return Boolean.parseBoolean(value);
+  }
 }

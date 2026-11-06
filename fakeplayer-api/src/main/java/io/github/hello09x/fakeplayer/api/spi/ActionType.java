@@ -7,66 +7,44 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author tanyaofei
  * @since 2024/8/9
- **/
+ */
 @AllArgsConstructor
-public
-enum ActionType implements Translatable {
+public enum ActionType implements Translatable {
 
-    /**
-     * 攻击实体
-     */
-    ATTACK("fakeplayer.action.attack"),
+  /** 攻击实体 */
+  ATTACK("fakeplayer.action.attack"),
 
-    /**
-     * 挖掘
-     */
-    MINE("fakeplayer.action.mine"),
+  /** 挖掘 */
+  MINE("fakeplayer.action.mine"),
 
-    /**
-     * 右键
-     */
-    USE("fakeplayer.action.use"),
+  /** 右键 */
+  USE("fakeplayer.action.use"),
 
-    /**
-     * 跳跃
-     */
-    JUMP("fakeplayer.action.jump"),
+  /** 跳跃 */
+  JUMP("fakeplayer.action.jump"),
 
-    /**
-     * 看向附近实体
-     */
-    LOOK_AT_NEAREST_ENTITY("fakeplayer.action.look-at-entity"),
+  /** 看向附近实体 */
+  LOOK_AT_NEAREST_ENTITY("fakeplayer.action.look-at-entity"),
 
-    /**
-     * 丢弃手上 1 个物品
-     */
-    DROP_ITEM("fakeplayer.action.drop-item"),
+  /** 丢弃手上 1 个物品 */
+  DROP_ITEM("fakeplayer.action.drop-item"),
 
-    /**
-     * 丢弃手上整组物品
-     */
-    DROP_STACK("fakeplayer.action.drop-stack"),
+  /** 丢弃手上整组物品 */
+  DROP_STACK("fakeplayer.action.drop-stack"),
 
-    /**
-     * 丢弃背包
-     */
-    DROP_INVENTORY("fakeplayer.action.drop-inventory"),
+  /** 丢弃背包 */
+  DROP_INVENTORY("fakeplayer.action.drop-inventory"),
 
-    /**
-     * 发送聊天消息
-     */
-    SAY("fakeplayer.action.say"),
+  /** 发送聊天消息 */
+  SAY("fakeplayer.action.say"),
 
-    /**
-     * 前往指定坐标
-     */
-    GOTO("fakeplayer.action.goto");
+  /** 前往指定坐标 */
+  GOTO("fakeplayer.action.goto");
 
-    final String translationKey;
+  final String translationKey;
 
-
-    @Override
-    public @NotNull String translationKey() {
-        return this.translationKey;
-    }
+  @Override
+  public @NotNull String translationKey() {
+    return this.translationKey;
+  }
 }

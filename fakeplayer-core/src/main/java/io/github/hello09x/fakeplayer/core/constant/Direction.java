@@ -6,23 +6,22 @@ import org.jetbrains.annotations.NotNull;
 
 @AllArgsConstructor
 public enum Direction implements Translatable {
+  DOWN("fakeplayer.direction.down"),
 
-    DOWN("fakeplayer.direction.down"),
+  UP("fakeplayer.direction.up"),
 
-    UP("fakeplayer.direction.up"),
+  NORTH("fakeplayer.direction.north"),
 
-    NORTH("fakeplayer.direction.north"),
+  SOUTH("fakeplayer.direction.south"),
 
-    SOUTH("fakeplayer.direction.south"),
+  WEST("fakeplayer.direction.west"),
 
-    WEST("fakeplayer.direction.west"),
+  EAST("fakeplayer.direction.east");
 
-    EAST("fakeplayer.direction.east");
+  final String translationKey;
 
-    final String translationKey;
-
-    @Override
-    public @NotNull String translationKey() {
-        return this.translationKey;
-    }
+  @Override
+  public @NotNull String translationKey() {
+    return this.translationKey;
+  }
 }

@@ -1,42 +1,37 @@
 package io.github.hello09x.fakeplayer.v1_20_6.spi;
 
-import io.github.hello09x.fakeplayer.core.util.Reflections;
-
 import com.mojang.authlib.GameProfile;
 import io.github.hello09x.devtools.core.utils.WorldUtils;
 import io.github.hello09x.fakeplayer.api.spi.NMSServer;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerPlayer;
+import io.github.hello09x.fakeplayer.core.util.Reflections;
+import java.util.UUID;
 import lombok.Getter;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
-
 import org.jetbrains.annotations.NotNull;
-
-import java.util.UUID;
 
 public class NMSServerImpl implements NMSServer {
 
+  @Getter private final MinecraftServer handle;
 
-    @Getter
-    private final MinecraftServer handle;
+  public NMSServerImpl(@NotNull Server server) {
+    this.handle = (MinecraftServer) Reflections.getServer(server);
+  }
 
-    public NMSServerImpl(@NotNull Server server) {
-        this.handle = (MinecraftServer) Reflections.getServer(server);
-    }
-
-    @Override
-    public @NotNull NMSServerPlayer newPlayer(@NotNull UUID uuid, @NotNull String name) {
-        var server = new NMSServerImpl(Bukkit.getServer()).getHandle();
-        var handle = new ServerPlayer(
-                new NMSServerImpl(Bukkit.getServer()).getHandle(),
-                new NMSServerLevelImpl(WorldUtils.getMainWorld()).getHandle(),
-                new GameProfile(uuid, name),
-                ClientInformation.createDefault()
-        );
-        server.getPlayerList().playerIo.load(handle).ifPresent(handle::load);
-        return new NMSServerPlayerImpl(handle.getBukkitEntity());
-    }
+  @Override
+  public @NotNull NMSServerPlayer newPlayer(@NotNull UUID uuid, @NotNull String name) {
+    var server = new NMSServerImpl(Bukkit.getServer()).getHandle();
+    var handle =
+        new ServerPlayer(
+            new NMSServerImpl(Bukkit.getServer()).getHandle(),
+            new NMSServerLevelImpl(WorldUtils.getMainWorld()).getHandle(),
+            new GameProfile(uuid, name),
+            ClientInformation.createDefault());
+    server.getPlayerList().playerIo.load(handle).ifPresent(handle::load);
+    return new NMSServerPlayerImpl(handle.getBukkitEntity());
+  }
 }

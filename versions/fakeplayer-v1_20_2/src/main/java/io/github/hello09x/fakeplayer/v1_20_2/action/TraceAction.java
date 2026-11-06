@@ -9,16 +9,14 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class TraceAction implements Action {
 
-    protected final ServerPlayer player;
+  protected final ServerPlayer player;
 
-    protected TraceAction(@NotNull ServerPlayer player) {
-        this.player = player;
-    }
+  protected TraceAction(@NotNull ServerPlayer player) {
+    this.player = player;
+  }
 
-    protected @Nullable HitResult getTarget() {
-        double reach = player.gameMode.isCreative() ? 5 : 4.5f;
-        return Tracer.rayTrace(player, 1, reach, false);
-    }
-
-
+  protected @Nullable HitResult getTarget() {
+    double reach = player.gameMode.isCreative() ? 5 : 4.5f;
+    return Tracer.rayTrace(player, 1, reach, false);
+  }
 }

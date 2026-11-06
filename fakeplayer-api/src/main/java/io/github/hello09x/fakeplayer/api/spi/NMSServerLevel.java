@@ -1,6 +1,3 @@
 package io.github.hello09x.fakeplayer.api.spi;
 
-public interface NMSServerLevel {
-
-
-}
+public interface NMSServerLevel {}
