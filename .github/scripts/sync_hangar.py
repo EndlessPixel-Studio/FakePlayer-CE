@@ -66,9 +66,12 @@ def platform_versions_from_tag(tag):
 
     不能用目录名推断: 一个模块可以覆盖多个版本, 例如 v1_21_3 同时声明
     "1.21.2" 和 "1.21.3", v1_20_1 同时声明 "1.20" 和 "1.20.1"。
+
+    旧 tag (build9 及以前) 的模块放在仓库根目录 (fakeplayer-v1_20_1/...),
+    之后才收拢到 versions/ 下, 所以两条路径都要找。
     """
     out = subprocess.run(
-        ["git", "grep", "-h", "SUPPORTS = Set.of", tag, "--", "versions/"],
+        ["git", "grep", "-h", "SUPPORTS = Set.of", tag, "--", "versions/", "fakeplayer-v1_*"],
         capture_output=True, text=True,
     )
     if out.returncode != 0:
