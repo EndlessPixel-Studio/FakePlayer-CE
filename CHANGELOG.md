@@ -13,10 +13,12 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **Fixed build17 failing to enable.** `/fp goto` gained a `stop` subcommand while keeping its optional `[name]`; CommandAPI prepends a parent command's arguments to its subcommands, so the optional argument ended up in front of a required literal and registration threw `OptionalArgumentException`, leaving `/fakeplayer` unregistered on every server. Cancelling a walk is now `/fp gotostop [name]`; `/fp goto <location> [name]` is unchanged.
 - **Update checks now repeat on a schedule.** `check-for-updates` only ran at startup, so a server that stayed up for weeks never noticed a new build. `update-check-interval-hours` (default `24`, `0` = startup only) sets the interval; the same new version is announced once, not on every round. `config.yml` bumped to 34.
 
 ### 中文
 
+- **修复 build17 无法启用。** `/fp goto` 在保留可选 `[name]` 的同时加了 `stop` 子命令；CommandAPI 会把父命令的参数拼到子命令字面量之前，可选参数后面跟着必选字面量，注册期直接抛 `OptionalArgumentException`，导致 `/fakeplayer` 在所有服务端上都注册失败。现在中止寻路改为 `/fp gotostop [假人]`，`/fp goto <坐标> [假人]` 不受影响。
 - **更新检查改为周期执行。** `check-for-updates` 原先只在开服时跑一次，长期不重启的服务器永远看不到新版本。新增 `update-check-interval-hours`（默认 `24`，`0` 表示只在开服检查），同一个新版本只提示一次，不会每轮刷日志；修改间隔需重启生效。`config.yml` 版本提升至 34。
 
 ## fp.build17 - 2026-11-06
