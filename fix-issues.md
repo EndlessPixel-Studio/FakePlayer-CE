@@ -1,6 +1,6 @@
 # FakePlayer-CE 修复的Issues和合并的PRs/commits记录 来自其他仓库，不包含本仓库
 
-## EndlessPixel/FakePlayer-CE
+## EndlessPixel/FakePlayer-CE (前任fork, 现在已合并到本仓库)
 - [EndlessPixel/FakePlayer-CE Issue #3](https://github.com/EndlessPixel/FakePlayer-CE/issues/3)
 - [EndlessPixel/FakePlayer-CE Issue #4](https://github.com/EndlessPixel/FakePlayer-CE/issues/4)
 - [EndlessPixel/FakePlayer-CE Issue #5](https://github.com/EndlessPixel/FakePlayer-CE/issues/5)
