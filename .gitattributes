@@ -2,3 +2,4 @@
 *.kt linguist-language=Kotlin linguist-detectable=true
 *.py linguist-language=Python linguist-detectable=true
 *.md linguist-language=Markdown linguist-detectable=true
+docs/** linguist-documentation=true

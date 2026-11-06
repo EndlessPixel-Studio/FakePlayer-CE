@@ -60,7 +60,7 @@ fakeplayer-dist    把所有东西打包成单一 fakeplayer-fp.buildN.jar
 ### 文档
 
 - `README.md`、`README_zh.md`、`README_zh_TW.md`、`README_ja.md` 结构保持一致——加命令、配置项或权限时四份都要改。
-- `BUILD*.md` 同理。
+- `docs/BUILD*.md` 同理。
 - 推 `README.md` 到 `master` 会自动同步 Hangar 项目主页，内容要保持准确。
 
 ### 权限

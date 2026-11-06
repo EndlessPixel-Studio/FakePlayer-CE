@@ -80,7 +80,7 @@ are handled inside the version modules.
 
 - `README.md`, `README_zh.md`, `README_zh_TW.md` and `README_ja.md` are kept structurally
   identical — when you add a command, a config option or a permission, update all four.
-- `BUILD*.md` follows the same rule.
+- `docs/BUILD*.md` follows the same rule.
 - Pushing `README.md` to `master` automatically republishes the Hangar project page, so keep it
   accurate.
 
