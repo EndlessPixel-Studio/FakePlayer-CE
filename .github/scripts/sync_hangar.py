@@ -157,6 +157,39 @@ def publish_version(tag):
     sys.exit(f"创建 {tag} 失败 HTTP {status}: {text[:400]}")
 
 
+def check_links():
+    """校验 Hangar 上各版本记录的外链, 与 GitHub Release 的真实资产名是否一致。
+
+    外链模式 (externalUrl) 下 Hangar 不落文件, 也不计下载数, 一旦写错就是
+    一条 404 —— 只有主动比对才能发现。
+    """
+    status, text = http(f"{BASE}/projects/{PROJECT}/versions?limit=100")
+    if status != 200:
+        sys.exit(f"读取版本列表失败 HTTP {status}: {text[:300]}")
+
+    ok, bad, skipped = [], [], []
+    for entry in json.loads(text)["result"]:
+        tag = entry["name"]
+        expected = asset_url(tag)
+        downloads = entry.get("downloads") or {}
+        urls = [(p, (d or {}).get("externalUrl")) for p, d in downloads.items()]
+        urls = [(p, u) for p, u in urls if u]
+        if not urls:
+            skipped.append(tag)
+            continue
+        wrong = [(p, u) for p, u in urls if u != expected]
+        (bad if wrong else ok).append((tag, wrong, expected))
+
+    log(f"正常 {len(ok)} / 异常 {len(bad)} / 无外链 {len(skipped)}")
+    for tag, wrong, expected in bad:
+        log(f"\n[{tag}]")
+        for platform, url in wrong:
+            log(f"  记录: {platform} {url}")
+        log(f"  应为: {expected}")
+    if bad:
+        sys.exit(1)
+
+
 def read_readme(path="README.md"):
     with open(path, encoding="utf-8") as f:
         return f.read()
@@ -202,9 +235,12 @@ if __name__ == "__main__":
     v = sub.add_parser("version")
     v.add_argument("--tag", required=True)
     sub.add_parser("page")
+    sub.add_parser("check")
     args = parser.parse_args()
 
     if args.mode == "version":
         publish_version(args.tag)
+    elif args.mode == "check":
+        check_links()
     else:
         sync_page()
