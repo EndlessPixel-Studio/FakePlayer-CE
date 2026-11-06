@@ -27,6 +27,7 @@ import io.github.hello09x.fakeplayer.core.manager.WildFakeplayerManager;
 import io.github.hello09x.fakeplayer.core.manager.invsee.InvseeManager;
 import io.github.hello09x.fakeplayer.core.placeholder.FakeplayerPlaceholderExpansion;
 import io.github.hello09x.fakeplayer.core.repository.UsedIdRepository;
+import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.util.update.UpdateChecker;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -43,6 +44,11 @@ public final class Main extends JavaPlugin {
     private FakeplayerManager fakeplayerManager;
     private UsedIdRepository usedIdRepository;
     private boolean stopped;
+
+    /**
+     * 已经提示过的新版本, 用于周期检查时去重
+     */
+    private volatile String notifiedVersion;
 
     private long loadAt;
 
@@ -107,8 +113,16 @@ public final class Main extends JavaPlugin {
             restoreManager.start();
         }
 
-        if (injector.getInstance(FakeplayerConfig.class).isCheckForUpdates()) {
+        var config = injector.getInstance(FakeplayerConfig.class);
+        if (config.isCheckForUpdates()) {
             checkForUpdatesAsync();
+
+            // 长期不重启的服务器也要能看到新版本; 间隔为 0 时保持旧行为, 只在开服检查一次
+            var hours = config.getUpdateCheckIntervalHours();
+            if (hours > 0) {
+                var period = (long) hours * 60 * 60 * 20;
+                Schedulers.asyncTimer(this, period, period, this::checkForUpdatesAsync);
+            }
         }
 
         getLogger().info("Enabled in %d ms".formatted(System.currentTimeMillis() - loadAt));
@@ -121,12 +135,19 @@ public final class Main extends JavaPlugin {
             var checker = new UpdateChecker("EndlessPixel-Studio", "FakePlayer-CE");
             try {
                 var result = checker.check(meta.getVersion());
-                if (!result.outdated()) {
+                var latest = result.latest();
+                if (!result.outdated() || latest == null) {
                     return;
                 }
 
+                // 周期检查时同一个版本只提示一次, 否则更新日志会按间隔反复刷
+                if (latest.equals(this.notifiedVersion)) {
+                    return;
+                }
+                this.notifiedVersion = latest;
+
                 var log = getLogger();
-                log.info("New version: %s (current: %s)".formatted(result.latest(), result.current()));
+                log.info("New version: %s (current: %s)".formatted(latest, result.current()));
                 log.info("Address: " + (result.url() != null ? result.url() : meta.getWebsite()));
                 log.info("Update Log");
                 var body = result.body();
