@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 33
+version: 34
 
 
 # ============================================================
@@ -374,6 +374,12 @@ auto-login:
 # Check for updates against the latest `fp.buildN` GitHub release of this repository
 # Detection only, nothing is downloaded automatically
 check-for-updates: true
+
+# 重复检查的间隔 (小时), 0 表示只在开服时检查一次
+# 同一个新版本只会提示一次, 不会每轮都刷日志; 修改后需重启生效
+# Interval in hours between checks, 0 checks only once at startup
+# The same new version is announced once; changes take effect after a restart
+update-check-interval-hours: 24
 
 
 # ============================================================

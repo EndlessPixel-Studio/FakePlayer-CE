@@ -13,11 +13,11 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
-- (TBD)
+- **Update checks now repeat on a schedule.** `check-for-updates` only ran at startup, so a server that stayed up for weeks never noticed a new build. `update-check-interval-hours` (default `24`, `0` = startup only) sets the interval; the same new version is announced once, not on every round. `config.yml` bumped to 34.
 
 ### 中文
 
-- （待补充）
+- **更新检查改为周期执行。** `check-for-updates` 原先只在开服时跑一次，长期不重启的服务器永远看不到新版本。新增 `update-check-interval-hours`（默认 `24`，`0` 表示只在开服检查），同一个新版本只提示一次，不会每轮刷日志；修改间隔需重启生效。`config.yml` 版本提升至 34。
 
 ## fp.build17 - 2026-11-06
 
