@@ -66,6 +66,8 @@ public class CommandRegistry {
     @Inject
     private VersionCommand versionCommand;
     @Inject
+    private SysInfoCommand sysInfoCommand;
+    @Inject
     private RideCommand rideCommand;
     @Inject
     private RotationCommand rotationCommand;
@@ -631,6 +633,10 @@ public class CommandRegistry {
                         command("version")
                                 .withShortDescription("fakeplayer.command.version.description")
                                 .executes(versionCommand::version),
+                        command("sysinfo")
+                                .withShortDescription("fakeplayer.command.sysinfo.description")
+                                .withPermission(CommandPermission.OP)
+                                .executes(sysInfoCommand::sysinfo),
 
                         // developer debug
                         command("debug")

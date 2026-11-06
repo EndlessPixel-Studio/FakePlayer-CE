@@ -125,6 +125,7 @@
 | /fp reload | 重新載入插件設定檔 | OP | |
 | /fp update check | 檢查 GitHub 上是否有新版本 | OP | |
 | /fp version | 顯示插件、伺服端與 Java 版本 | - | 所有玩家可用 |
+| /fp sysinfo | 匯出 CPU、記憶體、磁碟、TPS 與假人狀態為 JSON | OP | 寫在 `plugins/FakePlayer-CE/sysinfo/`，可直接附到效能問題裡 |
 
 ## HTTP 管理介面
 
