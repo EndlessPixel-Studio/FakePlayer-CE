@@ -124,6 +124,7 @@
 | /fp changepassword | 修改假人登入密碼（舊密碼可省略） | fakeplayer.command.changepassword | |
 | /fp reload | 重新載入插件設定檔 | OP | |
 | /fp update check | 檢查 GitHub 上是否有新版本 | OP | |
+| /fp version | 顯示插件、伺服端與 Java 版本 | - | 所有玩家可用 |
 
 ## HTTP 管理介面
 

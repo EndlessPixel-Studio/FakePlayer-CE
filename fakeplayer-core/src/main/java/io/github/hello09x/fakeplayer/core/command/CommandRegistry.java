@@ -64,6 +64,8 @@ public class CommandRegistry {
     @Inject
     private UpdateCommand updateCommand;
     @Inject
+    private VersionCommand versionCommand;
+    @Inject
     private RideCommand rideCommand;
     @Inject
     private RotationCommand rotationCommand;
@@ -626,6 +628,9 @@ public class CommandRegistry {
                                                 .withShortDescription("fakeplayer.command.update.check.description")
                                                 .executes(updateCommand::check)
                                 ),
+                        command("version")
+                                .withShortDescription("fakeplayer.command.version.description")
+                                .executes(versionCommand::version),
 
                         // developer debug
                         command("debug")

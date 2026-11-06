@@ -13,6 +13,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **New `/fp version`.** Prints the running build, the server implementation and version, and the Java version — the three things worth pasting into a bug report. No permission needed.
 - **New `/fp update check`.** Prints the build you are running, whether a newer `fp.buildN` release exists on GitHub, and where to download it; `/fp update` does the same. Until now the check only ran at startup and logged to the console, so nobody in-game could see it.
 - **Japanese localization.** Messages, command descriptions and help text now ship in Japanese; set `i18n.locale: ja` to use it. `config.yml` bumped to 33.
 - **New `/fp goto stop [name]`.** Cancels an ongoing walk without touching other actions; previously only `/fp stop` could end it, which also aborted everything else.
@@ -26,6 +27,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
+- **新增 `/fp version`。** 输出当前版本、服务端实现与版本、Java 版本——报错时最常要对照的三项，无需权限。
 - **新增 `/fp update check`。** 输出当前版本、GitHub 上是否有更新的 `fp.buildN`，以及下载地址；`/fp update` 等价。此前只在开服时往控制台打日志，游戏内看不到。
 - **新增日语本地化。** 消息、命令描述与帮助文本均已提供日语版本，把 `i18n.locale` 设为 `ja` 即可使用。`config.yml` 版本提升至 33。
 - **新增 `/fp goto stop [假人]`。** 只中止正在进行的寻路，不影响其它动作；此前只能用 `/fp stop` 把该假人的所有动作一起停掉。
