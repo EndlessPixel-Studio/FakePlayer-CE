@@ -1,5 +1,7 @@
 # Contributing to FakePlayer CE
 
+English | [简体中文](CONTRIBUTING_zh.md) | [繁體中文](CONTRIBUTING_zh_TW.md) | [日本語](CONTRIBUTING_ja.md)
+
 Thanks for taking the time to contribute. This document covers how to report problems, how the
 codebase is organised, and the conventions this repository follows — reading it first will save
 you a round of review comments.
