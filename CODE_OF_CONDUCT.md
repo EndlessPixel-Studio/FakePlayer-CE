@@ -1,5 +1,7 @@
 # Code of Conduct
 
+English | [简体中文](CODE_OF_CONDUCT_zh.md) | [繁體中文](CODE_OF_CONDUCT_zh_TW.md) | [日本語](CODE_OF_CONDUCT_ja.md)
+
 ## Our pledge
 
 We as members, contributors, and maintainers pledge to make participation in this project a

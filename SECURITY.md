@@ -1,5 +1,7 @@
 # Security Policy
 
+English | [简体中文](SECURITY_zh.md) | [繁體中文](SECURITY_zh_TW.md) | [日本語](SECURITY_ja.md)
+
 FakePlayer CE spawns real server-side players and ships an optional HTTP admin API, so a
 misconfiguration can hand an attacker control over your server. This document covers what is
 supported, how to report a problem, and how to run the plugin safely.
