@@ -17,6 +17,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **New `/fp version`.** Prints the running build, the server implementation and version, and the Java version — the three things worth pasting into a bug report. No permission needed.
 - **New `/fp update check`.** Prints the build you are running, whether a newer `fp.buildN` release exists on GitHub, and where to download it; `/fp update` does the same. Until now the check only ran at startup and logged to the console, so nobody in-game could see it.
 - **Japanese localization.** Messages, command descriptions and help text now ship in Japanese; set `i18n.locale: ja` to use it. `config.yml` bumped to 33.
+- **Documentation is multilingual too.** `README`, `BUILD`, `SECURITY`, `CONTRIBUTING` and `CODE_OF_CONDUCT` now all exist in English, Simplified Chinese, Traditional Chinese and Japanese; everything except the READMEs moved into `docs/`. The plugin is also listed on Hangar as another download channel.
 - **New `/fp goto stop [name]`.** Cancels an ongoing walk without touching other actions; previously only `/fp stop` could end it, which also aborted everything else.
 - **Fixed `/fp kick -a` and `/fp kill -a` doing nothing for operators.** The `-a` shortcut was filtering by creator even for ops and the console, so it only ever matched fake players that sender had spawned; it now means every fake player on the server, matching `/fp kickall`. A name that matches nothing also reports an error instead of falling back to the selected fake player.
 - **Fixed LibreLogin authorization running off-thread.** The exemption was applied asynchronously after the fake player had already joined, which makes plugins that watch the login session (FastLogin and friends) see an unauthorized player; it now runs on the entity thread as part of the join.
@@ -25,6 +26,9 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **Fixed HTTP admin endpoints touching fake players from the wrong thread.** Teleport, look, sneak, sprint, ping and the other per-fake-player writes ran on the HTTP executor thread (setping not even hopped off it), which violates Folia's region threading and races with the entity thread on Paper; they now run on the fake player's own entity thread.
 - **`/fp say` help now matches every other command.** `/fp say help` prints the same paginated list as `/fp say` subcommands elsewhere, and the usage line spells out each subcommand's arguments (including `interval <ticks>`), so following the docs no longer sends the name where a tick count is expected.
 - **Fixed messages being dropped when `/fp say once` is used repeatedly.** Once commands were queued as a single replaceable action, so two in the same tick left only the last one; each call now runs on its own.
+- **Fixed `hasActiveAction` and `/fp stop` disagreeing about continuous actions.** Actions with `remains = -1` (run forever) were not counted as active, and the stop guard compared a ticker object against an `ActionSetting`, which never matched — so "is this fake player busy" and "stop it" told different stories.
+- **HTTP `/spawn` now answers `504` instead of blocking.** A slow spawn held the request for the full 15-second timeout and then failed without a usable body; it now returns `Spawn is still in progress, check /list later` and lets the spawn continue in the background.
+- **Password and TPS-protection messages are translatable.** Both were hardcoded, so `i18n.locale` had no effect on them.
 
 ### 中文
 
@@ -32,6 +36,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **新增 `/fp version`。** 输出当前版本、服务端实现与版本、Java 版本——报错时最常要对照的三项，无需权限。
 - **新增 `/fp update check`。** 输出当前版本、GitHub 上是否有更新的 `fp.buildN`，以及下载地址；`/fp update` 等价。此前只在开服时往控制台打日志，游戏内看不到。
 - **新增日语本地化。** 消息、命令描述与帮助文本均已提供日语版本，把 `i18n.locale` 设为 `ja` 即可使用。`config.yml` 版本提升至 33。
+- **文档也补齐了多语言。** `README`、`BUILD`、`SECURITY`、`CONTRIBUTING`、`CODE_OF_CONDUCT` 现在都有中英日繁四版，除 README 外的文件统一收进 `docs/`；插件也已上架 Hangar 作为另一个下载渠道。
 - **新增 `/fp goto stop [假人]`。** 只中止正在进行的寻路，不影响其它动作；此前只能用 `/fp stop` 把该假人的所有动作一起停掉。
 - **修复 `/fp kick -a` 与 `/fp kill -a` 对 op 无效。** `-a` 原先只按创建者过滤，即使 op / 控制台执行也只看自己召唤的假人；现在与 `/fp kickall` 一致，作用于全服假人。另外，名字匹配不到时改为直接报错，不再回退到选中的假人——避免打错名字误操作。
 - **修复 LibreLogin 授权在异步线程执行。** 免登录原先在假人已进服之后异步授权，FastLogin 这类监听登录会话的插件会看到「未登录」的玩家；现在随进服流程在实体线程同步完成。
@@ -40,6 +45,9 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **修复 HTTP 管理接口在错误线程操作假人。** 传送、朝向、潜行、疾跑、延迟等针对单个假人的写操作原先跑在 HTTP 线程（`/setping` 甚至完全没切线程），Folia 下违反区域线程模型、Paper 下与实体线程竞争；现在统一在假人所属实体线程执行。
 - **`/fp say` 的帮助与其他命令统一。** `/fp say help` 现在输出与其他子命令一致的分页列表，用法行也逐一写清每个子命令的参数（含 `interval <ticks>`），照文档传参不会再出现「名字被当整数」的报错。
 - **修复连续执行 `/fp say once` 丢消息。** once 原先作为可替换的单条动作排队，同一 tick 内连发两次只会执行最后一条；现在每次调用各自执行。
+- **修复 `hasActiveAction` 与 `/fp stop` 对持续动作判断不一致。** `remains = -1`（一直执行）原先不计入活跃动作，而 `stop` 的守卫拿 ticker 对象去比 `ActionSetting`，永远不相等；两者叠加导致「假人是否在忙」和「能不能停」给出不同答案。
+- **HTTP `/spawn` 超时改为返回 `504`，不再干等。** 生成较慢时请求原先会阻塞满 15 秒再失败，还没有可用响应；现在直接返回 `Spawn is still in progress, check /list later`，生成继续在后台进行。
+- **密码与 TPS 保护的消息改为翻译键。** 这两处原先写死，改 `i18n.locale` 不生效。
 
 ## fp.build16 - 2026-10-31
 
