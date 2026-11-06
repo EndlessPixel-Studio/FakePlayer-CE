@@ -125,6 +125,7 @@ On first launch only a template `config.tmpl.yml` is generated; rename it to `co
 | /fp reload | Reload config | OP | |
 | /fp update check | Check GitHub for a newer build | OP | |
 | /fp version | Show plugin, server and Java version | - | Anyone |
+| /fp sysinfo | Dump CPU, memory, disk, TPS and fake player state to JSON | OP | Written to `plugins/FakePlayer-CE/sysinfo/`; attach it to performance reports |
 
 ## HTTP Admin API
 
