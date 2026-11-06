@@ -123,6 +123,7 @@ On first launch only a template `config.tmpl.yml` is generated; rename it to `co
 | /fp password | Set fake player login password (stored in the plugin database) | fakeplayer.command.password | Used with `auto-login.command` |
 | /fp changepassword | Change fake player login password (old password optional) | fakeplayer.command.changepassword | |
 | /fp reload | Reload config | OP | |
+| /fp update check | Check GitHub for a newer build | OP | |
 
 ## HTTP Admin API
 

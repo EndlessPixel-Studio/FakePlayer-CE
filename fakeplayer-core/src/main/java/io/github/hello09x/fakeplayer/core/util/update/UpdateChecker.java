@@ -79,6 +79,40 @@ public class UpdateChecker {
         }
     }
 
+    /**
+     * 检查是否有更新
+     *
+     * @param current 当前版本号
+     * @return 检查结果
+     */
+    public @NotNull Result check(@NotNull String current) throws IOException, InterruptedException {
+        var release = this.getLastRelease();
+        var latest = stripTagPrefix(release.getTagName());
+        return new Result(
+                current,
+                latest,
+                latest != null && isNew(current, latest),
+                release.getHtmlUrl(),
+                release.getBody()
+        );
+    }
+
+    /**
+     * 去掉 tag 上可能存在的 {@code v} 前缀
+     *
+     * @param tag tag, 例如 {@code v1.2.3} 或 {@code fp.build16}
+     * @return 版本号, tag 为空时返回 {@code null}
+     */
+    public static @Nullable String stripTagPrefix(@Nullable String tag) {
+        if (tag == null || tag.isBlank()) {
+            return null;
+        }
+        return switch (tag.charAt(0)) {
+            case 'v', 'V' -> tag.substring(1);
+            default -> tag;
+        };
+    }
+
     public @NotNull Release getLastRelease() throws IOException, InterruptedException {
         var url = String.format("https://api.github.com/repos/%s/%s/releases/latest", this.author, this.repository);
         var client = HttpClient.newHttpClient();
@@ -97,6 +131,24 @@ public class UpdateChecker {
 
         var body = response.body();
         return gson.fromJson(body, Release.class);
+    }
+
+    /**
+     * 一次更新检查的结果
+     *
+     * @param current  当前版本号
+     * @param latest   远端最新版本号, 发布页没写 tag 时为 {@code null}
+     * @param outdated 远端是否更新
+     * @param url      发布页地址
+     * @param body     更新日志
+     */
+    public record Result(
+            @NotNull String current,
+            @Nullable String latest,
+            boolean outdated,
+            @Nullable String url,
+            @Nullable String body
+    ) {
     }
 
 
