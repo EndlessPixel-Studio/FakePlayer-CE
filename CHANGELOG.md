@@ -13,7 +13,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
-- **New `/fp sysinfo`.** Writes a JSON snapshot of CPU model and core count, JVM and physical memory, disk usage, TPS/MSPT, and every online fake player's state (world, position, running actions) to `plugins/FakePlayer-CE/sysinfo/<timestamp>.json`. Meant to be attached to a performance report instead of retyping six numbers.
+- **New `/fp sysinfo`.** Writes a JSON snapshot of Java and JVM details (vendor, VM build, `-Xmx`/`-Xms` and GC flags, active collectors), CPU model and core count, JVM and physical memory, disk usage, TPS/MSPT, and every online fake player's state (world, position, running actions) to `plugins/FakePlayer-CE/sysinfo/<timestamp>.json`. Meant to be attached to a performance report instead of retyping six numbers.
 - **New `/fp version`.** Prints the running build, the server implementation and version, and the Java version — the three things worth pasting into a bug report. No permission needed.
 - **New `/fp update check`.** Prints the build you are running, whether a newer `fp.buildN` release exists on GitHub, and where to download it; `/fp update` does the same. Until now the check only ran at startup and logged to the console, so nobody in-game could see it.
 - **Japanese localization.** Messages, command descriptions and help text now ship in Japanese; set `i18n.locale: ja` to use it. `config.yml` bumped to 33.
@@ -28,7 +28,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
-- **新增 `/fp sysinfo`。** 把 CPU 型号与核心数、JVM 与物理内存、磁盘占用、TPS/MSPT、以及每个在线假人的状态（所在世界、坐标、正在执行的动作）写成 `plugins/FakePlayer-CE/sysinfo/<时间戳>.json`，直接附到性能问题里，不用再手抄一堆数字。
+- **新增 `/fp sysinfo`。** 把 Java 与 JVM 信息（厂商、VM 版本、`-Xmx`/`-Xms` 与 GC 参数、实际使用的收集器）、CPU 型号与核心数、JVM 与物理内存、磁盘占用、TPS/MSPT、以及每个在线假人的状态（所在世界、坐标、正在执行的动作）写成 `plugins/FakePlayer-CE/sysinfo/<时间戳>.json`，直接附到性能问题里，不用再手抄一堆数字。
 - **新增 `/fp version`。** 输出当前版本、服务端实现与版本、Java 版本——报错时最常要对照的三项，无需权限。
 - **新增 `/fp update check`。** 输出当前版本、GitHub 上是否有更新的 `fp.buildN`，以及下载地址；`/fp update` 等价。此前只在开服时往控制台打日志，游戏内看不到。
 - **新增日语本地化。** 消息、命令描述与帮助文本均已提供日语版本，把 `i18n.locale` 设为 `ja` 即可使用。`config.yml` 版本提升至 33。
