@@ -265,14 +265,17 @@ public class CommandRegistry {
                                 .withPermission(Permission.goto_)
                                 .withShortDescription("fakeplayer.command.goto.description")
                                 .withRequirement(CommandSupports::hasFakeplayer)
-                                .withSubcommands(
-                                        command("stop")
-                                                .withShortDescription("fakeplayer.command.goto.stop.description")
-                                                .withOptionalArguments(fakeplayer("name"))
-                                                .executes(gotoCommand::stopGoTo))
                                 .withArguments(location("location"))
                                 .withOptionalArguments(fakeplayer("name"))
                                 .executes(gotoCommand::goTo),
+                        // 不能做成 goto 的子命令: CommandAPI 会把父命令的 [name] 拼到子命令字面量前面,
+                        // 可选参数后面跟必选字面量会在注册期抛 OptionalArgumentException (build17 启动失败即此)
+                        command("gotostop")
+                                .withPermission(Permission.goto_)
+                                .withShortDescription("fakeplayer.command.goto.stop.description")
+                                .withRequirement(CommandSupports::hasFakeplayer)
+                                .withOptionalArguments(fakeplayer("name"))
+                                .executes(gotoCommand::stopGoTo),
 
                         command("tp")
                                 .withAliases("tpto")
