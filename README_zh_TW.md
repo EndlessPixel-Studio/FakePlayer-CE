@@ -123,6 +123,7 @@
 | /fp password | 設定假人登入密碼（存入插件資料庫） | fakeplayer.command.password | 搭配 `auto-login.command` 使用 |
 | /fp changepassword | 修改假人登入密碼（舊密碼可省略） | fakeplayer.command.changepassword | |
 | /fp reload | 重新載入插件設定檔 | OP | |
+| /fp update check | 檢查 GitHub 上是否有新版本 | OP | |
 
 ## HTTP 管理介面
 
