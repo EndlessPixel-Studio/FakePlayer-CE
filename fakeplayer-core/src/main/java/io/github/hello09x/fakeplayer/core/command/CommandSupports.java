@@ -5,10 +5,13 @@ import static io.github.hello09x.devtools.command.Commands.int32;
 import static net.kyori.adventure.text.Component.translatable;
 
 import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.StringTooltip;
 import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.CustomArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
+import io.github.hello09x.devtools.core.translation.TranslatorUtils;
+import io.github.hello09x.devtools.core.utils.ComponentUtils;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.core.Main;
@@ -194,11 +197,19 @@ public abstract class CommandSupports {
               return key;
             })
         .replaceSuggestions(
-            ArgumentSuggestions.strings(
-                Arrays.stream(Feature.values())
-                    .filter(predicate)
-                    .map(Enum::name)
-                    .toArray(String[]::new)));
+            ArgumentSuggestions.stringsWithTooltips(
+                info ->
+                    Arrays.stream(Feature.values())
+                        .filter(predicate)
+                        .filter(feature -> feature.testPermissions(info.sender()))
+                        .map(
+                            feature ->
+                                StringTooltip.ofString(
+                                    feature.name(),
+                                    ComponentUtils.toString(
+                                        translatable(feature.translationKey()),
+                                        TranslatorUtils.getLocale(info.sender()))))
+                        .toArray(StringTooltip[]::new)));
   }
 
   public static @NotNull Argument<String> configValue(
