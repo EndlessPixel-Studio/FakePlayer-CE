@@ -23,12 +23,14 @@ import org.jetbrains.annotations.NotNull;
 public class WildFakeplayerManager implements PluginMessageListener, Listener {
 
   private static final Logger log = Main.getInstance().getLogger();
+
   /**
    * 是否挂在代理端后面 (BungeeCord 传统转发或 Velocity 现代转发)
    *
    * @see ProxySupport#isProxied()
    */
   private static final boolean IS_PROXIED = ProxySupport.isProxied();
+
   private static final String CHANNEL = "BungeeCord";
   private static final String SUB_CHANNEL = "PlayerList";
 
