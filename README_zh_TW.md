@@ -353,6 +353,21 @@ auto-login:
 
 > 請用足夠強的密碼，避免被 AuthMe 安全策略攔截。
 
+### Velocity 下 MOTD / 線上人數看不到假人
+
+外掛只裝在子服上，而伺服器列表的 MOTD 是代理端自己回應的，假人根本到不了那一層。在 `velocity.toml` 裡打開 ping 透傳：
+
+```toml
+ping-passthrough = "ALL"
+```
+
+幾點說明：
+
+- 填 `DESCRIPTION` 不夠。它只透傳 MOTD，線上人數仍用代理自己的；`ALL` 才是整份透傳後端的回應。
+- 人數取自 `try` 列表裡第一個回應的後端，不是所有後端之和。
+- Tab 列表本來就能看到，不需要設定：假人是走正常玩家列表注入的，所以 tab、`/list`、後端自己的 ping 裡都有。但在代理端建構「全域玩家列表」的外掛（例如裝在 Velocity 上的 TAB v3）看不到它們——那些假人不是真正的代理連線。
+- 跨服時 `follow-quiting` 不用額外設定：外掛會讀 `config/paper-global.yml` 的 `proxies.velocity.enabled`，切服不再被當成下線。
+
 ## 專案建置
 
 詳見 [BUILD_zh_TW.md](./docs/BUILD_zh_TW.md)。該文件只適用於本專案的 Gradle 多模組流程，不能用於上游 Maven 架構。

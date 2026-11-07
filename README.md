@@ -353,6 +353,21 @@ auto-login:
 
 > Use a strong password so AuthMe's security policy does not reject it.
 
+### Fake players are missing from the MOTD / player count on Velocity
+
+The plugin only runs on the backend server. The proxy answers the server-list ping on its own, so fake players never appear in that count. Enable ping passthrough in `velocity.toml`:
+
+```toml
+ping-passthrough = "ALL"
+```
+
+A few notes:
+
+- `DESCRIPTION` is not enough. It only forwards the MOTD and keeps the proxy's own player count; `ALL` takes the whole response from the backend.
+- The number comes from the first backend that answers the `try` list, not the sum across all backends.
+- The tab list already works and needs no config: fake players are injected through the regular player list, so they show up in tab, in `/list` and in the backend's own ping. A proxy-side plugin that builds a global player list on the proxy (TAB v3 running on Velocity) cannot see them, because they are not real proxy connections.
+- Cross-server `follow-quiting` needs no extra setup: the plugin detects `proxies.velocity.enabled` in `config/paper-global.yml`, so switching servers no longer counts as quitting.
+
 ## Build
 
 See [BUILD.md](./docs/BUILD.md). It applies to this project's Gradle multi-module workflow only, not to the upstream Maven build.
