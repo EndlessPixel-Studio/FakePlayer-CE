@@ -7,6 +7,7 @@ import com.google.inject.Singleton;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerList;
 import java.util.Objects;
 import org.bukkit.command.CommandSender;
@@ -27,7 +28,8 @@ public class SetPingCommand extends AbstractCommand {
     }
 
     target.setPing(ping);
-    sender.sendMessage(
+    LangUtils.send(
+        sender,
         translatable(
             "fakeplayer.command.setping.success",
             text(target.getName()),

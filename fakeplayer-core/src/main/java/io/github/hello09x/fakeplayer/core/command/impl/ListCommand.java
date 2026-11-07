@@ -9,6 +9,7 @@ import com.google.inject.Singleton;
 import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.devtools.command.Page;
 import io.github.hello09x.fakeplayer.core.command.Permission;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.util.Mth;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Location;
@@ -38,7 +39,8 @@ public class ListCommand extends AbstractCommand {
     var p = Page.of(fakes, page, size);
 
     var allowsTp = sender instanceof Player && sender.hasPermission(Permission.tp);
-    sender.sendMessage(
+    LangUtils.send(
+        sender,
         p.asComponent(
             translatable("fakeplayer.command.list.title", AQUA, BOLD),
             fakeplayer -> {

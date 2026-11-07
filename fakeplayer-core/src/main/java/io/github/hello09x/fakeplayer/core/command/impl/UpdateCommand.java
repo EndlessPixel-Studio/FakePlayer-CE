@@ -8,6 +8,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.RED;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.util.update.UpdateChecker;
 import java.util.concurrent.CompletableFuture;
 import org.bukkit.command.CommandSender;
@@ -21,7 +22,7 @@ public class UpdateCommand extends AbstractCommand {
 
   /** 检查是否有新版本; 网络请求放到异步线程, 结果回给命令执行者 */
   public void check(@NotNull CommandSender sender, @NotNull CommandArguments args) {
-    sender.sendMessage(translatable("fakeplayer.command.update.check.checking", GRAY));
+    LangUtils.send(sender, translatable("fakeplayer.command.update.check.checking", GRAY));
 
     var current = Main.getInstance().getPluginMeta().getVersion();
     CompletableFuture.runAsync(
@@ -29,25 +30,29 @@ public class UpdateCommand extends AbstractCommand {
           try {
             var result = checker.check(current);
             if (!result.outdated()) {
-              sender.sendMessage(
+              LangUtils.send(
+                  sender,
                   translatable(
                       "fakeplayer.command.update.check.latest", GRAY, text(result.current())));
               return;
             }
 
-            sender.sendMessage(
+            LangUtils.send(
+                sender,
                 translatable(
                     "fakeplayer.command.update.check.available",
                     GRAY,
                     text(result.latest() == null ? "" : result.latest()),
                     text(result.current())));
             if (result.url() != null) {
-              sender.sendMessage(
+              LangUtils.send(
+                  sender,
                   translatable(
                       "fakeplayer.command.update.check.download", GRAY, text(result.url())));
             }
           } catch (Throwable e) {
-            sender.sendMessage(
+            LangUtils.send(
+                sender,
                 translatable(
                     "fakeplayer.command.update.check.failed",
                     RED,

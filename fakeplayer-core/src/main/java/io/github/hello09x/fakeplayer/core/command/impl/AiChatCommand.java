@@ -8,10 +8,10 @@ import com.google.inject.Singleton;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
-import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import io.github.hello09x.devtools.core.utils.ComponentUtils;
 import io.github.hello09x.fakeplayer.core.aichat.AiChatConfig;
 import io.github.hello09x.fakeplayer.core.aichat.AiChatManager;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import java.util.Objects;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -36,7 +36,7 @@ public class AiChatCommand extends AbstractCommand {
       throws WrapperCommandSyntaxException {
     var fake = this.readyFakeplayer(sender, args);
     this.aiChat.say(fake, null);
-    sender.sendMessage(translatable("fakeplayer.command.generic.success", GRAY));
+    LangUtils.send(sender, translatable("fakeplayer.command.generic.success", GRAY));
   }
 
   /** 发一句给指定玩家 */
@@ -44,7 +44,7 @@ public class AiChatCommand extends AbstractCommand {
       throws WrapperCommandSyntaxException {
     var fake = this.readyFakeplayer(sender, args);
     this.aiChat.say(fake, this.getTarget(args));
-    sender.sendMessage(translatable("fakeplayer.command.generic.success", GRAY));
+    LangUtils.send(sender, translatable("fakeplayer.command.generic.success", GRAY));
   }
 
   public void publicContinuous(@NotNull CommandSender sender, @NotNull CommandArguments args)
@@ -52,7 +52,7 @@ public class AiChatCommand extends AbstractCommand {
     this.checkContinuous(sender);
     var fake = this.readyFakeplayer(sender, args);
     this.aiChat.start(fake, null, getInterval(args));
-    sender.sendMessage(translatable("fakeplayer.command.aichat.started", GRAY));
+    LangUtils.send(sender, translatable("fakeplayer.command.aichat.started", GRAY));
   }
 
   public void privateContinuous(@NotNull CommandSender sender, @NotNull CommandArguments args)
@@ -60,16 +60,16 @@ public class AiChatCommand extends AbstractCommand {
     this.checkContinuous(sender);
     var fake = this.readyFakeplayer(sender, args);
     this.aiChat.start(fake, this.getTarget(args), getInterval(args));
-    sender.sendMessage(translatable("fakeplayer.command.aichat.started", GRAY));
+    LangUtils.send(sender, translatable("fakeplayer.command.aichat.started", GRAY));
   }
 
   public void stop(@NotNull CommandSender sender, @NotNull CommandArguments args)
       throws WrapperCommandSyntaxException {
     var fake = super.getFakeplayer(sender, args);
     if (this.aiChat.stop(fake)) {
-      sender.sendMessage(translatable("fakeplayer.command.aichat.stopped", GRAY));
+      LangUtils.send(sender, translatable("fakeplayer.command.aichat.stopped", GRAY));
     } else {
-      sender.sendMessage(translatable("fakeplayer.command.aichat.not-running", GRAY));
+      LangUtils.send(sender, translatable("fakeplayer.command.aichat.not-running", GRAY));
     }
   }
 
@@ -102,6 +102,6 @@ public class AiChatCommand extends AbstractCommand {
   private @NotNull WrapperCommandSyntaxException fail(
       @NotNull CommandSender sender, @NotNull String key) {
     return CommandAPI.failWithString(
-        ComponentUtils.toString(translatable(key), TranslatorUtils.getLocale(sender)));
+        ComponentUtils.toString(translatable(key), LangUtils.getLocale(sender)));
   }
 }

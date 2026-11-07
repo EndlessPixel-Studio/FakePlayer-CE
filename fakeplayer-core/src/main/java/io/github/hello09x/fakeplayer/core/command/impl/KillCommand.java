@@ -6,6 +6,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import java.util.StringJoiner;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -29,11 +30,12 @@ public class KillCommand extends AbstractCommand {
     }
 
     if (names.length() == 0) {
-      sender.sendMessage(translatable("fakeplayer.command.kill.error.non-killed", GRAY));
+      LangUtils.send(sender, translatable("fakeplayer.command.kill.error.non-killed", GRAY));
       return;
     }
 
-    sender.sendMessage(
+    LangUtils.send(
+        sender,
         textOfChildren(
             translatable("fakeplayer.command.kill.success.killed", GRAY),
             space(),

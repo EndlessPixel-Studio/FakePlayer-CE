@@ -11,6 +11,7 @@ import dev.jorel.commandapi.executors.CommandArguments;
 import dev.jorel.commandapi.wrappers.CommandResult;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.command.Permission;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.bukkit.command.CommandSender;
@@ -29,17 +30,18 @@ public class CmdCommand extends AbstractCommand {
 
     var name = command.command().getName();
     if (!sender.hasPermission(Permission.cmd)) {
-      sender.sendMessage(translatable("fakeplayer.command.cmd.error.no-permission", RED));
+      LangUtils.send(sender, translatable("fakeplayer.command.cmd.error.no-permission", RED));
       return;
     }
 
     if (!sender.isOp() && (name.equals("fakeplayer") || name.equals("fp"))) {
-      sender.sendMessage(translatable("fakeplayer.command.cmd.error.no-permission", RED));
+      LangUtils.send(sender, translatable("fakeplayer.command.cmd.error.no-permission", RED));
       return;
     }
 
     if (!command.command().testPermission(fake)) {
-      sender.sendMessage(
+      LangUtils.send(
+          sender,
           translatable(
                   "fakeplayer.command.cmd.error.fakeplayer-has-no-permission", text(fake.getName()))
               .color(RED));
@@ -47,11 +49,11 @@ public class CmdCommand extends AbstractCommand {
     }
 
     if (!command.execute(fake)) {
-      sender.sendMessage(translatable("fakeplayer.command.cmd.error.execute-failed", RED));
+      LangUtils.send(sender, translatable("fakeplayer.command.cmd.error.execute-failed", RED));
       return;
     }
 
-    sender.sendMessage(translatable("fakeplayer.command.generic.success", GRAY));
+    LangUtils.send(sender, translatable("fakeplayer.command.generic.success", GRAY));
 
     log.info("%s issued server command: %s".formatted(fake.getName(), stringifyCommand(command)));
   }

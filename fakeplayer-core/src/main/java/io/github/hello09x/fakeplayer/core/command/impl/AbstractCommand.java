@@ -6,11 +6,11 @@ import com.google.inject.Inject;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
-import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import io.github.hello09x.devtools.core.utils.ComponentUtils;
 import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import java.util.Collections;
 import java.util.List;
@@ -84,7 +84,7 @@ public abstract class AbstractCommand {
     if (fake != null) {
       return fake;
     }
-    var locale = TranslatorUtils.getLocale(sender);
+    var locale = LangUtils.getLocale(sender);
 
     // 明确给了名字却没匹配到: 不能退回到「选中/唯一」的假人,
     // 否则名字打错时会去操作另一个假人
@@ -134,7 +134,7 @@ public abstract class AbstractCommand {
       throw CommandAPI.failWithString(
           ComponentUtils.toString(
               translatable("fakeplayer.command.generic.error.non-matching-fake-player"),
-              TranslatorUtils.getLocale(sender)));
+              LangUtils.getLocale(sender)));
     }
 
     if (players != null) {
@@ -155,12 +155,12 @@ public abstract class AbstractCommand {
           throw CommandAPI.failWithString(
               ComponentUtils.toString(
                   translatable("fakeplayer.command.generic.error.non-fake-player"),
-                  TranslatorUtils.getLocale(sender)));
+                  LangUtils.getLocale(sender)));
       default ->
           throw CommandAPI.failWithString(
               ComponentUtils.toString(
                   translatable("fakeplayer.command.generic.error.name-required"),
-                  TranslatorUtils.getLocale(sender)));
+                  LangUtils.getLocale(sender)));
     };
   }
 }

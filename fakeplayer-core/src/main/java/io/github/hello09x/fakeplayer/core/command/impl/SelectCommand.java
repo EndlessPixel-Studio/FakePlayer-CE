@@ -7,6 +7,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.WHITE;
 
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.executors.CommandArguments;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,9 +18,10 @@ public class SelectCommand extends AbstractCommand {
     var target = this.getTargetNullable(sender, args);
     manager.setSelection(sender, target);
     if (target == null) {
-      sender.sendMessage(translatable("fakeplayer.command.select.success.clear", GRAY));
+      LangUtils.send(sender, translatable("fakeplayer.command.select.success.clear", GRAY));
     } else {
-      sender.sendMessage(
+      LangUtils.send(
+          sender,
           translatable("fakeplayer.command.select.success.selected", text(target.getName(), WHITE))
               .color(GRAY));
     }
@@ -28,9 +30,10 @@ public class SelectCommand extends AbstractCommand {
   public void selection(@NotNull Player sender, @NotNull CommandArguments args) {
     var selection = manager.getSelection(sender);
     if (selection == null) {
-      sender.sendMessage(translatable("fakeplayer.command.selection.error.none", GRAY));
+      LangUtils.send(sender, translatable("fakeplayer.command.selection.error.none", GRAY));
     } else {
-      sender.sendMessage(
+      LangUtils.send(
+          sender,
           translatable("fakeplayer.command.selection.success", text(selection.getName(), WHITE))
               .color(GRAY));
     }

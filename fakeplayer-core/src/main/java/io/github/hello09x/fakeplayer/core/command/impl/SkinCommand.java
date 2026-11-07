@@ -11,6 +11,7 @@ import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.compat.skin.SkinsRestorerCompat;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerSkinManager;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import java.util.HashMap;
@@ -61,7 +62,8 @@ public class SkinCommand extends AbstractCommand {
 
     // 限制请求数, 防止 mojang api 限流
     if (!sender.isOp() && spams.computeIfAbsent(sender, k -> new MutableInt()).getValue() != 0) {
-      sender.sendMessage(translatable("fakeplayer.command.skin.error.too-many-operations", RED));
+      LangUtils.send(
+          sender, translatable("fakeplayer.command.skin.error.too-many-operations", RED));
       return;
     }
 
@@ -95,7 +97,8 @@ public class SkinCommand extends AbstractCommand {
       @NotNull SkinsRestorerCompat compat) {
     // 与兜底路径共用冷却, 避免频繁触发网络请求
     if (!sender.isOp() && spams.computeIfAbsent(sender, k -> new MutableInt()).getValue() != 0) {
-      sender.sendMessage(translatable("fakeplayer.command.skin.error.too-many-operations", RED));
+      LangUtils.send(
+          sender, translatable("fakeplayer.command.skin.error.too-many-operations", RED));
       return;
     }
     if (!sender.isOp()) {
@@ -113,7 +116,8 @@ public class SkinCommand extends AbstractCommand {
                 plugin,
                 sender,
                 () ->
-                    sender.sendMessage(
+                    LangUtils.send(
+                        sender,
                         translatable("fakeplayer.command.skin.error.not-found", RED, text(name))));
             return;
           }
@@ -126,8 +130,8 @@ public class SkinCommand extends AbstractCommand {
               plugin,
               sender,
               () ->
-                  sender.sendMessage(
-                      translatable("fakeplayer.command.skin.success", GRAY, text(name))));
+                  LangUtils.send(
+                      sender, translatable("fakeplayer.command.skin.success", GRAY, text(name))));
         });
   }
 }

@@ -5,6 +5,7 @@ import static net.kyori.adventure.text.Component.translatable;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +18,6 @@ public class RespawnCommand extends AbstractCommand {
       throws WrapperCommandSyntaxException {
     var fake = super.getFakeplayer(sender, args, Entity::isDead);
     bridge.fromPlayer(fake).respawn();
-    sender.sendMessage(translatable("fakeplayer.command.generic.success"));
+    LangUtils.send(sender, translatable("fakeplayer.command.generic.success"));
   }
 }

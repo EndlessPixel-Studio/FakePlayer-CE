@@ -45,6 +45,7 @@ public class CommandRegistry {
   @Inject private UpdateCommand updateCommand;
   @Inject private VersionCommand versionCommand;
   @Inject private SysInfoCommand sysInfoCommand;
+  @Inject private LangCommand langCommand;
   @Inject private RideCommand rideCommand;
   @Inject private RotationCommand rotationCommand;
   @Inject private SelectCommand selectCommand;
@@ -564,6 +565,10 @@ public class CommandRegistry {
                     .withShortDescription("fakeplayer.command.sysinfo.description")
                     .withPermission(CommandPermission.OP)
                     .executes(sysInfoCommand::sysinfo),
+                command("lang")
+                    .withShortDescription("fakeplayer.command.lang.description")
+                    .withOptionalArguments(CommandSupports.langCode("code"))
+                    .executes(langCommand::lang),
 
                 // developer debug
                 command("debug")

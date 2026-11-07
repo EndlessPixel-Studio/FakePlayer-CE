@@ -278,7 +278,7 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 
 ## 翻訳のカスタマイズ
 
-組み込みロケール：`en` / `zh` / `zh_tw` / `zh_hk` / `ja`。`config.yml` の `i18n.locale` で切り替えます（その後 `/fp reload`）。
+組み込みロケール：`en` / `zh` / `zh_tw` / `zh_hk` / `ja`。`config.yml` の `i18n.locale` で切り替えます（その後 `/fp reload`）。プレイヤー単位で上書きする場合は `/fp lang <コード>`（例：`/fp lang ja`）、`/fp lang reset` でクライアント言語に戻ります。
 
 独自翻訳：`message_<言語>_<地域>.properties`（[テンプレート](fakeplayer-core/src/main/resources/message/message.properties)をコピー）を `plugins/fakeplayer/message/` に置き、`i18n.locale` を対応するサフィックス（例：`en_us`）に設定して `/fp reload-translation` を実行します。ファイルは **UTF-8** で保存してください。
 

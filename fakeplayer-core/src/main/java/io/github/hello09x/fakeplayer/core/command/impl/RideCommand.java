@@ -8,6 +8,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.WHITE;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Boat;
@@ -51,7 +52,8 @@ public class RideCommand extends AbstractCommand {
     var fake = getFakeplayer(sender, args);
     var entity = (Entity) args.get("entity");
     if (entity == fake) {
-      sender.sendMessage(translatable("fakeplayer.command.ride.entity.error.ride-self").color(RED));
+      LangUtils.send(
+          sender, translatable("fakeplayer.command.ride.entity.error.ride-self").color(RED));
       return;
     }
     if (entity == null) {
@@ -63,7 +65,8 @@ public class RideCommand extends AbstractCommand {
 
     if (entity.getWorld() != fake.getWorld()
         || entity.getLocation().distance(fake.getLocation()) > 24) {
-      sender.sendMessage(
+      LangUtils.send(
+          sender,
           translatable("fakeplayer.command.ride.entity.error.too-far", text(fake.getName(), WHITE))
               .color(RED));
       return;
@@ -99,7 +102,8 @@ public class RideCommand extends AbstractCommand {
     var fake = getFakeplayer(sender, args);
     if (!fake.getWorld().equals(sender.getWorld())
         || fake.getLocation().distance(sender.getLocation()) > 20) {
-      sender.sendMessage(
+      LangUtils.send(
+          sender,
           translatable("fakeplayer.command.ride.me.error.too-far", text(fake.getName(), WHITE))
               .color(RED));
       return;

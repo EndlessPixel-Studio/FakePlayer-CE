@@ -6,6 +6,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import java.util.StringJoiner;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +20,7 @@ public class KickCommand extends AbstractCommand {
     var fakes = super.getFakeplayers(sender, args);
 
     if (fakes.isEmpty()) {
-      sender.sendMessage(translatable("fakeplayer.command.kick.error.non-removed", GRAY));
+      LangUtils.send(sender, translatable("fakeplayer.command.kick.error.non-removed", GRAY));
       return;
     }
 
@@ -29,7 +30,8 @@ public class KickCommand extends AbstractCommand {
         names.add(fake.getName());
       }
     }
-    sender.sendMessage(
+    LangUtils.send(
+        sender,
         textOfChildren(
             translatable("fakeplayer.command.kick.success.removed", GRAY),
             space(),

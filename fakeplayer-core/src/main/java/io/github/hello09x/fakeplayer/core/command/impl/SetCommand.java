@@ -7,6 +7,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.*;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import java.util.Objects;
 import org.bukkit.command.CommandSender;
@@ -23,12 +24,13 @@ public class SetCommand extends AbstractCommand {
 
     var modifier = feature.getModifier();
     if (modifier == null) {
-      sender.sendMessage(translatable("fakeplayer.command.config.set.error.invalid-key", RED));
+      LangUtils.send(sender, translatable("fakeplayer.command.config.set.error.invalid-key", RED));
       return;
     }
 
     modifier.accept(target, value);
-    sender.sendMessage(
+    LangUtils.send(
+        sender,
         translatable(
                 "fakeplayer.command.set.success",
                 text(target.getName(), WHITE),

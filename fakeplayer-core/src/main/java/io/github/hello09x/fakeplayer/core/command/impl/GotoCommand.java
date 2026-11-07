@@ -14,6 +14,7 @@ import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.devtools.command.exception.HandleCommandException;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
 import io.github.hello09x.fakeplayer.core.util.WalkUtils;
 import java.util.Locale;
@@ -45,21 +46,21 @@ public class GotoCommand extends AbstractCommand {
     var target = new Location(world, input.getX(), input.getY(), input.getZ());
 
     if (!WalkUtils.withinHeight(world, target.getY())) {
-      sender.sendMessage(translatable("fakeplayer.command.goto.error.height", RED));
+      LangUtils.send(sender, translatable("fakeplayer.command.goto.error.height", RED));
       return;
     }
     if (!world.getWorldBorder().isInside(target)) {
-      sender.sendMessage(translatable("fakeplayer.command.goto.error.unreachable", RED));
+      LangUtils.send(sender, translatable("fakeplayer.command.goto.error.unreachable", RED));
       return;
     }
     if (target.distance(fake.getLocation()) > MAX_DISTANCE) {
-      sender.sendMessage(translatable("fakeplayer.command.goto.error.too-far", RED));
+      LangUtils.send(sender, translatable("fakeplayer.command.goto.error.too-far", RED));
       return;
     }
 
     var stand = WalkUtils.findStandLocation(fake, target.getBlock());
     if (stand == null) {
-      sender.sendMessage(translatable("fakeplayer.command.goto.error.unreachable", RED));
+      LangUtils.send(sender, translatable("fakeplayer.command.goto.error.unreachable", RED));
       return;
     }
 
@@ -69,7 +70,8 @@ public class GotoCommand extends AbstractCommand {
     setting.targetZ = stand.getZ();
     actionManager.setAction(fake, ActionType.GOTO, setting);
 
-    sender.sendMessage(
+    LangUtils.send(
+        sender,
         translatable(
             "fakeplayer.command.goto.started",
             YELLOW,
@@ -85,12 +87,12 @@ public class GotoCommand extends AbstractCommand {
     var fake = getFakeplayer(sender, args);
 
     if (!actionManager.hasActiveAction(fake, ActionType.GOTO)) {
-      sender.sendMessage(translatable("fakeplayer.command.goto.stop.none", GRAY));
+      LangUtils.send(sender, translatable("fakeplayer.command.goto.stop.none", GRAY));
       return;
     }
 
     actionManager.setAction(fake, ActionType.GOTO, ActionSetting.stop());
-    sender.sendMessage(translatable("fakeplayer.command.generic.success"));
+    LangUtils.send(sender, translatable("fakeplayer.command.generic.success"));
   }
 
   private static String coordinate(double value) {

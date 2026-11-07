@@ -11,6 +11,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
 import java.io.File;
 import java.io.IOException;
@@ -70,10 +71,11 @@ public class SysInfoCommand extends AbstractCommand {
       var file = new File(folder, LocalDateTime.now().format(FILE_NAME) + ".json");
       Files.writeString(file.toPath(), gson.toJson(this.collect()), StandardCharsets.UTF_8);
 
-      sender.sendMessage(
-          translatable("fakeplayer.command.sysinfo.success", GRAY, text(file.getPath())));
+      LangUtils.send(
+          sender, translatable("fakeplayer.command.sysinfo.success", GRAY, text(file.getPath())));
     } catch (Throwable e) {
-      sender.sendMessage(
+      LangUtils.send(
+          sender,
           translatable(
               "fakeplayer.command.sysinfo.failed", RED, text(String.valueOf(e.getMessage()))));
     }

@@ -9,6 +9,7 @@ import dev.jorel.commandapi.executors.CommandArguments;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerAutofishManager;
 import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
 import org.bukkit.Material;
@@ -50,7 +51,7 @@ public class ActionCommand extends AbstractCommand {
 
     actionManager.setAction(fake, action, setting);
     if (!setting.equals(ActionSetting.once()) || sender instanceof ConsoleCommandSender) {
-      sender.sendMessage(translatable("fakeplayer.command.generic.success"));
+      LangUtils.send(sender, translatable("fakeplayer.command.generic.success"));
     }
   }
 }
