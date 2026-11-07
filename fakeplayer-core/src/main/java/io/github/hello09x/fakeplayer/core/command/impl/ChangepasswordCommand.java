@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.repository.FakeplayerAuthRepository;
 import java.util.List;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -26,14 +27,16 @@ public class ChangepasswordCommand extends AbstractCommand {
     var newPassword = (String) args.get("new");
 
     if (newPassword == null || newPassword.isBlank()) {
-      sender.sendMessage(
+      LangUtils.send(
+          sender,
           translatable("fakeplayer.command.changepassword.error.empty", NamedTextColor.RED));
       return;
     }
 
     var stored = authRepository.selectByName(target.getName());
     if (stored == null) {
-      sender.sendMessage(
+      LangUtils.send(
+          sender,
           translatable("fakeplayer.command.changepassword.error.not-set", NamedTextColor.RED));
       return;
     }
@@ -43,7 +46,8 @@ public class ChangepasswordCommand extends AbstractCommand {
     if (oldInput == null || oldInput.isBlank()) {
       oldPassword = stored;
     } else if (!stored.equals(oldInput)) {
-      sender.sendMessage(
+      LangUtils.send(
+          sender,
           translatable("fakeplayer.command.changepassword.error.wrong-old", NamedTextColor.RED));
       return;
     } else {
@@ -54,7 +58,8 @@ public class ChangepasswordCommand extends AbstractCommand {
     authRepository.saveOrUpdate(target.getName(), newPassword);
     var cmd = template.replace("%oldpassword%", oldPassword).replace("%newpassword%", newPassword);
     manager.issueCommands(target, List.of(cmd));
-    sender.sendMessage(
+    LangUtils.send(
+        sender,
         translatable("fakeplayer.command.changepassword.success", text(target.getName()))
             .color(NamedTextColor.GREEN));
   }

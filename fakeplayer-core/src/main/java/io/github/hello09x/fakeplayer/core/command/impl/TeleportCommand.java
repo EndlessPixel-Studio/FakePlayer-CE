@@ -7,6 +7,7 @@ import com.google.inject.Singleton;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.devtools.core.utils.EntityUtils;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +43,7 @@ public class TeleportCommand extends AbstractCommand {
 
   private void teleport(@NotNull CommandSender sender, @NotNull Player from, @NotNull Player to) {
     if (!EntityUtils.teleportAndSound(from, to.getLocation())) {
-      sender.sendMessage(translatable("fakeplayer.command.teleport.error.canceled", RED));
+      LangUtils.send(sender, translatable("fakeplayer.command.teleport.error.canceled", RED));
     }
   }
 }

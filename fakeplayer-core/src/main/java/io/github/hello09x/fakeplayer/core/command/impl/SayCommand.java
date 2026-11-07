@@ -8,6 +8,7 @@ import dev.jorel.commandapi.executors.CommandExecutor;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import org.bukkit.command.ConsoleCommandSender;
@@ -47,7 +48,7 @@ public class SayCommand extends AbstractCommand {
             message = name;
             messageOnly = true;
           } else {
-            sender.sendMessage(translatable("fakeplayer.command.say.error.empty"));
+            LangUtils.send(sender, translatable("fakeplayer.command.say.error.empty"));
             return;
           }
         }
@@ -65,7 +66,7 @@ public class SayCommand extends AbstractCommand {
         actionManager.setAction(fake, ActionType.SAY, copy);
       }
       if (!setting.equals(ActionSetting.once()) || sender instanceof ConsoleCommandSender) {
-        sender.sendMessage(translatable("fakeplayer.command.generic.success"));
+        LangUtils.send(sender, translatable("fakeplayer.command.generic.success"));
       }
     };
   }

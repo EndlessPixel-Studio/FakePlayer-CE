@@ -127,6 +127,7 @@
 | /fp update check | 检查 GitHub 上是否有新版本 | OP | |
 | /fp version | 显示插件、服务端与 Java 版本 | - | 所有玩家可用 |
 | /fp sysinfo | 导出 CPU、内存、磁盘、TPS 与假人状态为 JSON | OP | 写在 `plugins/FakePlayer-CE/sysinfo/`，可直接附到性能问题里 |
+| /fp lang | 切换你的显示语言 | - | 所有玩家可用；优先于客户端语言 |
 
 ## HTTP 管理接口
 
@@ -281,7 +282,7 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 
 ## 自定义本地化翻译
 
-内置 `en` / `zh` / `zh_tw` / `zh_hk` / `ja`，改 `config.yml` 的 `i18n.locale` 切换（之后 `/fp reload`）。
+内置 `en` / `zh` / `zh_tw` / `zh_hk` / `ja`，改 `config.yml` 的 `i18n.locale` 切换（之后 `/fp reload`）；也可以按玩家覆盖：`/fp lang <代码>`（如 `/fp lang ja`），`/fp lang reset` 回到客户端语言。
 
 自定义：在 `plugins/fakeplayer/message/` 放入 `message_<语言>_<地区>.properties`（复制[模板](fakeplayer-core/src/main/resources/message/message.properties)后改），把 `i18n.locale` 设为对应后缀（如 `zh_cn`），执行 `/fp reload-translation` 生效。文件必须使用 **UTF-8** 编码。
 

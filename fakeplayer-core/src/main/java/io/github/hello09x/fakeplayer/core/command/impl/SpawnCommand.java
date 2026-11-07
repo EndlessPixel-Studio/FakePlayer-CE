@@ -11,6 +11,7 @@ import io.github.hello09x.devtools.command.exception.CommandException;
 import io.github.hello09x.devtools.command.exception.HandleCommandException;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.entity.FakeplayerTicker;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.util.Mth;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import java.time.Duration;
@@ -64,7 +65,8 @@ public class SpawnCommand extends AbstractCommand {
     try {
       uuid = UUID.fromString(Objects.requireNonNull(raw).trim());
     } catch (IllegalArgumentException | NullPointerException e) {
-      sender.sendMessage(
+      LangUtils.send(
+          sender,
           translatable("fakeplayer.spawn.error.uuid.invalid", text(String.valueOf(raw), GOLD))
               .color(RED));
       return;
@@ -129,7 +131,7 @@ public class SpawnCommand extends AbstractCommand {
                   Main.getInstance(),
                   sender,
                   () -> {
-                    sender.sendMessage(message);
+                    LangUtils.send(sender, message);
                     if (sender instanceof Player p && manager.countByCreator(sender) == 1) {
                       // 有些命令在有假人的时候才会显示, 因此需要强制刷新一下
                       p.updateCommands();
@@ -140,14 +142,14 @@ public class SpawnCommand extends AbstractCommand {
             e -> {
               if (Throwables.getRootCause(e) instanceof CommandException ce) {
                 Schedulers.runFor(
-                    Main.getInstance(), sender, () -> sender.sendMessage(ce.component()));
+                    Main.getInstance(), sender, () -> LangUtils.send(sender, ce.component()));
               } else {
                 Schedulers.runFor(
                     Main.getInstance(),
                     sender,
                     () ->
-                        sender.sendMessage(
-                            translatable("fakeplayer.command.spawn.error.unknown", RED)));
+                        LangUtils.send(
+                            sender, translatable("fakeplayer.command.spawn.error.unknown", RED)));
                 log.severe(Throwables.getStackTraceAsString(e));
               }
               return null;

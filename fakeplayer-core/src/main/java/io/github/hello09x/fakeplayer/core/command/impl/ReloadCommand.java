@@ -9,6 +9,7 @@ import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.devtools.core.translation.PluginTranslator;
 import io.github.hello09x.fakeplayer.core.aichat.AiChatConfig;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerPingSetter;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -40,14 +41,14 @@ public class ReloadCommand extends AbstractCommand {
     config.reload();
     aiChatConfig.reload();
     pingSetter.restart();
-    sender.sendMessage(translatable("fakeplayer.command.generic.success", GRAY));
+    LangUtils.send(sender, translatable("fakeplayer.command.generic.success", GRAY));
     if (config.isConfigFileOutOfDate()) {
-      sender.sendMessage(translatable("fakeplayer.configuration.out-of-date", GRAY));
+      LangUtils.send(sender, translatable("fakeplayer.configuration.out-of-date", GRAY));
     }
   }
 
   public void reloadTranslation(@NotNull CommandSender sender, @NotNull CommandArguments args) {
     translator.reload();
-    sender.sendMessage(translatable("fakeplayer.command.generic.success"));
+    LangUtils.send(sender, translatable("fakeplayer.command.generic.success"));
   }
 }

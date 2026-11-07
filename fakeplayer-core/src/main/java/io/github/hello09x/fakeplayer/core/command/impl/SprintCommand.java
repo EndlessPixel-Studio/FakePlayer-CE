@@ -8,6 +8,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.WHITE;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +37,6 @@ public class SprintCommand extends AbstractCommand {
                     "fakeplayer.command.sprint.success.disabled", text(fake.getName(), WHITE))
                 .color(GRAY);
     fake.setSprinting(sprinting);
-    sender.sendMessage(message);
+    LangUtils.send(sender, message);
   }
 }

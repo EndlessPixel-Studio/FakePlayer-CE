@@ -11,9 +11,9 @@ import com.google.inject.Singleton;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
-import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import io.github.hello09x.devtools.core.utils.ComponentUtils;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.manager.feature.FakeplayerFeatureManager;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
@@ -50,14 +50,14 @@ public class ConfigCommand extends AbstractCommand {
       throw CommandAPI.failWithString(
           ComponentUtils.toString(
               translatable("fakeplayer.command.config.set.error.missing-player"),
-              TranslatorUtils.getLocale(sender)));
+              LangUtils.getLocale(sender)));
     }
 
     if (!target.equals(sender) && !sender.isOp()) {
       throw CommandAPI.failWithString(
           ComponentUtils.toString(
               translatable("fakeplayer.command.config.set.error.no-permission"),
-              TranslatorUtils.getLocale(sender)));
+              LangUtils.getLocale(sender)));
     }
 
     // 离线玩家查不了权限; 能走到这里的离线目标只可能是 op / 控制台指定的 (上面的检查已保证)
@@ -65,12 +65,13 @@ public class ConfigCommand extends AbstractCommand {
       throw CommandAPI.failWithString(
           ComponentUtils.toString(
               translatable("fakeplayer.command.config.set.error.target-no-permission"),
-              TranslatorUtils.getLocale(sender)));
+              LangUtils.getLocale(sender)));
     }
 
     var option = (String) Objects.requireNonNull(args.get("option"));
     featureManager.setFeature(target, feature, option);
-    sender.sendMessage(
+    LangUtils.send(
+        sender,
         translatable(
                 "fakeplayer.command.config.set.success",
                 translatable(feature.translationKey(), GOLD),
@@ -90,7 +91,7 @@ public class ConfigCommand extends AbstractCommand {
       throw CommandAPI.failWithString(
           ComponentUtils.toString(
               translatable("fakeplayer.command.config.set.error.no-permission"),
-              TranslatorUtils.getLocale(sender)));
+              LangUtils.getLocale(sender)));
     }
 
     var userConfigs = target == null ? null : featureManager.getUserConfigs(target.getUniqueId());
@@ -136,7 +137,7 @@ public class ConfigCommand extends AbstractCommand {
                                           .toList())))
                   .toList();
           var message = join(separator(newline()), lines);
-          Schedulers.runFor(Main.getInstance(), sender, () -> sender.sendMessage(message));
+          Schedulers.runFor(Main.getInstance(), sender, () -> LangUtils.send(sender, message));
         });
   }
 

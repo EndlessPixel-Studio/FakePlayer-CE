@@ -10,13 +10,14 @@ import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.CustomArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
-import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import io.github.hello09x.devtools.core.utils.ComponentUtils;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.command.impl.ActionCommand;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
+import io.github.hello09x.fakeplayer.core.i18n.LangOverrides;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import java.util.Arrays;
@@ -208,8 +209,19 @@ public abstract class CommandSupports {
                                     feature.name(),
                                     ComponentUtils.toString(
                                         translatable(feature.translationKey()),
-                                        TranslatorUtils.getLocale(info.sender()))))
+                                        LangUtils.getLocale(info.sender()))))
                         .toArray(StringTooltip[]::new)));
+  }
+
+  /** 语言代码, 补全可用语言 + {@code reset} */
+  public static @NotNull Argument<String> langCode(@NotNull String nodeName) {
+    return new StringArgument(nodeName)
+        .replaceSuggestions(
+            ArgumentSuggestions.strings(
+                Main.getInjector()
+                    .getInstance(LangOverrides.class)
+                    .suggestions()
+                    .toArray(String[]::new)));
   }
 
   public static @NotNull Argument<String> configValue(

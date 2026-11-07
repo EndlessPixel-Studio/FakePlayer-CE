@@ -127,6 +127,7 @@ On first launch only a template `config.tmpl.yml` is generated; rename it to `co
 | /fp update check | Check GitHub for a newer build | OP | |
 | /fp version | Show plugin, server and Java version | - | Anyone |
 | /fp sysinfo | Dump CPU, memory, disk, TPS and fake player state to JSON | OP | Written to `plugins/FakePlayer-CE/sysinfo/`; attach it to performance reports |
+| /fp lang | Switch your display language | - | Anyone; overrides the client language |
 
 ## HTTP Admin API
 
@@ -281,7 +282,7 @@ Features: `fakeplayer.config.replenish`, `fakeplayer.config.replenish.chest` (re
 
 ## Custom Translation
 
-Built-in locales: `en`, `zh`, `zh_tw`, `zh_hk`, `ja`. Switch with `i18n.locale` in `config.yml` (then `/fp reload`).
+Built-in locales: `en`, `zh`, `zh_tw`, `zh_hk`, `ja`. Switch with `i18n.locale` in `config.yml` (then `/fp reload`), or per player with `/fp lang <code>` (e.g. `/fp lang ja`; `/fp lang reset` returns to the client language).
 
 Custom: drop `message_<language>_<region>.properties` (copy the [template](fakeplayer-core/src/main/resources/message/message.properties)) into `plugins/fakeplayer/message/`, set `i18n.locale` to the matching suffix (e.g. `en_us`), and run `/fp reload-translation`. Files must be **UTF-8** encoded.
 

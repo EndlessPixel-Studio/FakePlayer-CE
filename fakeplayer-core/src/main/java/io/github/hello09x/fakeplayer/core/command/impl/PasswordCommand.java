@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.repository.FakeplayerAuthRepository;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
@@ -23,13 +24,14 @@ public class PasswordCommand extends AbstractCommand {
     var target = super.getFakeplayer(sender, args);
     var password = (String) args.get("password");
     if (password == null || password.isBlank()) {
-      sender.sendMessage(
-          translatable("fakeplayer.command.password.error.empty", NamedTextColor.RED));
+      LangUtils.send(
+          sender, translatable("fakeplayer.command.password.error.empty", NamedTextColor.RED));
       return;
     }
 
     authRepository.saveOrUpdate(target.getName(), password);
-    sender.sendMessage(
+    LangUtils.send(
+        sender,
         translatable("fakeplayer.command.password.success", text(target.getName()))
             .color(NamedTextColor.GREEN));
   }
