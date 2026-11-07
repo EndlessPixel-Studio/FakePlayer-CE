@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
+import io.github.hello09x.fakeplayer.core.util.ProxySupport;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,14 +23,18 @@ import org.jetbrains.annotations.NotNull;
 public class WildFakeplayerManager implements PluginMessageListener, Listener {
 
   private static final Logger log = Main.getInstance().getLogger();
-  private static final boolean IS_BUNGEECORD =
-      Bukkit.getServer().spigot().getSpigotConfig().getBoolean("settings.bungeecord", false);
+  /**
+   * 是否挂在代理端后面 (BungeeCord 传统转发或 Velocity 现代转发)
+   *
+   * @see ProxySupport#isProxied()
+   */
+  private static final boolean IS_PROXIED = ProxySupport.isProxied();
   private static final String CHANNEL = "BungeeCord";
   private static final String SUB_CHANNEL = "PlayerList";
 
   /**
    * 定义探测到连续 n 次不在线时进行清理 <br>
-   * 仅在 {@link #IS_BUNGEECORD} 为 {@code true} 时生效
+   * 仅在 {@link #IS_PROXIED} 为 {@code true} 时生效
    */
   private static final int CLEANUP_THRESHOLD = 2;
 
@@ -144,8 +149,8 @@ public class WildFakeplayerManager implements PluginMessageListener, Listener {
       return;
     }
 
-    // 非 bungeeCord 服务器立即清理
-    if (!IS_BUNGEECORD) {
+    // 未挂代理时立即清理
+    if (!IS_PROXIED) {
       this.cleanup0(
           Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toSet()));
       return;
