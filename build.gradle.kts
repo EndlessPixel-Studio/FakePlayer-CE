@@ -5,7 +5,7 @@ plugins {
     // fakeplayer-api / fakeplayer-core 启用; 其余模块 (版本模块) 未启用
     id("com.github.spotbugs") version "6.5.13" apply false
     // 格式化: google-java-format, 只做校验 (spotlessCheck), 不自动改文件
-    id("com.diffplug.spotless") version "8.9.0" apply false
+    id("com.diffplug.spotless") version "8.11.0" apply false
 }
 
 allprojects {
