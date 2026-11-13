@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.google.inject.Singleton;
+import io.github.hello09x.fakeplayer.core.Main;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -27,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 @Singleton
 public class AiChatClient {
 
-  private static final Logger log = Logger.getLogger(AiChatClient.class.getName());
+  private static final Logger log = Main.getInstance().getLogger();
 
   private static final Gson gson = new Gson();
 
