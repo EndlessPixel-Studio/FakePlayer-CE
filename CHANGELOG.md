@@ -19,6 +19,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **Fixed EasyBot treating fake players as real players (#132).** EasyBot detects fake players by looking up our name map with the original-case name; keys were stored lowercased, so the lookup always missed and the QQ whitelist applied to every fake player. The map is now case-insensitive, so EasyBot skips them in its login, join/leave, death and chat handling again.
 - **Fake players now take knockback.** The knockback velocity was applied one tick after the packet arrived, by which point the server had already restored the entity's motion, so hits barely moved a fake player. It is now applied right before the fake player's next tick, like a client does after receiving the velocity packet.
 - **A fake player you removed no longer comes back after a crash.** The restore snapshot was only written every 30 seconds, so one removed shortly before an unclean shutdown was spawned again on the next start. Removing a fake player now rewrites the snapshot immediately.
+- **AI chat requests survive transient failures (#139, thanks @MC2S-enUS).** 429 and 5xx responses are retried up to twice with a short backoff, any `2xx` (including 201/206) counts as success, and a malformed or unexpected response body reports a readable `IOException` instead of an uncaught parse exception.
 
 ### 中文
 
@@ -28,6 +29,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **修复 EasyBot 把假人当成真实玩家（#132）。** EasyBot 用原始大小写的玩家名查我们的假人名单，而名单键存的是小写，永远查不到，于是 QQ 白名单对假人也生效。名单现在改为大小写不敏感，EasyBot 的登录、进出服、死亡与聊天处理重新跳过假人。
 - **假人现在会正常被击退。** 击退速度原先在收到速度包后延迟一个 tick 才应用，那时服务端已经把实体的运动还原，打上去几乎不动；现在改为在假人下一次 tick 之前应用，与客户端收到速度包后的行为一致。
 - **手动移除的假人不会再在崩溃后复活。** 恢复快照原先每 30 秒才写一次，若在写快照之前服务器异常关闭，刚移除的假人会在下次启动时被恢复；现在假人一离场就重写快照。
+- **AI 聊天请求在瞬时故障下不再直接失败（#139，感谢 @MC2S-enUS）。** 429 与 5xx 会退避重试（最多两次、500ms 起步），201/206 等 2xx 同样视为成功；响应体畸形或结构不符时会报出可读的 `IOException`，不再是未捕获的解析异常。
 
 ## fp.build18 - 2026-11-06
 
