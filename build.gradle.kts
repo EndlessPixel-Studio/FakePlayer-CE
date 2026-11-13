@@ -4,6 +4,7 @@ plugins {
     // 静态分析: pmd 是 Gradle 核心插件 (无需声明版本), spotbugs 只对
     // fakeplayer-api / fakeplayer-core 启用; 其余模块 (版本模块) 未启用
     id("com.github.spotbugs") version "6.5.13" apply false
+    // temp labeler check
     // 格式化: google-java-format, 只做校验 (spotlessCheck), 不自动改文件
     id("com.diffplug.spotless") version "8.9.0" apply false
 }
