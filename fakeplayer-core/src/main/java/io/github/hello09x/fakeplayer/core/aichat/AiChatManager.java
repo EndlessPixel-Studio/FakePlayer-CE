@@ -192,20 +192,17 @@ public class AiChatManager {
     var turn = config.getTurnPrompt().replace("{name}", fake.getName());
 
     var messages = new ArrayList<ChatMessage>();
-    messages.add(
-        new ChatMessage(
-            ChatMessage.ROLE_SYSTEM, config.getSystemPrompt().replace("{name}", fake.getName())));
+    messages.add(ChatMessage.system(config.getSystemPrompt().replace("{name}", fake.getName())));
 
     var recent = this.recentChatSnapshot();
     if (!recent.isEmpty()) {
-      messages.add(
-          new ChatMessage(ChatMessage.ROLE_SYSTEM, "最近的公共聊天记录:\n" + String.join("\n", recent)));
+      messages.add(ChatMessage.system("最近的公共聊天记录:\n" + String.join("\n", recent)));
     }
 
     synchronized (history) {
       messages.addAll(history);
     }
-    messages.add(new ChatMessage(ChatMessage.ROLE_USER, turn));
+    messages.add(ChatMessage.user(turn));
 
     this.client
         .complete(config, apiKey, messages)
@@ -221,8 +218,8 @@ public class AiChatManager {
               }
 
               synchronized (history) {
-                history.addLast(new ChatMessage(ChatMessage.ROLE_USER, turn));
-                history.addLast(new ChatMessage(ChatMessage.ROLE_ASSISTANT, reply));
+                history.addLast(ChatMessage.user(turn));
+                history.addLast(ChatMessage.assistant(reply));
                 this.trim(history);
               }
 
