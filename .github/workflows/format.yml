@@ -1,13 +1,11 @@
 name: Format
 
-# 每次 push (任意分支) 与 PR 都校验 google-java-format,
-# 不受 ci.yml 的 paths-ignore / 分支限制
+# 每次 push (任意分支) 与 PR 都检查 google-java-format,
+# 不受 ci.yml 的 paths-ignore / 分支限制。
+# push 到仓库分支时直接格式化并提交回该分支; PR (含 fork) 只校验。
 on:
   push:
   pull_request:
-
-permissions:
-  contents: read
 
 concurrency:
   group: format-${{ github.ref }}
@@ -15,9 +13,11 @@ concurrency:
 
 jobs:
   spotless:
-    name: spotlessCheck
+    name: Format
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write # push 时需要提交格式化结果
 
     steps:
       - uses: actions/checkout@v7
@@ -33,5 +33,24 @@ jobs:
         with:
           cache-read-only: ${{ github.event_name != 'push' }}
 
+      - name: Apply formatting
+        if: github.event_name == 'push'
+        run: ./gradlew spotlessApply --build-cache --parallel --console=plain
+
+      - name: Commit formatted code
+        if: github.event_name == 'push'
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "格式无变化"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "style: google-java-format 自动格式化"
+          git push
+          echo "已提交格式化结果"
+
       - name: Check formatting
+        if: github.event_name == 'pull_request'
         run: ./gradlew spotlessCheck --build-cache --parallel --console=plain
