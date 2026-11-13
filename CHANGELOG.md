@@ -18,6 +18,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **`/fp set` and `/fp config set` now explain each feature in the completion menu.** The names you have to type (`pickup_items`, `invulnerable`, `collidable`, ...) are English-only; tab completion now shows the localized description for every feature as a tooltip, and only lists the ones you have permission to set.
 - **Fixed EasyBot treating fake players as real players (#132).** EasyBot detects fake players by looking up our name map with the original-case name; keys were stored lowercased, so the lookup always missed and the QQ whitelist applied to every fake player. The map is now case-insensitive, so EasyBot skips them in its login, join/leave, death and chat handling again.
 - **Fake players now take knockback.** The knockback velocity was applied one tick after the packet arrived, by which point the server had already restored the entity's motion, so hits barely moved a fake player. It is now applied right before the fake player's next tick, like a client does after receiving the velocity packet.
+- **A fake player you removed no longer comes back after a crash.** The restore snapshot was only written every 30 seconds, so one removed shortly before an unclean shutdown was spawned again on the next start. Removing a fake player now rewrites the snapshot immediately.
 
 ### 中文
 
@@ -26,6 +27,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **`/fp set` 与 `/fp config set` 的补全菜单现在会解释每个配置项。** 必须手打的配置名（`pickup_items`、`invulnerable`、`collidable` 等）只有英文，TAB 补全时为每一项附上对应语言的说明，并且只列出你有权限设置的项。
 - **修复 EasyBot 把假人当成真实玩家（#132）。** EasyBot 用原始大小写的玩家名查我们的假人名单，而名单键存的是小写，永远查不到，于是 QQ 白名单对假人也生效。名单现在改为大小写不敏感，EasyBot 的登录、进出服、死亡与聊天处理重新跳过假人。
 - **假人现在会正常被击退。** 击退速度原先在收到速度包后延迟一个 tick 才应用，那时服务端已经把实体的运动还原，打上去几乎不动；现在改为在假人下一次 tick 之前应用，与客户端收到速度包后的行为一致。
+- **手动移除的假人不会再在崩溃后复活。** 恢复快照原先每 30 秒才写一次，若在写快照之前服务器异常关闭，刚移除的假人会在下次启动时被恢复；现在假人一离场就重写快照。
 
 ## fp.build18 - 2026-11-06
 
