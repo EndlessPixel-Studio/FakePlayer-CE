@@ -3,7 +3,6 @@ package io.github.hello09x.fakeplayer.v26_3.network;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
-import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Logger;
@@ -50,18 +49,26 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
     }
   }
 
+  /** 待应用的击退速度: 发包后服务端会立刻还原 deltaMovement, 只能在假人下一次 tick 之前应用 */
+  private volatile ClientboundSetEntityMotionPacket pendingMotion;
+
   public void handleClientboundSetEntityMotionPacket(
       @NotNull ClientboundSetEntityMotionPacket packet) {
     // 26.3: Entity.hurtMarked 已移除, 由 markHurt() 写入的 syncVelocity 取代
     if (packet.id() == this.player.getId() && this.player.syncVelocity) {
-      Schedulers.entity(
-          Main.getInstance(),
-          this.player.getBukkitEntity(),
-          () -> {
-            this.player.syncVelocity = true;
-            this.player.lerpMotion(packet.movement());
-          });
+      this.pendingMotion = packet;
     }
+  }
+
+  @Override
+  public void applyPendingMotion() {
+    var motion = this.pendingMotion;
+    if (motion == null) {
+      return;
+    }
+    this.pendingMotion = null;
+    this.player.syncVelocity = true;
+    this.player.lerpMotion(motion.movement());
   }
 
   private void handleCustomPayloadPacket(@NotNull ClientboundCustomPayloadPacket packet) {

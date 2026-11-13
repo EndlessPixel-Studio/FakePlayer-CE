@@ -3,7 +3,6 @@ package io.github.hello09x.fakeplayer.v1_21_11.network;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
-import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Logger;
@@ -50,17 +49,25 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
     }
   }
 
+  /** 待应用的击退速度: 发包后服务端会立刻还原 deltaMovement, 只能在假人下一次 tick 之前应用 */
+  private volatile ClientboundSetEntityMotionPacket pendingMotion;
+
   public void handleClientboundSetEntityMotionPacket(
       @NotNull ClientboundSetEntityMotionPacket packet) {
     if (packet.getId() == this.player.getId() && this.player.hurtMarked) {
-      Schedulers.entity(
-          Main.getInstance(),
-          this.player.getBukkitEntity(),
-          () -> {
-            this.player.hurtMarked = true;
-            this.player.lerpMotion(packet.getMovement());
-          });
+      this.pendingMotion = packet;
     }
+  }
+
+  @Override
+  public void applyPendingMotion() {
+    var motion = this.pendingMotion;
+    if (motion == null) {
+      return;
+    }
+    this.pendingMotion = null;
+    this.player.hurtMarked = true;
+    this.player.lerpMotion(motion.getMovement());
   }
 
   private void handleCustomPayloadPacket(@NotNull ClientboundCustomPayloadPacket packet) {

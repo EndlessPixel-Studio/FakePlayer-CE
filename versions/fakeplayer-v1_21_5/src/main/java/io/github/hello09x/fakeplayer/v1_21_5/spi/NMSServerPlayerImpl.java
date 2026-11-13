@@ -1,5 +1,6 @@
 package io.github.hello09x.fakeplayer.v1_21_5.spi;
 
+import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerPlayer;
 import io.github.hello09x.fakeplayer.core.constant.ConstantPool;
 import io.github.hello09x.fakeplayer.core.util.Reflections;
@@ -82,6 +83,9 @@ public class NMSServerPlayerImpl implements NMSServerPlayer {
 
   @Override
   public void doTick() {
+    if (handle.connection instanceof NMSServerGamePacketListener listener) {
+      listener.applyPendingMotion();
+    }
     handle.doTick();
   }
 
