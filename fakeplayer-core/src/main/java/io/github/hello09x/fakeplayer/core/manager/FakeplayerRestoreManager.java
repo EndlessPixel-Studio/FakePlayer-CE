@@ -29,6 +29,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,7 +78,7 @@ public class FakeplayerRestoreManager implements Listener {
   }
 
   /** 将当前在线假人 (名称 / 创建者 / 位置 / 特性 / 进行中的动作) 写入快照文件 */
-  public void saveSnapshot() {
+  public synchronized void saveSnapshot() {
     if (!config.isRestoreOnStart()) {
       return;
     }
@@ -110,6 +111,23 @@ public class FakeplayerRestoreManager implements Listener {
     }
     this.lastSnapshot = content;
     this.write(lines);
+  }
+
+  /**
+   * 假人离场 (例如被 {@code /fp remove} 移除) 后立即重写快照。
+   *
+   * <p>否则在下次定时快照之前服务器异常关闭, 已经移除的假人会被重新恢复。
+   */
+  @EventHandler(priority = EventPriority.MONITOR)
+  public void onQuit(@NotNull PlayerQuitEvent event) {
+    // 关服时假人也会逐个离场, 此时由 onDisable 统一写一次, 否则快照会被写成空
+    if (Bukkit.isStopping() || !Main.getInstance().isEnabled()) {
+      return;
+    }
+    if (manager.isNotFake(event.getPlayer())) {
+      return;
+    }
+    this.saveSnapshot();
   }
 
   /** 服务器启动完成后, 按快照自动恢复假人 */
