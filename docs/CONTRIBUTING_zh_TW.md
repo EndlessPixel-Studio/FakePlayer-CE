@@ -37,8 +37,8 @@ fakeplayer-dist    把所有東西打包成單一 fakeplayer-fp.buildN.jar
 ### 程式碼風格
 
 - 統一使用 **google-java-format**（2 空格縮排、100 欄），CI 由 `spotlessCheck` 強制。
-  每次 push（任意分支）與每個 PR 都會執行 `.github/workflows/format.yml` 檢查格式，格式問題的分支當場就會發現，不必等開 PR。
-- 提交前執行一次 `./gradlew spotlessApply`；未格式化的程式碼會讓 CI 失敗。
+  `.github/workflows/format.yml` 對每次 push（任意分支）與每個 PR 生效：push 到倉庫分支時自動格式化並以 `github-actions[bot]` 名義把結果提交回該分支；PR 只檢查，格式不符直接失敗。
+- 提交前執行一次 `./gradlew spotlessApply`，可以少一個 bot 提交。
 
 ### 提交
 
