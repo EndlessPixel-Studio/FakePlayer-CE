@@ -50,6 +50,8 @@ are handled inside the version modules.
 ### Code style
 
 - Formatting is **google-java-format** (2-space indent, 100 columns), enforced by `spotlessCheck` in CI.
+  `.github/workflows/format.yml` checks every push to any branch (and every pull request), so a
+  mis-formatted branch shows up right away, not only when a PR is opened.
 - Run `./gradlew spotlessApply` before committing; CI fails on unformatted code.
 
 ### Commits
