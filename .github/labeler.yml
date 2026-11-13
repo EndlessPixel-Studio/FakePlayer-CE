@@ -1,4 +1,4 @@
-# PR 自动贴标规则 (规范见 LABELS.md)
+# PR 自动贴标规则
 # 可从文件路径推导的功能域自动贴; 推不出不的域 (action/command/spawn/login/appearance/compat) 由人工补
 
 "documentation":
@@ -21,9 +21,14 @@
   - changed-files:
       - any-glob-to-any-file: ['fakeplayer-dist/**']
 
+# auto-label-pr 会先删受管标签再重算, 因此 dependabot 自己打的 dependency
+# 必须能由路径重新推导出来: gradle 依赖改的是 *.gradle.kts / gradle/**, actions 改的是 .github/**
 "dependency":
   - changed-files:
-      - any-glob-to-any-file: ['.github/**']
+      - any-glob-to-any-file:
+          - '.github/**'
+          - '**/*.gradle.kts'
+          - 'gradle/**'
 
 "locale":
   - changed-files:
