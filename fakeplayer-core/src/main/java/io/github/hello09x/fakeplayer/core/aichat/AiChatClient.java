@@ -53,8 +53,7 @@ public class AiChatClient {
   private static final long INITIAL_BACKOFF_MS = 500L;
   private static final int ABBREVIATE_LENGTH = 200;
 
-  private final HttpClient http =
-      HttpClient.newBuilder().connectTimeout(CONNECT_TIMEOUT).build();
+  private final HttpClient http = HttpClient.newBuilder().connectTimeout(CONNECT_TIMEOUT).build();
 
   /** 请求一次对话补全, 返回模型给出的文本 */
   public @NotNull CompletableFuture<String> complete(
@@ -202,8 +201,7 @@ public class AiChatClient {
       }
       var text = builder.toString().trim();
       if (text.isEmpty()) {
-        throw new CompletionException(
-            new IOException("Empty content array: " + abbreviate(body)));
+        throw new CompletionException(new IOException("Empty content array: " + abbreviate(body)));
       }
       return text;
     }
