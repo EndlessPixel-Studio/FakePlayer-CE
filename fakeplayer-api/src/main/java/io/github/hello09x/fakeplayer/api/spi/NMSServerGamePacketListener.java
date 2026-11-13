@@ -18,4 +18,11 @@ public interface NMSServerGamePacketListener {
    * @param broadcast 是否立即把该延迟广播给所有在线玩家 (原版每 30 秒才广播一次, 因此设置后需要主动广播一次才能立刻生效)
    */
   void setPing(int ping, boolean broadcast);
+
+  /**
+   * 应用待生效的击退速度。
+   *
+   * <p>击退包发出后服务端会立刻还原 deltaMovement, 因此不能在收到包时立即应用, 需留到假人下一次 tick 之前。
+   */
+  default void applyPendingMotion() {}
 }
