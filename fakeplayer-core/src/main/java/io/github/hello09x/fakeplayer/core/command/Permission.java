@@ -49,6 +49,7 @@ public interface Permission {
   String autofish = "fakeplayer.config.autofish";
   String sleep = "fakeplayer.command.sleep";
   String wakeup = "fakeplayer.command.wakeup";
+  String autosleep = "fakeplayer.command.autosleep";
   String cmd = "fakeplayer.command.cmd";
   String say = "fakeplayer.command.say";
   String aichat = "fakeplayer.command.aichat";

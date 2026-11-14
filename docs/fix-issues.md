@@ -43,6 +43,8 @@
 - [xiplugin/FakePlayer commit 1f2d4fb](https://github.com/xiplugin/FakePlayer/commit/1f2d4fbc7aa30abe8aa48ea4e5df27a72d39d11d)
 - [xiplugin/FakePlayer commit 04f1dc3](https://github.com/xiplugin/FakePlayer/commit/04f1dc35f5559c41562274475f417871655b6a29)
 
+## CraftAmethyst/fakeplayer-QM
+- [CraftAmethyst/fakeplayer-QM PR #1](https://github.com/CraftAmethyst/fakeplayer-QM/pull/1)
 
 ## shulng/ReCatSeedLogin
 - [shulng/ReCatSeedLogin Issue #6](https://github.com/shulng/ReCatSeedLogin/issues/6)

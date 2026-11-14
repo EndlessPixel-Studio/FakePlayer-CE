@@ -94,6 +94,7 @@
 | /fp enderchest | 偽プレイヤーのエンダーチェストを開く | fakeplayer.command.enderchest | 別名 `/fp ec`。スニーク右クリックでも可、同一ワールド必須 |
 | /fp sleep | 寝る | fakeplayer.command.sleep | |
 | /fp wakeup | 起こす | fakeplayer.command.wakeup | |
+| /fp autosleep | 夜になると自動で寝る | fakeplayer.command.autosleep | `on` / `off` + 任意の `[名前]`；通常世界のみ、4 ブロック以内に空きベッドが必要 |
 | /fp status | 状態を表示 | fakeplayer.command.status | |
 | /fp respawn | 倒れた偽プレイヤーを復活させる | fakeplayer.command.respawn | `kick-on-dead: false` が必要 |
 | /fp tp | 偽プレイヤーの位置へテレポート | fakeplayer.command.tp | |
@@ -246,7 +247,7 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 
 ### 権限グループ `fakeplayer.action`
 
-動作：`attack` `mine` `use` `jump` `sneak` `sprint` `look` `turn` `move` `ride` `swap` `sleep` `wakeup` `stop` `hold` `say`（すべて `fakeplayer.command.*`）
+動作：`attack` `mine` `use` `jump` `sneak` `sprint` `look` `turn` `move` `ride` `swap` `sleep` `wakeup` `autosleep` `stop` `hold` `say`（すべて `fakeplayer.command.*`）
 
 機能：`fakeplayer.config.replenish`、`fakeplayer.config.replenish.chest`（近くのチェストから補充）、`fakeplayer.config.replace-tools`、`fakeplayer.config.autofish`
 

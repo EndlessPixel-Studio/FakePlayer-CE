@@ -435,6 +435,19 @@ public class CommandRegistry {
                     .withRequirement(CommandSupports::hasFakeplayer)
                     .withOptionalArguments(fakeplayer("name", LivingEntity::isSleeping))
                     .executes(sleepCommand::wakeup),
+                // 不能挂在 sleep 下: sleep 带可选参数, 再加子命令会触发 CommandAPI 的
+                // OptionalArgumentException (见 build17 的 goto 事故)
+                command("autosleep")
+                    .withShortDescription("fakeplayer.command.autosleep.description")
+                    .withPermission(Permission.autosleep)
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withSubcommands(
+                        command("on")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(sleepCommand::autosleepOn),
+                        command("off")
+                            .withOptionalArguments(fakeplayer("name"))
+                            .executes(sleepCommand::autosleepOff)),
                 command("stop")
                     .withShortDescription("fakeplayer.command.stop.description")
                     .withPermission(Permission.stop)

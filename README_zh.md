@@ -94,6 +94,7 @@
 | /fp enderchest | 打开假人末影箱 | fakeplayer.command.enderchest | 别名 `/fp ec`；潜行右键；需同世界 |
 | /fp sleep | 假人进入睡觉状态 | fakeplayer.command.sleep | |
 | /fp wakeup | 唤醒睡觉假人 | fakeplayer.command.wakeup | |
+| /fp autosleep | 夜里自动上床睡觉 | fakeplayer.command.autosleep | `on` / `off` + 可选 `[假人]`；仅主世界，4 格内要有空床 |
 | /fp status | 查看假人当前状态 | fakeplayer.command.status | |
 | /fp respawn | 复活已死亡假人 | fakeplayer.command.respawn | 需 `kick-on-dead: false` |
 | /fp tp | 传送到假人位置 | fakeplayer.command.tp | |
@@ -250,7 +251,7 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 
 ### 权限组 `fakeplayer.action`
 
-动作权限：`attack` `mine` `use` `jump` `sneak` `sprint` `look` `turn` `move` `ride` `swap` `sleep` `wakeup` `stop` `hold` `say`（均为 `fakeplayer.command.*`）
+动作权限：`attack` `mine` `use` `jump` `sneak` `sprint` `look` `turn` `move` `ride` `swap` `sleep` `wakeup` `autosleep` `stop` `hold` `say`（均为 `fakeplayer.command.*`）
 
 特性权限：`fakeplayer.config.replenish`、`fakeplayer.config.replenish.chest`（从附近箱子补货）、`fakeplayer.config.replace-tools`、`fakeplayer.config.autofish`
 

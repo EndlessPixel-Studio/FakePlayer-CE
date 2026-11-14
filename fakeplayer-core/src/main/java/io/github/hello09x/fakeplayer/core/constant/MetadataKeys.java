@@ -17,6 +17,8 @@ public interface MetadataKeys {
 
   String AUTOFISH = "fakeplayer:autofish";
 
+  String AUTOSLEEP = "fakeplayer:autosleep";
+
   static @Nullable Integer getSpawnedAt(@NotNull Player player) {
     var value = Iterables.getFirst(player.getMetadata(SPAWNED_AT), null);
     if (value == null) {

@@ -104,6 +104,8 @@ permissions:
     description: 'Allow player to run /fp stop'
   fakeplayer.command.wakeup:
     description: 'Allow player to run /fp wakeup'
+  fakeplayer.command.autosleep:
+    description: 'Allow player to run /fp autosleep'
   fakeplayer.command.hold:
     description: 'Allow player to run /fp hold'
   fakeplayer.command.cmd:
@@ -175,6 +177,7 @@ permissions:
       - fakeplayer.command.swap
       - fakeplayer.command.sleep
       - fakeplayer.command.wakeup
+      - fakeplayer.command.autosleep
       - fakeplayer.command.hold
       - fakeplayer.command.stop
       - fakeplayer.config.replenish

@@ -19,6 +19,7 @@ import io.github.hello09x.fakeplayer.core.listener.FakeplayerListener;
 import io.github.hello09x.fakeplayer.core.listener.PlayerListener;
 import io.github.hello09x.fakeplayer.core.listener.SpawnTeleportGuard;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerAutofishManager;
+import io.github.hello09x.fakeplayer.core.manager.FakeplayerAutosleepManager;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerPingSetter;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerReplenishManager;
@@ -111,6 +112,8 @@ public final class Main extends JavaPlugin {
       getServer().getPluginManager().registerEvents(restoreManager, this);
       restoreManager.start();
     }
+
+    injector.getInstance(FakeplayerAutosleepManager.class).start();
 
     var config = injector.getInstance(FakeplayerConfig.class);
     if (config.isCheckForUpdates()) {

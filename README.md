@@ -94,6 +94,7 @@ On first launch only a template `config.tmpl.yml` is generated; rename it to `co
 | /fp enderchest | Open a fake player's ender chest | fakeplayer.command.enderchest | Alias `/fp ec`; shift-right-click; same world |
 | /fp sleep | Sleep | fakeplayer.command.sleep | |
 | /fp wakeup | Wake up | fakeplayer.command.wakeup | |
+| /fp autosleep | Go to bed automatically at night | fakeplayer.command.autosleep | `on` / `off` + optional `[name]`; overworld only, needs a free bed within 4 blocks |
 | /fp status | Show status | fakeplayer.command.status | |
 | /fp respawn | Respawn a dead fake player | fakeplayer.command.respawn | Needs `kick-on-dead: false` |
 | /fp tp | Teleport to a fake player | fakeplayer.command.tp | |
@@ -250,7 +251,7 @@ Basic management (all `fakeplayer.command.*`): `spawn` `kick` `list` `distance` 
 
 ### Permission Group `fakeplayer.action`
 
-Actions: `attack` `mine` `use` `jump` `sneak` `sprint` `look` `turn` `move` `ride` `swap` `sleep` `wakeup` `stop` `hold` `say` (all `fakeplayer.command.*`)
+Actions: `attack` `mine` `use` `jump` `sneak` `sprint` `look` `turn` `move` `ride` `swap` `sleep` `wakeup` `autosleep` `stop` `hold` `say` (all `fakeplayer.command.*`)
 
 Features: `fakeplayer.config.replenish`, `fakeplayer.config.replenish.chest` (refill from nearby chests), `fakeplayer.config.replace-tools`, `fakeplayer.config.autofish`
 
