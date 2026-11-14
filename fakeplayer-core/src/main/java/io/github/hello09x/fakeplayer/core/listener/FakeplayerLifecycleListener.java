@@ -147,7 +147,9 @@ public class FakeplayerLifecycleListener implements Listener {
       password = generateRandomPassword(charset, config.getRandomPasswordLength());
       authRepository.saveOrUpdate(player.getName(), password);
       var creator = this.manager.getCreator(player);
-      if (creator != null && creator.isOnline()) {
+      // 创建者可能是控制台等非 Player 的 CommandSender, 其本身无"在线"概念,
+      // 能接收消息即应发送; 仅当创建者是 Player 且已离线时跳过, 避免 sendMessage 抛异常
+      if (creator != null && (!(creator instanceof Player p) || p.isOnline())) {
         creator.sendMessage(
             translatable(
                 "fakeplayer.command.password.generated", text(player.getName()), text(password)));
