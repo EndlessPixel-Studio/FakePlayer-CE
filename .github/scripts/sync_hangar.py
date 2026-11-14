@@ -32,33 +32,51 @@ def log(msg):
     print(msg, flush=True)
 
 
-def http(url, method="GET", body=None, content_type=None, jwt=None, timeout=60):
+RETRY_STATUS = (429, 500, 502, 503, 504)
+
+
+def http(url, method="GET", body=None, content_type=None, jwt=None, timeout=60, attempts=3):
+    """带重试的请求。
+
+    Hangar 前面挂着 Cloudflare, 发布时常出现 502/503 (build19 就是这样失败的)。
+    上传接口对重复版本返回 409 + exist, 调用方已按"已存在"处理, 因此重试 POST 是安全的。
+    """
     headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
     if content_type:
         headers["Content-Type"] = content_type
     if jwt:
         headers["Authorization"] = f"HangarAuth {jwt}"
-    req = urllib.request.Request(url, data=body, method=method, headers=headers)
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return resp.status, resp.read().decode("utf-8", "replace")
-    except urllib.error.HTTPError as e:
-        return e.code, e.read().decode("utf-8", "replace")
+
+    for attempt in range(attempts):
+        req = urllib.request.Request(url, data=body, method=method, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return resp.status, resp.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            status = e.code
+            text = e.read().decode("utf-8", "replace")
+        except (urllib.error.URLError, TimeoutError) as e:
+            status = 0
+            text = f"连接失败: {e}"
+
+        if (status in RETRY_STATUS or status == 0) and attempt + 1 < attempts:
+            delay = 5 * (attempt + 1)
+            log(f"HTTP {status}, {delay} 秒后重试 {method} {url} ({attempt + 1}/{attempts})")
+            time.sleep(delay)
+            continue
+        return status, text
+
+    return status, text
 
 
 def authenticate():
     if not TOKEN:
         sys.exit("缺少 HANGAR_API_TOKEN")
     url = f"{BASE}/authenticate?" + urllib.parse.urlencode({"apiKey": TOKEN})
-    for attempt in range(3):
-        status, text = http(url, method="POST")
-        if status == 200:
-            return json.loads(text)["token"]
-        if status in (429, 500, 502, 503):
-            time.sleep(5 * (attempt + 1))
-            continue
-        sys.exit(f"鉴权失败 HTTP {status}: {text[:300]}")
-    sys.exit("鉴权连续失败")
+    status, text = http(url, method="POST")
+    if status == 200:
+        return json.loads(text)["token"]
+    sys.exit(f"鉴权失败 HTTP {status}: {text[:300]}")
 
 
 def platform_versions_from_tag(tag):
