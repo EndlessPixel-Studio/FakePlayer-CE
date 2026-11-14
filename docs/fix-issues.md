@@ -9,7 +9,7 @@
 - [EndlessPixel/FakePlayer-CE PR #8](https://github.com/EndlessPixel/FakePlayer-CE/pull/8)
 - [EndlessPixel/FakePlayer-CE PR #10](https://github.com/EndlessPixel/FakePlayer-CE/pull/10)
 
-## tanyaofei/minecraft-fakeplayer
+## tanyaofei/minecraft-fakeplayer (上游项目)
 - [tanyaofei/minecraft-fakeplayer Issue #104](https://github.com/tanyaofei/minecraft-fakeplayer/issues/104)
 - [tanyaofei/minecraft-fakeplayer Issue #137](https://github.com/tanyaofei/minecraft-fakeplayer/issues/137)
 - [tanyaofei/minecraft-fakeplayer Issue #138](https://github.com/tanyaofei/minecraft-fakeplayer/issues/138)
