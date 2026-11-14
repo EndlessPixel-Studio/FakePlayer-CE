@@ -67,7 +67,9 @@ public class FakeplayerManager {
   private final FakeplayerConfig config;
   private final ScheduledExecutorService lagMonitor;
   private volatile boolean stopping;
-  private int laglevel = 0;
+
+  /** 卡顿时逐级降低的假人上限; 由全局区域线程写, 区域线程在 checkLimit 读 */
+  private volatile int laglevel = 0;
 
   private volatile @Nullable Method removeMethod;
   private volatile @Nullable Method broadcastMethod;
