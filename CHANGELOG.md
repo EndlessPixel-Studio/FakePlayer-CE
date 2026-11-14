@@ -14,10 +14,12 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 ### English
 
 - **Fixed command help always using the server's language (#142, thanks @lldxlzy).** Command descriptions were translated once at startup with `i18n.locale`, so `/fp aichat help` and every other help page stayed in the server language even for a Chinese client. Descriptions are now sent as translatable text and follow the client locale (and the player's `/fp lang` choice).
+- **Fixed the login-plugin exemption surviving a removed fake player (#143, thanks @lldxlzy).** When the creator had already been cleaned up, the after-quit step was skipped entirely, so an AuthMe / LibreLogin exemption could stay behind for the rest of the session. The cleanup now always runs.
 
 ### 中文
 
 - **修复命令帮助的语言不跟随玩家（#142，感谢 @lldxlzy）。** 命令说明原先在启动时按 `i18n.locale` 一次性翻译成写死的文本，客户端是中文，`/fp aichat help` 等帮助页也只会显示服务器语言。现在这些说明按可翻译文本下发，跟随客户端语言（以及玩家的 `/fp lang` 设置）。
+- **修复假人被移除后登录插件豁免残留（#143，感谢 @lldxlzy）。** 创建者已被先行清理时，退出后的收尾步骤会被整段跳过，AuthMe / LibreLogin 的豁免标记可能一直留到关服；现在清理一定会执行。
 
 ## fp.build19 - 2026-11-14
 
