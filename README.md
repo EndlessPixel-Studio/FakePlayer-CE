@@ -375,3 +375,7 @@ See [BUILD.md](./docs/BUILD.md). It applies to this project's Gradle multi-modul
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=EndlessPixel-Studio/FakePlayer-CE&type=Date)](https://star-history.com/#EndlessPixel-Studio/FakePlayer-CE&Date)
+
+## Contributors
+
+[![Contributors](https://contrib.rocks/image?repo=EndlessPixel-Studio/FakePlayer-CE)](https://github.com/EndlessPixel-Studio/FakePlayer-CE/graphs/contributors)
