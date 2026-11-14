@@ -13,6 +13,7 @@ import io.github.hello09x.fakeplayer.core.repository.FakeplayerAuthRepository;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -35,6 +36,9 @@ public class FakeplayerLifecycleListener implements Listener {
   private final FakeplayerConfig config;
   private final FakeplayerAuthRepository authRepository;
   private final LoginCompatManager loginCompatManager;
+
+  // K:假人UUID V:创建者名称; Optional.empty 表示创建者已被先行清理, 但仍需 cleanup
+  private final Map<UUID, Optional<String>> pendingFakeQuits = new ConcurrentHashMap<>();
 
   @Inject
   public FakeplayerLifecycleListener(
@@ -81,9 +85,6 @@ public class FakeplayerLifecycleListener implements Listener {
         });
   }
 
-  // K:假人UUID V:创建者名称
-  private final Map<UUID, String> pendingFakeQuits = new ConcurrentHashMap<>();
-
   @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
   public void onPostQuit(@NotNull PlayerQuitEvent event) {
     var player = event.getPlayer();
@@ -91,12 +92,10 @@ public class FakeplayerLifecycleListener implements Listener {
       // Not a fake player
       return;
     }
-    // ConcurrentHashMap 不接受 null: 创建者已被别人先行清理时直接跳过 after-quit,
-    // 而不是在事件里抛 NPE 把 post-quit 命令也一起带下去
+    // 无论创建者是否存在都要登记: 保证 onAfterQuit 一定会执行 cleanup,
+    // 否则 loginCompatManager.exempt() 的豁免标记会残留
     var creatorName = this.manager.getCreatorName(player);
-    if (creatorName != null) {
-      pendingFakeQuits.put(player.getUniqueId(), creatorName);
-    }
+    pendingFakeQuits.put(player.getUniqueId(), Optional.ofNullable(creatorName));
     manager.dispatchCommands(player, config.getPostQuitCommands());
   }
 
@@ -104,7 +103,9 @@ public class FakeplayerLifecycleListener implements Listener {
   public void onAfterQuit(@NotNull PlayerQuitEvent event) {
     var player = event.getPlayer();
     var uuid = player.getUniqueId();
-    if (!pendingFakeQuits.containsKey(uuid)) return;
+    if (!pendingFakeQuits.containsKey(uuid)) {
+      return;
+    }
     Schedulers.globalLater(
         Main.getInstance(),
         1,
@@ -113,10 +114,12 @@ public class FakeplayerLifecycleListener implements Listener {
           var creatorName = pendingFakeQuits.remove(uuid);
           try {
             if (creatorName != null) {
-              manager.dispatchCommands(
-                  new FakeplayerManager.DispatchCommandArgs(
-                      player.getName(), uuid.toString(), creatorName),
-                  config.getAfterQuitCommands());
+              creatorName.ifPresent(
+                  cn ->
+                      manager.dispatchCommands(
+                          new FakeplayerManager.DispatchCommandArgs(
+                              player.getName(), uuid.toString(), cn),
+                          config.getAfterQuitCommands()));
             }
           } finally {
             loginCompatManager.cleanup(player);
@@ -144,7 +147,7 @@ public class FakeplayerLifecycleListener implements Listener {
       password = generateRandomPassword(charset, config.getRandomPasswordLength());
       authRepository.saveOrUpdate(player.getName(), password);
       var creator = this.manager.getCreator(player);
-      if (creator != null) {
+      if (creator != null && creator.isOnline()) {
         creator.sendMessage(
             translatable(
                 "fakeplayer.command.password.generated", text(player.getName()), text(password)));
@@ -171,9 +174,12 @@ public class FakeplayerLifecycleListener implements Listener {
    *
    * @param charset 候选字符集
    * @param length 密码长度
-   * @return 随机密码
+   * @return 随机密码; {@code length <= 0} 时返回空串
    */
   private @NotNull String generateRandomPassword(@NotNull String charset, int length) {
+    if (length <= 0) {
+      return "";
+    }
     var rnd = ThreadLocalRandom.current();
     var sb = new StringBuilder(length);
     for (int i = 0; i < length; i++) {
