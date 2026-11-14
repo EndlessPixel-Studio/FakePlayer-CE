@@ -176,9 +176,12 @@ share-fakeplayer: false
 # 性能保护 / TPS protection
 # ============================================================
 
-# 服务器最近 5 分钟平均 TPS 低于此值时清除所有假人, 0 表示关闭
-# 不推荐开启, 移除假人可能导致玩家的红石机器出问题
-# Remove all fake players when the 5-minute average TPS drops below this value, 0 disables it
+# 服务器最近 1 分钟平均 TPS 低于此值时, 每 60 秒把假人上限降 1 (按创建者分别计算),
+# 超出当前上限的假人会从最新召唤的开始移除; 卡顿消失后每 60 秒恢复 1 个上限
+# 0 表示关闭; 不推荐开启, 移除假人可能导致玩家的红石机器出问题
+# When the 1-minute average TPS stays below this value, the per-player fake player limit
+# drops by one every 60 seconds and fake players above it are removed (newest first);
+# once the lag clears the limit recovers by one per cycle. 0 disables it
 # Not recommended: removing fake players may break redstone machines
 kale-tps: 0
 
