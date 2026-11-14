@@ -1,6 +1,5 @@
 package io.github.hello09x.fakeplayer.core.command;
 
-import dev.jorel.commandapi.CommandAPICommand;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
@@ -9,7 +8,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.plugin.Plugin;
 
-/** Resolves command help text once with the locale configured by the plugin. */
+/** 按插件配置的语言解析帮助文案; 未翻译的键返回键本身。 */
 final class CommandHelpLocalizer {
 
   private static final String BUNDLE_PATH = "message/message";
@@ -60,18 +59,24 @@ final class CommandHelpLocalizer {
     }
   }
 
+  private Properties baseProperties() {
+    var props = new Properties();
+    loadResource(props, BUNDLE_PATH + EXTENSION);
+    return props;
+  }
+
   String translate(String key) {
     var props = loadProperties(locale);
     return props.getProperty(key, key);
   }
 
-  void localizeDescriptions(CommandAPICommand command) {
-    for (var subcommand : command.getSubcommands()) {
-      var description = subcommand.getShortDescription();
-      if (description != null && !description.isEmpty()) {
-        subcommand.withShortDescription(translate(description));
-      }
-      localizeDescriptions(subcommand);
-    }
+  /**
+   * 是否是消息文件里的键。
+   *
+   * <p>帮助列表需要保留键而不是提前翻译成文本, 才能按每个玩家的语言渲染。
+   */
+  boolean isKey(String raw) {
+    return raw != null
+        && CACHE.computeIfAbsent("keys", ignored -> baseProperties()).containsKey(raw);
   }
 }

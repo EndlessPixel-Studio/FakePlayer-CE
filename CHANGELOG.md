@@ -13,11 +13,11 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
-- (TBD)
+- **Fixed command help always using the server's language (#142, thanks @lldxlzy).** Command descriptions were translated once at startup with `i18n.locale`, so `/fp aichat help` and every other help page stayed in the server language even for a Chinese client. Descriptions are now sent as translatable text and follow the client locale (and the player's `/fp lang` choice).
 
 ### 中文
 
-- （待补充）
+- **修复命令帮助的语言不跟随玩家（#142，感谢 @lldxlzy）。** 命令说明原先在启动时按 `i18n.locale` 一次性翻译成写死的文本，客户端是中文，`/fp aichat help` 等帮助页也只会显示服务器语言。现在这些说明按可翻译文本下发，跟随客户端语言（以及玩家的 `/fp lang` 设置）。
 
 ## fp.build19 - 2026-11-14
 

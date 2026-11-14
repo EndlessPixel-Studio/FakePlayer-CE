@@ -16,6 +16,7 @@ import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.command.impl.*;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.constant.Direction;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import java.util.List;
 import org.bukkit.entity.Entity;
@@ -465,7 +466,7 @@ public class CommandRegistry {
                     .withPermission(Permission.say)
                     .executes(
                         (sender, args) -> {
-                          sender.sendMessage(translatable("fakeplayer.command.say.help"));
+                          LangUtils.send(sender, translatable("fakeplayer.command.say.help"));
                         })
                     .withSubcommands(
                         command("once")
@@ -501,7 +502,7 @@ public class CommandRegistry {
                     .withPermission(Permission.aichat)
                     .executes(
                         (sender, args) -> {
-                          sender.sendMessage(translatable("fakeplayer.command.aichat.help"));
+                          LangUtils.send(sender, translatable("fakeplayer.command.aichat.help"));
                         })
                     .withSubcommands(
                         command("public")
@@ -582,7 +583,6 @@ public class CommandRegistry {
     root.withHelp(
         helpLocalizer.translate("fakeplayer.command.fp.short-description"),
         helpLocalizer.translate("fakeplayer.command.fp.full-description"));
-    helpLocalizer.localizeDescriptions(root);
     CommandHelpGenerator.generate(root, helpLocalizer);
     root.register();
   }

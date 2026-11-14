@@ -10,10 +10,13 @@ import dev.jorel.commandapi.CommandPermission;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import io.github.hello09x.devtools.command.Page;
+import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import java.util.ArrayList;
 import java.util.List;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class CommandHelpGenerator {
 
@@ -69,7 +72,7 @@ final class CommandHelpGenerator {
               sub,
               description == null || description.isEmpty()
                   ? name
-                  : textOfChildren(name, text(" -", GRAY), text(description, WHITE))));
+                  : textOfChildren(name, text(" -", GRAY), describe(description, localizer))));
     }
 
     var headline = headline(path);
@@ -106,7 +109,7 @@ final class CommandHelpGenerator {
                 return;
               }
 
-              showDetail(sender, command, path, parts);
+              showDetail(sender, command, path, parts, localizer);
             });
   }
 
@@ -120,7 +123,8 @@ final class CommandHelpGenerator {
     var safePage = Math.max(1, page);
     var safeSize = Math.max(1, size);
     var allowed = usages.stream().filter(usage -> canUse(sender, usage.command())).toList();
-    sender.sendMessage(
+    LangUtils.send(
+        sender,
         Page.of(allowed, safePage, safeSize)
             .asComponent(
                 headline,
@@ -142,7 +146,11 @@ final class CommandHelpGenerator {
   }
 
   private static void showDetail(
-      CommandSender sender, CommandAPICommand command, String path, String[] parts) {
+      CommandSender sender,
+      CommandAPICommand command,
+      String path,
+      String[] parts,
+      CommandHelpLocalizer localizer) {
     var current = command;
     var fullPath = new StringBuilder(path);
     for (var part : parts) {
@@ -152,7 +160,8 @@ final class CommandHelpGenerator {
               .findFirst()
               .orElse(null);
       if (next == null || !canUse(sender, next)) {
-        sender.sendMessage(
+        LangUtils.send(
+            sender,
             textOfChildren(
                 translatable("fakeplayer.command.help.unknown", RED), space(), text(part, WHITE)));
         return;
@@ -160,28 +169,31 @@ final class CommandHelpGenerator {
       current = next;
       fullPath.append(' ').append(current.getName());
     }
-    sender.sendMessage(renderDetail(current, fullPath.toString(), sender));
+    LangUtils.send(sender, renderDetail(current, fullPath.toString(), sender, localizer));
   }
 
   private static Component renderDetail(
-      CommandAPICommand command, String fullPath, CommandSender sender) {
+      CommandAPICommand command,
+      String fullPath,
+      CommandSender sender,
+      CommandHelpLocalizer localizer) {
     var lines = new ArrayList<Component>();
     lines.add(headline(fullPath));
 
     var description = command.getShortDescription();
     if (description != null && !description.isEmpty()) {
-      lines.add(text(description, WHITE));
+      lines.add(describe(description, localizer));
     }
     var fullDescription = command.getFullDescription();
     if (fullDescription != null
         && !fullDescription.isEmpty()
         && !fullDescription.equals(description)) {
-      lines.add(text(fullDescription, GRAY));
+      lines.add(describe(fullDescription, localizer).color(GRAY));
     }
 
-    var usage = usageOf(command, fullPath);
+    var usage = usageOf(command, fullPath, localizer);
     if (usage != null) {
-      lines.add(text(usage, WHITE));
+      lines.add(usage);
     }
 
     var aliases = command.getAliases();
@@ -217,7 +229,8 @@ final class CommandHelpGenerator {
   }
 
   // 优先复用手写 help 的文案 (如 fakeplayer.command.say.help), 其次显式 usage, 最后按参数拼装
-  private static String usageOf(CommandAPICommand command, String fullPath) {
+  private static @Nullable Component usageOf(
+      CommandAPICommand command, String fullPath, CommandHelpLocalizer localizer) {
     var handWritten =
         command.getSubcommands().stream()
             .filter(CommandHelpGenerator::isHelpSubcommand)
@@ -226,12 +239,12 @@ final class CommandHelpGenerator {
             .findFirst()
             .orElse(null);
     if (handWritten != null) {
-      return handWritten;
+      return describe(handWritten, localizer);
     }
 
     var explicit = command.getUsage();
     if (explicit != null && explicit.length > 0 && !explicit[0].isBlank()) {
-      return "/" + fullPath + " " + String.join(" ", explicit);
+      return text("/" + fullPath + " " + String.join(" ", explicit), WHITE);
     }
 
     var arguments = command.getArguments();
@@ -240,13 +253,19 @@ final class CommandHelpGenerator {
       for (var argument : arguments) {
         sb.append(" <").append(argument.getNodeName()).append('>');
       }
-      return sb.toString();
+      return text(sb.toString(), WHITE);
     }
 
     if (!command.getSubcommands().isEmpty()) {
-      return "/" + fullPath + " <subcommand>";
+      return text("/" + fullPath + " <subcommand>", WHITE);
     }
-    return "/" + fullPath;
+    return text("/" + fullPath, WHITE);
+  }
+
+  /** 帮助文案在消息文件里是键, 保留成可翻译组件才能按玩家语言渲染; 已经写死的文案原样输出 */
+  private static @NotNull Component describe(
+      @NotNull String raw, @NotNull CommandHelpLocalizer localizer) {
+    return localizer.isKey(raw) ? translatable(raw) : text(raw, WHITE);
   }
 
   private static Component joinLines(List<Component> lines) {
