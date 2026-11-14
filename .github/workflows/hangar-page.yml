@@ -1,8 +1,5 @@
 name: Sync README to Hangar
 
-# README.md 变更后同步到 Hangar 项目主页正文（main page）。
-# 同步时会去掉居中 div、把相对链接与图片改成 GitHub 绝对地址，
-# 否则挂到 Hangar 上会 404。
 on:
   push:
     branches: [master]

@@ -1,6 +1,5 @@
 name: Triage
 
-# 新建 issue 默认贴 needs-triage（待确认）；issue 一旦补上「功能域」标签（=已人工分类）即自动移除。
 on:
   issues:
     types: [opened, labeled]
