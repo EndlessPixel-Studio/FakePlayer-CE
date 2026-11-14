@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write # push 时需要提交格式化结果
+      contents: write
 
     steps:
       - uses: actions/checkout@v7
