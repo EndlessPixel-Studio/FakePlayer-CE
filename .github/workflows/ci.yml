@@ -72,15 +72,14 @@ jobs:
         id: gradle-cache
         uses: gradle/actions/setup-gradle@v6
         with:
-          cache-read-only: ${{ github.event_name != 'push' }}
-          cache-write-only: ${{ github.event_name == 'push' }}
+          cache-read-only: false
           gradle-home-cache-includes: |
             caches
             wrapper
             notifications
 
       - name: Build
-        run: ./gradlew spotlessCheck :fakeplayer-dist:shadowJar --build-cache --parallel --console=plain --no-daemon
+        run: ./gradlew spotlessCheck :fakeplayer-dist:shadowJar --build-cache --parallel --console=plain -Dorg.gradle.workers.max=2
 
       - name: Upload artifact
         if: ${{ github.event_name == 'push' }}
