@@ -3,6 +3,7 @@ package io.github.hello09x.fakeplayer.v1_20_1.network;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
+import io.github.hello09x.fakeplayer.core.util.PacketSendGuard;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundCustomPayloadPacket;
@@ -30,6 +31,17 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
 
   @Override
   public void send(Packet<?> packet) {
+    try {
+      this.dispatchPacket(packet);
+    } catch (VirtualMachineError | ThreadDeath fatal) {
+      throw fatal;
+    } catch (Throwable e) {
+      // 假人发不出包不能抛给调用方: 别的插件在自己的任务里往假人发消息, 异常会让它们的操作回滚
+      PacketSendGuard.onFailure(e);
+    }
+  }
+
+  private void dispatchPacket(Packet<?> packet) {
     if (packet instanceof ClientboundCustomPayloadPacket p) {
       this.handleCustomPayloadPacket(p);
     }

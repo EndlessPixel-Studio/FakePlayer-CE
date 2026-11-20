@@ -18,6 +18,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **New `/fp autosleep on|off [name]`.** A fake player with it enabled walks into a free bed on its own during the night instead of standing awake until morning; `/fp sleep` still sleeps once and `/fp wakeup` still wakes. Overworld only, and it needs an unoccupied bed within 4 blocks.
 - **MySQL support, and a command to migrate existing data.** Setting `database.type: mysql` and filling in the new `database.mysql` block stores passwords, UUID mappings, skins and personal configs in MySQL instead of the local `data.db`; `/fp migrate-db` copies an existing SQLite file over once, so switching loses nothing. Changing the setting needs a restart; `config.yml` is now version 35.
 - **The HTTP admin API moved to Undertow.** The JDK's built-in HTTP server cannot limit request sizes or idle connections, keeps no keep-alive budget and shuts down abruptly. The API now caps a request URI at 4 KB, reclaims idle connections after 30 seconds and stops gracefully on disable, with no config or endpoint change.
+- **A fake player no longer breaks other plugins' plugin messages.** Our packet handler is invoked from inside `Player#sendPluginMessage`, so anything it threw aborted the caller's own task — PlayerPoints reverted point transactions exactly this way when `DiscardedPayload#data()` was missing on a non-Paper fork. Packet handling now contains its own failures and logs them at most once a minute per cause; a missing NMS method only disables that one feature.
 - **Fake players can be renamed (#39, thanks @TWJohnJohn20116).** `/fp rename <name> <new-name> [force]` takes the fake player offline, moves its inventory, advancements, stats and skin to the new UUID, and spawns it again at the same spot with the same lifespan and creator — a name is bound to a UUID, so renaming is really a re-spawn. A name that is already in use is refused unless the operator has `fakeplayer.command.rename.force` and appends `force`, which hands the name (and its data) over.
 
 ### 中文
@@ -27,6 +28,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **新增 `/fp autosleep on|off [假人]`。** 开启后假人夜里会自己找空床躺下，不再整夜站着；`/fp sleep` 仍是睡一次，`/fp wakeup` 仍是叫醒。仅主世界生效，且 4 格内要有没被占用的床。
 - **支持 MySQL，并附带数据迁移命令。** 把 `database.type` 设为 `mysql` 并填好新增的 `database.mysql` 段后，密码、UUID 映射、皮肤与个人配置改存 MySQL（默认仍是插件目录下的 `data.db`）；`/fp migrate-db` 可把已有的 SQLite 数据一次性搬过去，换库不丢数据。改配置需要重启，`config.yml` 版本提升至 35。
 - **HTTP 管理接口改用 Undertow。** JDK 自带的 HTTP 服务器无法限制请求体与空闲连接，也没有平滑关闭；现在单请求 URI 上限 4 KB、空闲连接 30 秒回收、插件停用/重启时优雅关闭。接口路径与配置项都没有变化。
+- **假人不再打断其他插件的插件消息。** 我们的发包重写是在 `Player#sendPluginMessage` 的调用栈里跑的，一旦抛异常，调用方自己的任务就会中断 —— 在缺少 `DiscardedPayload#data()` 的非 Paper 系核心上，PlayerPoints 的点券交易正是这样被回滚的。现在发包逻辑自己兜住异常，同类错误每分钟最多记一条日志，缺 NMS 方法时只禁用受影响的那一个功能。
 - **假人支持重命名（#39，感谢 @TWJohnJohn20116）。** `/fp rename <名称> <新名称> [force]` 会让假人下线，把背包、成就、统计与皮肤迁到新 UUID 下，再按原位置、原寿命、原创建者重新召唤 —— 名称与 UUID 绑定，所以重命名本质上是重新召唤。名称已被占用时默认拒绝；拥有 `fakeplayer.command.rename.force` 权限并追加 `force` 才能接管该名称（以及它名下的数据）。
 
 ## fp.build19 - 2026-11-14
