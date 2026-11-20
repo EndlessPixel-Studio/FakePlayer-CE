@@ -79,7 +79,7 @@ jobs:
             caches/paperweight
 
       - name: Build
-        run: ./gradlew :fakeplayer-dist:shadowJar --build-cache --parallel --console=plain -Dorg.gradle.workers.max=2
+        run: ./gradlew :fakeplayer-dist:shadowJar --build-cache --parallel --console=plain -Dorg.gradle.workers.max=4
 
       - name: Upload artifact
         if: ${{ github.event_name == 'push' }}
