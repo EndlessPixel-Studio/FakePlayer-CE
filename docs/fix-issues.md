@@ -12,6 +12,8 @@
 ## tanyaofei/minecraft-fakeplayer (上游项目)
 - [tanyaofei/minecraft-fakeplayer Issue #104](https://github.com/tanyaofei/minecraft-fakeplayer/issues/104)
 - [tanyaofei/minecraft-fakeplayer Issue #128](https://github.com/tanyaofei/minecraft-fakeplayer/issues/128)
+- [tanyaofei/minecraft-fakeplayer Issue #129](https://github.com/tanyaofei/minecraft-fakeplayer/issues/129)
+- [tanyaofei/minecraft-fakeplayer Issue #135](https://github.com/tanyaofei/minecraft-fakeplayer/issues/135)
 - [tanyaofei/minecraft-fakeplayer Issue #137](https://github.com/tanyaofei/minecraft-fakeplayer/issues/137)
 - [tanyaofei/minecraft-fakeplayer Issue #138](https://github.com/tanyaofei/minecraft-fakeplayer/issues/138)
 - [tanyaofei/minecraft-fakeplayer Issue #150](https://github.com/tanyaofei/minecraft-fakeplayer/issues/150)
@@ -43,6 +45,11 @@
 - [xiplugin/FakePlayer commit fbf03ce](https://github.com/xiplugin/FakePlayer/commit/fbf03cec8ab16574b6ec055f3db7aa4b7f70a80c)
 - [xiplugin/FakePlayer commit 1f2d4fb](https://github.com/xiplugin/FakePlayer/commit/1f2d4fbc7aa30abe8aa48ea4e5df27a72d39d11d)
 - [xiplugin/FakePlayer commit 04f1dc3](https://github.com/xiplugin/FakePlayer/commit/04f1dc35f5559c41562274475f417871655b6a29)
+
+## xiplugin/FakePlayerPlus
+- [xiplugin/FakePlayerPlus PR #39](https://github.com/xiplugin/FakePlayerPlus/pull/39) 重命名假人
+- [xiplugin/FakePlayerPlus commit 021bb3d2](https://github.com/xiplugin/FakePlayerPlus/commit/021bb3d2dd056d8ec61a4a0289fd6454f9b2c8ab) 击退在下一个 tick 之前应用
+- [xiplugin/FakePlayerPlus commit b972a97a](https://github.com/xiplugin/FakePlayerPlus/commit/b972a97ac231fba484dc0e3db5751307d7525375) 移除的假人不再在崩溃后复活
 
 ## CraftAmethyst/fakeplayer-QM
 - [CraftAmethyst/fakeplayer-QM PR #1](https://github.com/CraftAmethyst/fakeplayer-QM/pull/1)
