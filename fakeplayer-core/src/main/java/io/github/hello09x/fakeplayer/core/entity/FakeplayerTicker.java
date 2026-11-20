@@ -48,6 +48,18 @@ public class FakeplayerTicker {
         Schedulers.entityTimer(Main.getInstance(), this.player.getPlayer(), 0, 1, this::tick);
   }
 
+  /**
+   * 剩余存活时间, 用于重命名等需要重建假人的场景。
+   *
+   * @return 剩余毫秒数; {@link #NON_REMOVE_AT} 表示不会定时移除
+   */
+  public long getRemainingLifespan() {
+    if (this.removeAt == NON_REMOVE_AT) {
+      return NON_REMOVE_AT;
+    }
+    return Math.max(0L, this.removeAt - System.currentTimeMillis());
+  }
+
   private void tick() {
     if (!player.isOnline()) {
       this.cancel();

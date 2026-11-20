@@ -211,6 +211,32 @@ public class NameManager {
     return new SequenceName("custom", 0, uuid, normalized);
   }
 
+  /**
+   * 名称是否已经被某个假人绑定过 (包括已经下线的记录)。
+   *
+   * @param name 名称
+   * @return 是否已绑定
+   */
+  public boolean isNameBound(@NotNull String name) {
+    var normalized =
+        StringUtils.isNotBlank(config.getNamePrefix())
+            ? config.getNamePrefix().trim() + name
+            : name;
+    return this.profileRepository.selectUUIDByName(normalized) != null;
+  }
+
+  /**
+   * 解除名称绑定, 使该名称下次被使用时可以拿到新的 UUID。
+   *
+   * @param name 名称
+   */
+  public void releaseName(@NotNull String name) {
+    this.profileRepository.deleteByName(name);
+    if (StringUtils.isNotBlank(config.getNamePrefix())) {
+      this.profileRepository.deleteByName(config.getNamePrefix().trim() + name);
+    }
+  }
+
   /** 校验并规范化自定义名称 (前缀、长度、字符集、在线冲突) */
   private @NotNull String normalizeName(@NotNull String name) {
     if (StringUtils.isNotBlank(config.getNamePrefix())) {

@@ -50,6 +50,18 @@ public class FakeplayerSkinRepository {
         playerId.toString());
   }
 
+  /**
+   * 把某个玩家的皮肤记录改挂到另一个 UUID 下 (重命名假人时用)。
+   *
+   * @param from 旧 UUID
+   * @param to 新 UUID
+   * @return 受影响的行数
+   */
+  public int updatePlayerId(@NotNull UUID from, @NotNull UUID to) {
+    var sql = "update fakeplayer_skin set player_id = ? where player_id = ?";
+    return jdbc.update(sql, to.toString(), from.toString());
+  }
+
   public void initTables() {
     var text = dialect.varchar(36);
     this.jdbc.execute(

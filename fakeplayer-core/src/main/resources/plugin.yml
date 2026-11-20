@@ -32,6 +32,11 @@ permissions:
   fakeplayer.command.spawn.uuid:
     description: 'Allow player to run /fp spawnuuid and specify a UUID'
     default: op
+  fakeplayer.command.rename:
+    description: 'Allow player to run /fp rename'
+  fakeplayer.command.rename.force:
+    description: 'Allow player to take over a name that is already in use when renaming a fake player'
+    default: op
   fakeplayer.command.kick:
     description: 'Allow player to run /fp kick'
   fakeplayer.command.kill:

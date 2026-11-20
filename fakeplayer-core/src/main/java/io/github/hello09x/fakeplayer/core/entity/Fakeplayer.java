@@ -367,6 +367,15 @@ public class Fakeplayer {
     return uuid;
   }
 
+  /**
+   * 剩余存活时间 (毫秒), 便于重命名后按原寿命重建。
+   *
+   * @return 剩余毫秒数; {@link FakeplayerTicker#NON_REMOVE_AT} 表示不会定时移除
+   */
+  public long getRemainingLifespan() {
+    return this.ticker.getRemainingLifespan();
+  }
+
   private void setupName() {
     var displayName =
         text(

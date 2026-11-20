@@ -23,9 +23,12 @@ import io.github.hello09x.fakeplayer.core.entity.Fakeplayer;
 import io.github.hello09x.fakeplayer.core.entity.SpawnOption;
 import io.github.hello09x.fakeplayer.core.manager.feature.FakeplayerFeatureManager;
 import io.github.hello09x.fakeplayer.core.manager.naming.NameManager;
+import io.github.hello09x.fakeplayer.core.manager.naming.SequenceName;
+import io.github.hello09x.fakeplayer.core.repository.FakeplayerSkinRepository;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import io.github.hello09x.fakeplayer.core.util.AddressUtils;
 import io.github.hello09x.fakeplayer.core.util.Commands;
+import io.github.hello09x.fakeplayer.core.util.PlayerDataMigration;
 import io.github.hello09x.fakeplayer.core.util.Reflections;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import java.lang.reflect.Method;
@@ -65,6 +68,7 @@ public class FakeplayerManager {
   private final AiChatManager aiChatManager;
   private final NMSBridge nms;
   private final FakeplayerConfig config;
+  private final FakeplayerSkinRepository skinRepository;
   private final ScheduledExecutorService lagMonitor;
   private volatile boolean stopping;
 
@@ -82,13 +86,15 @@ public class FakeplayerManager {
       FakeplayerFeatureManager featureManager,
       NMSBridge nms,
       FakeplayerConfig config,
-      AiChatManager aiChatManager) {
+      AiChatManager aiChatManager,
+      FakeplayerSkinRepository skinRepository) {
     this.nameManager = nameManager;
     this.playerList = playerList;
     this.featureManager = featureManager;
     this.nms = nms;
     this.config = config;
     this.aiChatManager = aiChatManager;
+    this.skinRepository = skinRepository;
 
     this.lagMonitor = Executors.newSingleThreadScheduledExecutor();
     this.lagMonitor.scheduleWithFixedDelay(
@@ -269,6 +275,92 @@ public class FakeplayerManager {
               }
             })
         .thenCompose(result -> result);
+  }
+
+  /**
+   * 重命名假人。
+   *
+   * <p>名称与 UUID 绑定 (见 {@link NameManager}), 所以重命名实际上是「换一个 UUID 重新召唤」: 先把旧假人下线, 把背包 / 成就 / 统计 /
+   * 皮肤搬到新 UUID 下, 再在原位置、按原寿命重新召唤。旧名称的绑定会被解除, 否则用旧名称再召唤会把旧数据带回来。
+   *
+   * @param operator 命令执行者
+   * @param oldName 旧名称
+   * @param newName 新名称 (未经规范化的原始名称, 由 {@link NameManager} 统一校验与加前缀)
+   * @param force 新名称已被占用时是否强制接管 (会移除占用该名称的假人)
+   * @return 重命名后的假人
+   */
+  public @NotNull CompletableFuture<Player> renameAsync(
+      @NotNull CommandSender operator,
+      @NotNull String oldName,
+      @NotNull String newName,
+      boolean force) {
+    if (stopping) {
+      return CompletableFuture.failedFuture(new IllegalStateException("Plugin is disabled"));
+    }
+
+    var target = this.playerList.getByName(oldName);
+    if (target == null) {
+      return CompletableFuture.failedFuture(
+          new CommandException(
+              translatable("fakeplayer.command.not-exists", text(oldName, GOLD)).color(RED)));
+    }
+    if (!target.isCreatedBy(operator)) {
+      return CompletableFuture.failedFuture(
+          new CommandException(
+              translatable("fakeplayer.command.not-owner", text(oldName, GOLD)).color(RED)));
+    }
+    if (target.getName().equalsIgnoreCase(newName)) {
+      return CompletableFuture.completedFuture(target.getPlayer());
+    }
+
+    // 目标名称被另一个在线假人占着
+    var occupant = this.playerList.getByName(newName);
+    if (occupant != null) {
+      if (!force) {
+        return CompletableFuture.failedFuture(
+            new CommandException(
+                translatable("fakeplayer.command.rename.error.exists", text(newName, GOLD))
+                    .color(RED)));
+      }
+      this.remove(occupant.getName(), "renamed to " + oldName);
+    } else if (nameManager.isNameBound(newName)) {
+      // 目标名称有历史记录 (已经下线的假人), 需要 force 才能接管
+      if (!force) {
+        return CompletableFuture.failedFuture(
+            new CommandException(
+                translatable("fakeplayer.command.rename.error.exists-hint", text(newName, GOLD))
+                    .color(RED)));
+      }
+      nameManager.releaseName(newName);
+    }
+
+    // 先校验并绑定新名称: 名称非法或与真实玩家冲突时直接失败, 旧假人不受影响
+    SequenceName newSequence;
+    try {
+      newSequence = nameManager.getSpecifiedName(target.getCreator(), newName);
+    } catch (RuntimeException e) {
+      return CompletableFuture.failedFuture(e);
+    }
+
+    var creator = target.getCreator();
+    var oldUuid = target.getUUID();
+    var oldKey = target.getName();
+    var location = target.getPlayer().getLocation().clone();
+    var lifespan = target.getRemainingLifespan();
+
+    this.remove(oldKey, "renamed to " + newSequence.name());
+
+    return CompletableFuture.supplyAsync(
+            () -> {
+              // 玩家数据都在主世界目录下, 与假人当前所在维度无关
+              var world = Bukkit.getWorlds().get(0);
+              PlayerDataMigration.migrate(world, oldUuid, newSequence.uuid());
+              skinRepository.updatePlayerId(oldUuid, newSequence.uuid());
+              nameManager.releaseName(oldKey);
+              return null;
+            })
+        .thenCompose(
+            ignored -> this.spawnAsync(creator, newName, location, lifespan, newSequence.uuid()));
   }
 
   /**

@@ -9,6 +9,7 @@ import com.google.inject.Singleton;
 import dev.jorel.commandapi.CommandPermission;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
+import dev.jorel.commandapi.arguments.MultiLiteralArgument;
 import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
@@ -42,6 +43,7 @@ public class CommandRegistry {
   @Inject private ListCommand listCommand;
   @Inject private MoveCommand moveCommand;
   @Inject private ReloadCommand reloadCommand;
+  @Inject private RenameCommand renameCommand;
   @Inject private MigrateCommand migrateCommand;
   @Inject private RespawnCommand respawnCommand;
   @Inject private UpdateCommand updateCommand;
@@ -109,6 +111,14 @@ public class CommandRegistry {
                         world("world").withPermission(Permission.spawnLocation),
                         location("location").withPermission(Permission.spawnLocation))
                     .executes(spawnCommand::spawnWithUuid),
+                command("rename")
+                    .withPermission(Permission.rename)
+                    .withShortDescription("fakeplayer.command.rename.description")
+                    .withRequirement(CommandSupports::hasFakeplayer)
+                    .withArguments(fakeplayerName("name"), text("new-name"))
+                    // 名称被占用时, 追加 force 才能接管
+                    .withOptionalArguments(new MultiLiteralArgument("force"))
+                    .executes(renameCommand::rename),
                 command("kick")
                     .withPermission(Permission.kick)
                     .withShortDescription("fakeplayer.command.kick.description")

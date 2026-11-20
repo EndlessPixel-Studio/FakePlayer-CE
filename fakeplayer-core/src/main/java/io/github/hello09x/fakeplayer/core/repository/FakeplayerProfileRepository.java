@@ -52,6 +52,16 @@ public class FakeplayerProfileRepository {
     return jdbc.queryForObject(sql, FakePlayerProfile.FakePlayerProfileRowMapper.instance, name);
   }
 
+  /**
+   * 解除名称与 UUID 的绑定 (重命名后旧名称不应再指向旧 UUID)。
+   *
+   * @param name 名称
+   * @return 受影响的行数
+   */
+  public int deleteByName(@NotNull String name) {
+    return jdbc.update("DELETE FROM fake_player_profile WHERE name = ?", name);
+  }
+
   private void initTables() {
     jdbc.execute(
         "create table if not exists fake_player_profile ("
