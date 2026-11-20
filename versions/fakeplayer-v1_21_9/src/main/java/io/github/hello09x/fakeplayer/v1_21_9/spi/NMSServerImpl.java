@@ -42,6 +42,9 @@ public class NMSServerImpl implements NMSServer {
                 handle.load(
                     TagValueInput.create(
                         ProblemReporter.DISCARDING, server.registryAccess(), nbt)));
+    // 假人不会发 ServerboundPlayerLoadedPacket, 显式标记已加载, 否则 ServerPlayer#isInvulnerableTo
+    // 会一直把它当成无敌的, 无法被攻击
+    handle.setClientLoaded(true);
     return new NMSServerPlayerImpl(handle.getBukkitEntity());
   }
 }

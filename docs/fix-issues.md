@@ -53,6 +53,7 @@
 
 ## CraftAmethyst/fakeplayer-QM
 - [CraftAmethyst/fakeplayer-QM PR #1](https://github.com/CraftAmethyst/fakeplayer-QM/pull/1)
+- [CraftAmethyst/fakeplayer-QM commit b9a498c3](https://github.com/CraftAmethyst/fakeplayer-QM/commit/b9a498c3) 标记假人客户端已加载, 使其可被攻击
 
 ## shulng/ReCatSeedLogin
 - [shulng/ReCatSeedLogin Issue #6](https://github.com/shulng/ReCatSeedLogin/issues/6)
