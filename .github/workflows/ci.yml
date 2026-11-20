@@ -15,6 +15,7 @@ on:
       - 'docs/**'
       - 'LICENSE'
       - '.gitignore'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -43,20 +44,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # 不再给 setup-java 传 cache: 'gradle' —— 它和下面的 setup-gradle 会把
+      # 同一个 ~/.gradle 存两遍, 白付一次 restore/save 的时间。
       - name: Setup JDK 25
         uses: actions/setup-java@v6
         with:
           java-version: '25'
           distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Cache Gradle wrapper
-        uses: actions/cache@v6
-        with:
-          path: ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-wrapper-
 
       - name: Cache Paperweight
         uses: actions/cache@v6
@@ -68,18 +62,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-paperweight-
 
+      # 格式由 format.yml 负责 (任意分支 push + PR 都会跑), 这里只构建,
+      # 不再重复执行 spotlessCheck。
       - name: Setup Gradle
         id: gradle-cache
         uses: gradle/actions/setup-gradle@v6
         with:
-          cache-read-only: false
+          # 默认行为: 默认分支 push 才写缓存, PR 只读 (等于省掉一次 post save)
           gradle-home-cache-includes: |
             caches
             wrapper
             notifications
+          # paperweight 的 Minecraft jar 已经有独立的 cache 步骤, 不再跟着
+          # Gradle Home 一起存一遍 (否则每次 push 要多传几百 MB)。
+          gradle-home-cache-excludes: |
+            caches/paperweight
 
       - name: Build
-        run: ./gradlew spotlessCheck :fakeplayer-dist:shadowJar --build-cache --parallel --console=plain -Dorg.gradle.workers.max=2
+        run: ./gradlew :fakeplayer-dist:shadowJar --build-cache --parallel --console=plain -Dorg.gradle.workers.max=2
 
       - name: Upload artifact
         if: ${{ github.event_name == 'push' }}
@@ -89,4 +89,5 @@ jobs:
           path: fakeplayer-dist/build/libs/*.jar
           if-no-files-found: error
           retention-days: 30
-          compression-level: 6
+          # 产物本身就是 jar, 再压一遍只是白烧 CPU
+          compression-level: 0

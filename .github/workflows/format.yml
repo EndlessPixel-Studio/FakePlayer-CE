@@ -6,6 +6,12 @@ name: Format
 on:
   push:
   pull_request:
+    # 纯文档改动不需要跑格式化
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
 
 concurrency:
   group: format-${{ github.ref }}
