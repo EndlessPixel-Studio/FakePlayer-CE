@@ -299,6 +299,15 @@ public class FakeplayerConfig extends PluginConfig {
   /** Host / Origin 白名单, 为空时不校验。用于缓解 DNS rebinding */
   private List<String> httpAdminAllowedHosts;
 
+  /** 是否启用跨域请求 (CORS) */
+  private boolean httpAdminCorsEnabled;
+
+  /** CORS 允许的来源, {@code *} 表示任意来源 */
+  private List<String> httpAdminCorsOrigins;
+
+  /** CORS 预检结果的缓存秒数 */
+  private int httpAdminCorsMaxAge;
+
   /** 每个来源 IP 每分钟允许的请求数 */
   private int httpAdminRequestsPerMinute;
 
@@ -452,6 +461,12 @@ public class FakeplayerConfig extends PluginConfig {
         file.getStringList("http-admin.allowed-hosts").stream()
             .filter(host -> host != null && !host.isBlank())
             .toList();
+    this.httpAdminCorsEnabled = file.getBoolean("http-admin.cors.enabled", false);
+    this.httpAdminCorsOrigins =
+        file.getStringList("http-admin.cors.allowed-origins").stream()
+            .filter(origin -> origin != null && !origin.isBlank())
+            .toList();
+    this.httpAdminCorsMaxAge = Math.max(0, file.getInt("http-admin.cors.max-age", 600));
     this.httpAdminRequestsPerMinute =
         Math.max(1, file.getInt("http-admin.rate-limit.requests-per-minute", 120));
     this.httpAdminAuthFailures =

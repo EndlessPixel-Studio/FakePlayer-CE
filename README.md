@@ -137,7 +137,7 @@ Data lives in SQLite (`plugins/FakePlayer-CE/data.db`) by default. To use MySQL,
 
 ## HTTP Admin API
 
-Optional lightweight HTTP API (disabled by default, no extra dependencies) for web panels and automation.
+Optional lightweight HTTP API (disabled by default, ships with the plugin) for web panels and automation.
 
 ```yaml
 http-admin:
@@ -147,6 +147,10 @@ http-admin:
   token: ""              # Empty generates a random token at startup and prints it to the console
   allow-get: true        # false accepts POST only
   allowed-hosts: []      # Host / Origin allowlist; empty disables the check
+  cors:
+    enabled: false       # Cross-origin requests; off sends no Access-Control-* headers
+    allowed-origins: []  # e.g. https://panel.example.com; "*" allows any origin
+    max-age: 600         # Preflight cache, seconds
   rate-limit:
     requests-per-minute: 120   # Per source IP
     auth-failures: 10          # Consecutive auth failures before lockout (0 disables)
@@ -157,6 +161,7 @@ http-admin:
 
 - The token goes in the `Authorization: Bearer <token>` header only; **`?token=` is not supported**.
 - Parameters always travel in the query string; `GET` and `POST` are both accepted.
+- **Cross-origin calls are off by default.** A panel served from another host needs `cors.enabled: true` and its origin in `allowed-origins`; the API then answers preflights (`OPTIONS`) and echoes `Access-Control-Allow-Origin`. Leave `allowed-origins` as a list of exact origins rather than `*` unless the panel is public.
 
 | Endpoint | Description |
 |---|---|

@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 35
+version: 36
 
 
 # ============================================================
@@ -442,6 +442,20 @@ http-admin:
   # 可缓解 DNS rebinding (恶意网页把域名解析到本机再借浏览器访问本接口)
   # Host / Origin allowlist, empty means no check; mitigates DNS rebinding
   allowed-hosts: []
+
+  # 跨域请求 / Cross-origin requests
+  # 默认关闭; 关闭时不返回任何 Access-Control-* 响应头, 浏览器会阻止跨域调用, 行为与之前一致
+  # Off by default. When off no Access-Control-* header is sent and browsers block cross-origin calls
+  cors:
+    # 是否启用跨域请求
+    # Enable cross-origin requests
+    enabled: false
+    # 允许的来源, 例如 https://panel.example.com; 写 * 表示允许任意来源
+    # Allowed origins, e.g. https://panel.example.com; "*" allows any origin
+    allowed-origins: []
+    # 预检 (OPTIONS) 结果的缓存秒数
+    # How long browsers may cache the preflight result, in seconds
+    max-age: 600
 
   # 限流与失败锁定 / Rate limiting and lockout
   rate-limit:

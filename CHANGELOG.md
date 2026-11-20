@@ -9,6 +9,16 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - 未发布的版本写作 `## fp.buildN - (Not published | 未发布)`：版本号可在开发期预置为下一版本，发布时把标题改成发布日期。
 - 每条条目以加粗短语概括要点，中英文段落条目数量与顺序保持一致。
 
+## fp.build21 - (Not published | 未发布)
+
+### English
+
+- **The HTTP admin API can serve cross-origin requests.** Off by default: with `http-admin.cors.enabled: false` no `Access-Control-*` header is sent and browsers block cross-origin calls exactly as before. Turning it on with a list of `allowed-origins` (or `*`) makes the API answer preflights and echo the origin, so a panel served from another host can call it; origins outside the list still get `403`. `config.yml` is now version 36.
+
+### 中文
+
+- **HTTP 管理接口支持跨域请求。** 默认关闭：`http-admin.cors.enabled: false` 时不返回任何 `Access-Control-*` 响应头，浏览器照旧拦住跨域调用，行为与之前完全一致。开启并在 `allowed-origins` 里列出面板来源（或写 `*`）后，接口会应答预检请求并回显来源，从而允许部署在别的主机上的面板调用；不在名单里的来源仍返回 `403`。`config.yml` 版本提升至 36。
+
 ## fp.build20 - 2026-11-20
 
 ### English

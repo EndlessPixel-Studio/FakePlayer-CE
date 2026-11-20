@@ -208,6 +208,14 @@ public class HttpAdminService {
       sendJsonNoQuery(ex, 403, "failure", "Host not allowed");
       return;
     }
+    if (!applyCors(ex)) {
+      sendJsonNoQuery(ex, 403, "failure", "Origin not allowed");
+      return;
+    }
+    // 预检请求不带令牌, 必须在方法校验与鉴权之前处理
+    if (handlePreflight(ex)) {
+      return;
+    }
     if (!isMethodAllowed(ex)) {
       sendJsonNoQuery(ex, 405, "failure", "Method not allowed");
       return;
@@ -260,6 +268,10 @@ public class HttpAdminService {
     if (origin == null || origin.isBlank()) {
       return true;
     }
+    // 启用了 CORS 且来源在白名单里时, 允许它与 Host 不同源
+    if (config.isHttpAdminCorsEnabled() && matchCorsOrigin(origin) != null) {
+      return true;
+    }
     var host = ex.getRequestHeader("Host");
     if (host == null) {
       return false;
@@ -273,6 +285,81 @@ public class HttpAdminService {
     }
     var allowed = config.getHttpAdminAllowedHosts();
     return allowed != null && isAllowedHost(allowed, originHost);
+  }
+
+  /**
+   * 匹配 CORS 来源。
+   *
+   * @param origin 浏览器发来的 Origin
+   * @return 要回给浏览器的 Access-Control-Allow-Origin 值; {@code null} 表示不允许
+   */
+  private @Nullable String matchCorsOrigin(@NotNull String origin) {
+    var allowed = config.getHttpAdminCorsOrigins();
+    if (allowed == null || allowed.isEmpty()) {
+      return null;
+    }
+    for (var rule : allowed) {
+      if ("*".equals(rule)) {
+        return "*";
+      }
+      if (rule.equalsIgnoreCase(origin)) {
+        return origin;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * 写入 CORS 响应头。
+   *
+   * <p>未启用 CORS 时什么都不做, 与旧行为一致 (浏览器会按同源策略拦掉跨域调用)。
+   *
+   * @param ex 请求
+   * @return 来源是否被允许
+   */
+  private boolean applyCors(@NotNull Exchange ex) {
+    if (!config.isHttpAdminCorsEnabled()) {
+      return true;
+    }
+    var origin = ex.getRequestHeader("Origin");
+    if (origin == null || origin.isBlank()) {
+      // 同源请求或非浏览器客户端
+      return true;
+    }
+    var allow = matchCorsOrigin(origin);
+    if (allow == null) {
+      return false;
+    }
+    ex.addResponseHeader("Access-Control-Allow-Origin", allow);
+    // 回显来源时要声明 Vary, 避免缓存把某个来源的响应复用给另一个来源
+    ex.addResponseHeader("Vary", "Origin");
+    return true;
+  }
+
+  /**
+   * 处理 CORS 预检请求。
+   *
+   * <p>预检不带 Authorization, 因此必须在鉴权之前应答, 否则浏览器拿到的 401 会让真正的请求发不出去。
+   *
+   * @param ex 请求
+   * @return 已处理并写完响应时返回 {@code true}
+   */
+  private boolean handlePreflight(@NotNull Exchange ex) throws IOException {
+    if (!config.isHttpAdminCorsEnabled()) {
+      return false;
+    }
+    if (!"OPTIONS".equalsIgnoreCase(ex.getRequestMethod())) {
+      return false;
+    }
+    if (ex.getRequestHeader("Access-Control-Request-Method") == null) {
+      return false;
+    }
+    ex.addResponseHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    ex.addResponseHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+    ex.addResponseHeader("Access-Control-Max-Age", String.valueOf(config.getHttpAdminCorsMaxAge()));
+    // 204 不能带响应体, 也不该带 Content-Length, 交给服务器决定
+    ex.sendResponseHeaders(204, -1);
+    return true;
   }
 
   private boolean isMethodAllowed(Exchange ex) {
