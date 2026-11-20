@@ -11,6 +11,7 @@
 
 ## tanyaofei/minecraft-fakeplayer (上游项目)
 - [tanyaofei/minecraft-fakeplayer Issue #104](https://github.com/tanyaofei/minecraft-fakeplayer/issues/104)
+- [tanyaofei/minecraft-fakeplayer Issue #128](https://github.com/tanyaofei/minecraft-fakeplayer/issues/128)
 - [tanyaofei/minecraft-fakeplayer Issue #137](https://github.com/tanyaofei/minecraft-fakeplayer/issues/137)
 - [tanyaofei/minecraft-fakeplayer Issue #138](https://github.com/tanyaofei/minecraft-fakeplayer/issues/138)
 - [tanyaofei/minecraft-fakeplayer Issue #150](https://github.com/tanyaofei/minecraft-fakeplayer/issues/150)

@@ -4,8 +4,10 @@ import io.github.hello09x.fakeplayer.api.spi.Action;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerPlayer;
 import io.github.hello09x.fakeplayer.core.util.LookUtils;
 import java.util.Collection;
+import org.bukkit.Location;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,9 +34,22 @@ public class LookAtEntityAction implements Action {
       return false;
     }
 
-    LookUtils.lookAt(player, entity.getLocation());
+    LookUtils.lookAt(player, aimPoint(entity));
     player.resetLastActionTime();
     return true;
+  }
+
+  /**
+   * 视线落点: 活着的实体看向眼睛, 其余看向碰撞箱中心。
+   *
+   * <p>直接看向 {@code getLocation()} 是脚底坐标, 近距离时俯仰角会明显偏低。
+   */
+  private static @NotNull Location aimPoint(@NotNull Entity entity) {
+    if (entity instanceof LivingEntity living) {
+      return living.getEyeLocation();
+    }
+    var center = entity.getBoundingBox().getCenter();
+    return new Location(entity.getWorld(), center.getX(), center.getY(), center.getZ());
   }
 
   @Override
@@ -48,18 +63,20 @@ public class LookAtEntityAction implements Action {
     if (entities.isEmpty()) {
       return null;
     }
+    // 以自身位置为圆心的查询会把自己也查出来 (距离 0), 必须排除,
+    // 否则假人会一直「看自己」, 表现为朝一个固定角度发呆
+    var selfId = player.getUniqueId();
     var loc = player.getLocation();
     Entity nearest = null;
-    double distance = 0;
+    double distance = Double.MAX_VALUE;
     for (var entity : entities) {
-      if (nearest == null) {
+      if (!entity.isValid() || entity.getUniqueId().equals(selfId)) {
+        continue;
+      }
+      var d = loc.distanceSquared(entity.getLocation());
+      if (d < distance) {
         nearest = entity;
-      } else {
-        var d = loc.distance(entity.getLocation());
-        if (d < distance) {
-          nearest = entity;
-          distance = d;
-        }
+        distance = d;
       }
     }
     return nearest;
