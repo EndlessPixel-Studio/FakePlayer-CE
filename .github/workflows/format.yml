@@ -5,8 +5,17 @@ name: Format
 # push 到仓库分支时直接格式化并提交回该分支; PR (含 fork) 只校验。
 on:
   push:
-  pull_request:
+    # 发版会打 tag, tag 上的格式化没有意义 (而且 tag 处于 detached HEAD,
+    # 自动提交那步根本推不回去)
+    tags-ignore:
+      - '**'
     # 纯文档改动不需要跑格式化
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+  pull_request:
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
