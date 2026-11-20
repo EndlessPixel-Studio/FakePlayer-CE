@@ -97,9 +97,11 @@ restore-on-start: false
 # sqlite: 使用插件目录下的 data.db (默认, 无需额外配置)
 # mysql: 需要预先建好一个空库, 表由插件自动创建; 改完需要重启
 # 从 sqlite 换到 mysql 之后执行 /fp migrate-db 迁移已有数据
+# 目前只支持 sqlite 与 mysql; 需要 PostgreSQL 请在 GitHub Issues 里提需求
 # sqlite: uses data.db in the plugin folder (default, nothing else to configure)
 # mysql: create an empty database first, tables are created automatically. Requires a restart
 # After switching from sqlite to mysql run /fp migrate-db to copy the existing data
+# Only sqlite and mysql are supported for now; ask in GitHub Issues if you need PostgreSQL
 database:
   type: sqlite
   mysql:
