@@ -47,9 +47,9 @@
 - [xiplugin/FakePlayer commit 04f1dc3](https://github.com/xiplugin/FakePlayer/commit/04f1dc35f5559c41562274475f417871655b6a29)
 
 ## xiplugin/FakePlayerPlus
-- [xiplugin/FakePlayerPlus PR #39](https://github.com/xiplugin/FakePlayerPlus/pull/39) 重命名假人
-- [xiplugin/FakePlayerPlus commit 021bb3d2](https://github.com/xiplugin/FakePlayerPlus/commit/021bb3d2dd056d8ec61a4a0289fd6454f9b2c8ab) 击退在下一个 tick 之前应用
-- [xiplugin/FakePlayerPlus commit b972a97a](https://github.com/xiplugin/FakePlayerPlus/commit/b972a97ac231fba484dc0e3db5751307d7525375) 移除的假人不再在崩溃后复活
+- [xiplugin/FakePlayerPlus PR #39](https://github.com/xiplugin/FakePlayerPlus/pull/39)
+- [xiplugin/FakePlayerPlus commit 021bb3d2](https://github.com/xiplugin/FakePlayerPlus/commit/021bb3d2dd056d8ec61a4a0289fd6454f9b2c8ab)
+- [xiplugin/FakePlayerPlus commit b972a97a](https://github.com/xiplugin/FakePlayerPlus/commit/b972a97ac231fba484dc0e3db5751307d7525375)
 
 ## CraftAmethyst/fakeplayer-QM
 - [CraftAmethyst/fakeplayer-QM PR #1](https://github.com/CraftAmethyst/fakeplayer-QM/pull/1)
