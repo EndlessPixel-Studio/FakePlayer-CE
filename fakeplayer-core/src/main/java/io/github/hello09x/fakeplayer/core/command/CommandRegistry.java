@@ -42,6 +42,7 @@ public class CommandRegistry {
   @Inject private ListCommand listCommand;
   @Inject private MoveCommand moveCommand;
   @Inject private ReloadCommand reloadCommand;
+  @Inject private MigrateCommand migrateCommand;
   @Inject private RespawnCommand respawnCommand;
   @Inject private UpdateCommand updateCommand;
   @Inject private VersionCommand versionCommand;
@@ -564,6 +565,10 @@ public class CommandRegistry {
                     .withShortDescription("fakeplayer.command.reload-translation.description")
                     .withPermission(CommandPermission.OP)
                     .executes(reloadCommand::reloadTranslation),
+                command("migrate-db")
+                    .withShortDescription("fakeplayer.command.migrate.description")
+                    .withPermission(CommandPermission.OP)
+                    .executes(migrateCommand::migrate),
                 command("update")
                     .withShortDescription("fakeplayer.command.update.description")
                     .withPermission(CommandPermission.OP)

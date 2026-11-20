@@ -2,17 +2,18 @@ package io.github.hello09x.fakeplayer.core;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.zaxxer.hikari.HikariDataSource;
 import dev.jorel.commandapi.CommandAPI;
 import io.github.hello09x.devtools.command.CommandModule;
 import io.github.hello09x.devtools.core.TranslationModule;
 import io.github.hello09x.devtools.core.translation.TranslationConfig;
 import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import io.github.hello09x.devtools.core.utils.Exceptions;
-import io.github.hello09x.devtools.database.DatabaseModule;
 import io.github.hello09x.fakeplayer.core.aichat.AiChatListener;
 import io.github.hello09x.fakeplayer.core.command.CommandRegistry;
 import io.github.hello09x.fakeplayer.core.compat.login.LoginCompatManager;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
+import io.github.hello09x.fakeplayer.core.database.DatabaseModule;
 import io.github.hello09x.fakeplayer.core.http.HttpAdminService;
 import io.github.hello09x.fakeplayer.core.listener.FakeplayerLifecycleListener;
 import io.github.hello09x.fakeplayer.core.listener.FakeplayerListener;
@@ -31,6 +32,7 @@ import io.github.hello09x.fakeplayer.core.repository.UsedIdRepository;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.util.update.UpdateChecker;
 import java.util.concurrent.CompletableFuture;
+import javax.sql.DataSource;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -201,6 +203,17 @@ public final class Main extends JavaPlugin {
             var messenger = getServer().getMessenger();
             messenger.unregisterIncomingPluginChannel(this);
             messenger.unregisterOutgoingPluginChannel(this);
+          });
+    }
+    if (injector != null) {
+      // 关掉连接池, 否则 reload 场景下 MySQL 连接会一直挂着
+      Exceptions.suppress(
+          this,
+          () -> {
+            var dataSource = injector.getInstance(DataSource.class);
+            if (dataSource instanceof HikariDataSource hikari) {
+              hikari.close();
+            }
           });
     }
   }

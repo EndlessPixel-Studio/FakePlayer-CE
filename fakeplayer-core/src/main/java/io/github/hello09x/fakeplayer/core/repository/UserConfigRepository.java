@@ -3,6 +3,8 @@ package io.github.hello09x.fakeplayer.core.repository;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.github.hello09x.devtools.database.jdbc.JdbcTemplate;
+import io.github.hello09x.fakeplayer.core.database.DatabaseType;
+import io.github.hello09x.fakeplayer.core.database.SchemaSupport;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import io.github.hello09x.fakeplayer.core.repository.model.UserConfig;
 import io.github.hello09x.fakeplayer.core.repository.model.UserConfigRowMapper;
@@ -15,10 +17,12 @@ import org.jetbrains.annotations.Nullable;
 public class UserConfigRepository {
 
   private final JdbcTemplate jdbc;
+  private final DatabaseType dialect;
 
   @Inject
-  public UserConfigRepository(JdbcTemplate jdbc) {
+  public UserConfigRepository(JdbcTemplate jdbc, DatabaseType dialect) {
     this.jdbc = jdbc;
+    this.dialect = dialect;
     this.initTables();
   }
 
@@ -31,24 +35,10 @@ public class UserConfigRepository {
 
   public int saveOrUpdate(@NotNull UserConfig config) {
     var sql =
-        """
-        insert or replace into user_config(
-            id, player_id, `key`, `value`
-        ) values (
-            (select id from user_config where player_id = ? and `key` = ?),
-            ?,
-            ?,
-            ?
-          )
-        """;
+        dialect.upsert(
+            "user_config", List.of("player_id", "`key`", "`value`"), List.of("player_id", "`key`"));
 
-    return jdbc.update(
-        sql,
-        config.playerId().toString(),
-        config.key().name(),
-        config.playerId(),
-        config.key().name(),
-        config.value());
+    return jdbc.update(sql, config.playerId().toString(), config.key().name(), config.value());
   }
 
   public @NotNull List<UserConfig> selectByPlayerId(@NotNull UUID playerId) {
@@ -58,20 +48,22 @@ public class UserConfigRepository {
 
   protected void initTables() {
     jdbc.execute(
-        """
-        create table if not exists user_config
-            (
-                id        integer  not null primary key autoincrement,
-                player_id text(36) not null,
-                `key`       text     not null,
-                `value`     text     not null
-            );
-        """);
+        "create table if not exists user_config ("
+            + "id "
+            + dialect.autoIncrementPrimaryKey()
+            + ", player_id "
+            + dialect.varchar(36)
+            + " not null, `key` "
+            + dialect.text()
+            + " not null, `value` "
+            + dialect.text()
+            + " not null)");
 
-    jdbc.execute(
-        """
-        create unique index if not exists table_name_player_id_key_uindex
-                   on user_config (player_id, `key`);
-        """);
+    SchemaSupport.createUniqueIndex(
+        jdbc,
+        dialect,
+        "table_name_player_id_key_uindex",
+        "user_config",
+        List.of("player_id", "`key`"));
   }
 }

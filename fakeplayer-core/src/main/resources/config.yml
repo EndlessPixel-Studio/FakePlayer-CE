@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 34
+version: 35
 
 
 # ============================================================
@@ -89,6 +89,31 @@ persistent-data: true
 # 记录在线假人, 并在下次服务器启动时自动恢复 (含原位置与创建者)
 # Record online fake players and restore them (with position and creator) on the next server start
 restore-on-start: false
+
+
+# ============================================================
+# 数据库 / Database
+# ============================================================
+# sqlite: 使用插件目录下的 data.db (默认, 无需额外配置)
+# mysql: 需要预先建好一个空库, 表由插件自动创建; 改完需要重启
+# 从 sqlite 换到 mysql 之后执行 /fp migrate-db 迁移已有数据
+# sqlite: uses data.db in the plugin folder (default, nothing else to configure)
+# mysql: create an empty database first, tables are created automatically. Requires a restart
+# After switching from sqlite to mysql run /fp migrate-db to copy the existing data
+database:
+  type: sqlite
+  mysql:
+    host: 127.0.0.1
+    port: 3306
+    database: fakeplayer
+    username: root
+    password: ''
+    # JDBC 参数 / JDBC parameters
+    parameters: 'useSSL=false&characterEncoding=utf8'
+    # 连接池大小 / connection pool size
+    max-pool-size: 6
+    # 获取连接超时, 毫秒 / connection timeout in ms
+    connection-timeout: 5000
 
 
 # ============================================================

@@ -60,6 +60,10 @@
 
 初回起動時はテンプレートの `config.tmpl.yml` のみが生成されます。`config.yml` にリネームすると有効になります。この仕組みにより、アップグレード時に既存の設定を上書きせず、追加された項目だけを確認できます。記入例は [config.yml](fakeplayer-core/src/main/resources/config.yml) を参照してください。
 
+## データベース
+
+データは既定で SQLite（`plugins/FakePlayer-CE/data.db`）に保存されます。MySQL を使う場合は空のデータベースを作成し、`config.yml` の `database.type` を `mysql` に、`database.mysql` を埋めてから再起動してください（テーブルは自動作成されます）。既存データは `/fp migrate-db` で移行できます（OP のみ、SQLite ファイルは残ります）。
+
 ## AI チャット
 
 `/fp aichat` を使うと、OpenAI 互換エンドポイント経由で偽プレイヤーに発言させられます。`plugins/FakePlayer-CE/ai-chat.yml` に `api` と `api-key`（または `api-key-env` で指定した環境変数）を設定し、`enabled: true` にしてから `/fp reload` を実行してください。
@@ -125,6 +129,7 @@
 | /fp password | 偽プレイヤーのログインパスワードを設定（プラグイン DB に保存） | fakeplayer.command.password | `auto-login.command` と併用 |
 | /fp changepassword | 偽プレイヤーのログインパスワードを変更（旧パスワードは任意） | fakeplayer.command.changepassword | |
 | /fp reload | 設定を再読み込み | OP | |
+| /fp migrate-db | SQLite のデータを MySQL へ移行 | OP | `database.type: mysql` が必要。再起動後に実行 |
 
 ## HTTP 管理 API
 

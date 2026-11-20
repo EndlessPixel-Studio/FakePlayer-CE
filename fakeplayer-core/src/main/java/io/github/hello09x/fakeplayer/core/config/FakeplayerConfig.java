@@ -8,8 +8,10 @@ import com.google.inject.Singleton;
 import io.github.hello09x.devtools.core.config.ConfigUtils;
 import io.github.hello09x.devtools.core.config.PluginConfig;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.database.DatabaseType;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
+import java.io.File;
 import java.time.Duration;
 import java.util.*;
 import java.util.function.Function;
@@ -110,6 +112,24 @@ public class FakeplayerConfig extends PluginConfig {
 
   /** 是否在服务器启动后自动恢复上次在线的假人 */
   private boolean restoreOnStart;
+
+  /** 数据库类型, 改完需要重启 */
+  private DatabaseType databaseType;
+
+  /** SQLite 数据文件的 JDBC url, 迁移时即使当前用的是 mysql 也需要它 */
+  private String sqliteUrl;
+
+  private String databaseDriver;
+
+  private String databaseUrl;
+
+  private String databaseUsername;
+
+  private String databasePassword;
+
+  private int databaseMaxPoolSize;
+
+  private long databaseConnectionTimeout;
 
   /**
    * 是否使用确定性 UUID (基于假人名称), 使不同玩家能共享同一个假人
@@ -297,6 +317,40 @@ public class FakeplayerConfig extends PluginConfig {
     return value <= 0 ? Integer.MAX_VALUE : value;
   }
 
+  /** 解析 database 段; 数据源在插件启用时构造, 因此改完需要重启才生效 */
+  private void reloadDatabase(@NotNull FileConfiguration file) {
+    var dataFolder = Main.getInstance().getDataFolder();
+    // 老版本的数据文件就叫 data.db, 换名字等于让用户丢数据
+    this.sqliteUrl = "jdbc:sqlite:" + new File(dataFolder, "data.db").getAbsolutePath();
+    this.databaseType = DatabaseType.parse(file.getString("database.type", "sqlite"));
+
+    if (this.databaseType.isMysql()) {
+      var host = file.getString("database.mysql.host", "127.0.0.1");
+      var port = file.getInt("database.mysql.port", 3306);
+      var database = file.getString("database.mysql.database", "fakeplayer");
+      var parameters =
+          file.getString("database.mysql.parameters", "useSSL=false&characterEncoding=utf8");
+      this.databaseDriver = "com.mysql.cj.jdbc.Driver";
+      this.databaseUrl =
+          "jdbc:mysql://%s:%d/%s".formatted(host, port, database)
+              + (parameters == null || parameters.isBlank() ? "" : "?" + parameters);
+      this.databaseUsername = file.getString("database.mysql.username", "root");
+      this.databasePassword = file.getString("database.mysql.password", "");
+      this.databaseMaxPoolSize = Math.max(1, file.getInt("database.mysql.max-pool-size", 6));
+      this.databaseConnectionTimeout =
+          Math.max(1000L, file.getLong("database.mysql.connection-timeout", 5000L));
+      return;
+    }
+
+    this.databaseDriver = "org.sqlite.JDBC";
+    this.databaseUrl = this.sqliteUrl;
+    this.databaseUsername = null;
+    this.databasePassword = null;
+    // SQLite 只允许一个写连接, 池开大只会互相抢锁
+    this.databaseMaxPoolSize = 1;
+    this.databaseConnectionTimeout = 5000L;
+  }
+
   @Override
   protected void reload(@NotNull FileConfiguration file) {
     this.playerLimit = maxIfZero(file.getInt("player-limit", 1));
@@ -318,6 +372,7 @@ public class FakeplayerConfig extends PluginConfig {
     this.kickOnDead = file.getBoolean("kick-on-dead", true);
     this.deathMessage = file.getBoolean("death-message", false);
     this.restoreOnStart = file.getBoolean("restore-on-start", false);
+    this.reloadDatabase(file);
     this.advancements = file.getBoolean("advancements", true);
     this.shareFakeplayer = file.getBoolean("share-fakeplayer", false);
     this.checkForUpdates = file.getBoolean("check-for-updates", true);

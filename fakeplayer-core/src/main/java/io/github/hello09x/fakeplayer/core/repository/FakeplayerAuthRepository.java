@@ -3,6 +3,8 @@ package io.github.hello09x.fakeplayer.core.repository;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.github.hello09x.devtools.database.jdbc.JdbcTemplate;
+import io.github.hello09x.fakeplayer.core.database.DatabaseType;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,10 +12,12 @@ import org.jetbrains.annotations.Nullable;
 public class FakeplayerAuthRepository {
 
   private final JdbcTemplate jdbc;
+  private final DatabaseType dialect;
 
   @Inject
-  public FakeplayerAuthRepository(JdbcTemplate jdbc) {
+  public FakeplayerAuthRepository(JdbcTemplate jdbc, DatabaseType dialect) {
     this.jdbc = jdbc;
+    this.dialect = dialect;
     this.initTables();
   }
 
@@ -24,7 +28,7 @@ public class FakeplayerAuthRepository {
    * @param password 登录密码
    */
   public void saveOrUpdate(@NotNull String name, @NotNull String password) {
-    var sql = "insert or replace into fakeplayer_auth(name, password) values(?, ?)";
+    var sql = dialect.upsert("fakeplayer_auth", List.of("name", "password"), List.of("name"));
     jdbc.update(sql, name, password);
   }
 
@@ -51,12 +55,12 @@ public class FakeplayerAuthRepository {
 
   protected void initTables() {
     jdbc.execute(
-        """
-        create table if not exists fakeplayer_auth
-            (
-                name     text not null primary key,
-                password text not null
-            );
-        """);
+        "create table if not exists fakeplayer_auth ("
+            + "name "
+            + dialect.varchar(64)
+            + " not null primary key, "
+            + "password "
+            + dialect.varchar(255)
+            + " not null)");
   }
 }

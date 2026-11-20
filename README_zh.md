@@ -60,6 +60,10 @@
 
 首次加载只生成模板 `config.tmpl.yml`，需手动改名为 `config.yml` 后生效。该机制便于升级时对比新增配置项，不会覆盖已有设置。示例见 [config.yml](fakeplayer-core/src/main/resources/config.yml)。
 
+## 数据库
+
+数据默认存在 SQLite（`plugins/FakePlayer-CE/data.db`）。想用 MySQL，先建一个空库，在 `config.yml` 里把 `database.type` 改成 `mysql` 并填好 `database.mysql`，然后重启——表会自动创建。已有数据之后用 `/fp migrate-db` 迁移（仅 OP；SQLite 文件不会被删除）。
+
 ## AI 聊天
 
 `/fp aichat` 让假人通过 OpenAI 兼容接口生成聊天内容。首次使用需在 `plugins/FakePlayer-CE/ai-chat.yml` 里填写 `api` 与 `api-key`（或设置 `api-key-env` 指定的环境变量），把 `enabled` 改为 `true`，再执行 `/fp reload`。
@@ -125,6 +129,7 @@
 | /fp password | 设置假人登录密码（存入插件数据库） | fakeplayer.command.password | 配合 `auto-login.command` 使用 |
 | /fp changepassword | 修改假人登录密码（旧密码可省略） | fakeplayer.command.changepassword | |
 | /fp reload | 重载插件配置文件 | OP | |
+| /fp migrate-db | 把 SQLite 的数据迁移到 MySQL | OP | 需要 `database.type: mysql`；重启后执行 |
 | /fp update check | 检查 GitHub 上是否有新版本 | OP | |
 | /fp version | 显示插件、服务端与 Java 版本 | - | 所有玩家可用 |
 | /fp sysinfo | 导出 CPU、内存、磁盘、TPS 与假人状态为 JSON | OP | 写在 `plugins/FakePlayer-CE/sysinfo/`，可直接附到性能问题里 |

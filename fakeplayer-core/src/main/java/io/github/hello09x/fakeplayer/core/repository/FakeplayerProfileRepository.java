@@ -4,7 +4,10 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.github.hello09x.devtools.database.jdbc.JdbcTemplate;
 import io.github.hello09x.devtools.database.jdbc.rowmapper.BooleanRowMapper;
+import io.github.hello09x.fakeplayer.core.database.DatabaseType;
+import io.github.hello09x.fakeplayer.core.database.SchemaSupport;
 import io.github.hello09x.fakeplayer.core.repository.model.FakePlayerProfile;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
@@ -18,10 +21,12 @@ import org.jetbrains.annotations.Nullable;
 public class FakeplayerProfileRepository {
 
   private final JdbcTemplate jdbc;
+  private final DatabaseType dialect;
 
   @Inject
-  public FakeplayerProfileRepository(JdbcTemplate jdbc) {
+  public FakeplayerProfileRepository(JdbcTemplate jdbc, DatabaseType dialect) {
     this.jdbc = jdbc;
+    this.dialect = dialect;
     this.initTables();
   }
 
@@ -49,25 +54,18 @@ public class FakeplayerProfileRepository {
 
   private void initTables() {
     jdbc.execute(
-        """
-        create table if not exists fake_player_profile
-        (
-            id   integer  not null primary key autoincrement,
-            name text(32) not null,
-            uuid text(36) not null
-        );
-        """);
+        "create table if not exists fake_player_profile ("
+            + "id "
+            + dialect.autoIncrementPrimaryKey()
+            + ", name "
+            + dialect.varchar(32)
+            + " not null, uuid "
+            + dialect.varchar(36)
+            + " not null)");
 
-    jdbc.execute(
-        """
-        create unique index if not exists fake_player_profile_name
-                   on fake_player_profile (name);
-        """);
-
-    jdbc.execute(
-        """
-        create unique index if not exists fake_player_profile_uuid
-                   on fake_player_profile (uuid);
-        """);
+    SchemaSupport.createUniqueIndex(
+        jdbc, dialect, "fake_player_profile_name", "fake_player_profile", List.of("name"));
+    SchemaSupport.createUniqueIndex(
+        jdbc, dialect, "fake_player_profile_uuid", "fake_player_profile", List.of("uuid"));
   }
 }

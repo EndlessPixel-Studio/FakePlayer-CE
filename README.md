@@ -60,6 +60,10 @@ FakePlayer CE ships as a single `fakeplayer-fp.buildX.jar`. Drop it into your se
 
 On first launch only a template `config.tmpl.yml` is generated; rename it to `config.yml` to activate it. The template lets you preview new options when upgrading without overwriting existing settings. See the [sample config](fakeplayer-core/src/main/resources/config.yml).
 
+## Database
+
+Data lives in SQLite (`plugins/FakePlayer-CE/data.db`) by default. To use MySQL, create an empty database, set `database.type: mysql` and fill in the `database.mysql` block in `config.yml`, then restart — the tables are created automatically. Existing data can be copied afterwards with `/fp migrate-db` (OP only; the SQLite file is left untouched).
+
 ## AI Chat
 
 `/fp aichat` lets fake players generate chat lines through an OpenAI-compatible endpoint. Fill in `api` and `api-key` (or the environment variable named by `api-key-env`) in `plugins/FakePlayer-CE/ai-chat.yml`, set `enabled: true`, then run `/fp reload`.
@@ -125,6 +129,7 @@ On first launch only a template `config.tmpl.yml` is generated; rename it to `co
 | /fp password | Set fake player login password (stored in the plugin database) | fakeplayer.command.password | Used with `auto-login.command` |
 | /fp changepassword | Change fake player login password (old password optional) | fakeplayer.command.changepassword | |
 | /fp reload | Reload config | OP | |
+| /fp migrate-db | Copy the SQLite database into MySQL | OP | Needs `database.type: mysql`; run after a restart |
 | /fp update check | Check GitHub for a newer build | OP | |
 | /fp version | Show plugin, server and Java version | - | Anyone |
 | /fp sysinfo | Dump CPU, memory, disk, TPS and fake player state to JSON | OP | Written to `plugins/FakePlayer-CE/sysinfo/`; attach it to performance reports |
