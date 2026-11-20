@@ -39,10 +39,7 @@ public class FakeServerGamePacketListenerImpl extends ServerGamePacketListenerIm
             Main.getInstance(), StandardMessenger.validateAndCorrectChannel(BUNGEE_CORD_CHANNEL));
   }
 
-  /**
-   * 假人没有客户端, 永远不会发 ServerboundPlayerLoadedPacket, 而原版把「客户端未加载」的玩家
-   * 视为无敌 —— 结果就是无法攻击假人。这里直接报告已加载。
-   */
+  /** 假人没有客户端, 永远不会发 ServerboundPlayerLoadedPacket, 而原版把「客户端未加载」的玩家 视为无敌 —— 结果就是无法攻击假人。这里直接报告已加载。 */
   @Override
   public boolean hasClientLoaded() {
     return true;
