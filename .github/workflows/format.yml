@@ -5,6 +5,10 @@ name: Format
 # push 到仓库分支时直接格式化并提交回该分支; PR (含 fork) 只校验。
 on:
   push:
+    # 必须同时写 branches: 只写 tags-ignore 会让 branches 变成「未定义」,
+    # 按 GitHub 的规则该事件就不会为分支推送触发工作流。
+    branches:
+      - '**'
     # 发版会打 tag, tag 上的格式化没有意义 (而且 tag 处于 detached HEAD,
     # 自动提交那步根本推不回去)
     tags-ignore:
