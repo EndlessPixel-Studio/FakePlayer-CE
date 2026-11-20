@@ -2,8 +2,6 @@ package io.github.hello09x.fakeplayer.core.http;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
 import io.github.hello09x.devtools.core.translation.PluginTranslator;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
@@ -22,9 +20,11 @@ import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
 import io.github.hello09x.fakeplayer.core.util.LookUtils;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.util.WalkUtils;
+import io.undertow.Undertow;
+import io.undertow.UndertowOptions;
+import io.undertow.server.handlers.BlockingHandler;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -38,12 +38,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -70,15 +67,11 @@ public class HttpAdminService {
 
   private static final int MAX_TRACKED_CLIENTS = 1024;
 
-  private static final int WORKER_THREADS = 4;
-
-  private static final int WORKER_QUEUE_SIZE = 64;
-
   private static final double MAX_GOTO_DISTANCE = 1024;
 
   @FunctionalInterface
   private interface Endpoint {
-    void handle(HttpExchange ex) throws IOException;
+    void handle(Exchange ex) throws IOException;
   }
 
   private final FakeplayerManager manager;
@@ -95,8 +88,7 @@ public class HttpAdminService {
 
   private final Map<String, ClientState> clients = new ConcurrentHashMap<>();
 
-  private HttpServer server;
-  private ExecutorService executor;
+  private Undertow server;
   private String token;
 
   @Inject
@@ -132,15 +124,6 @@ public class HttpAdminService {
     }
     this.token = token;
 
-    try {
-      server =
-          HttpServer.create(
-              new InetSocketAddress(config.getHttpAdminHost(), config.getHttpAdminPort()), 0);
-    } catch (IOException e) {
-      log.severe("Failed to start HTTP admin server: " + e);
-      return;
-    }
-
     routes.clear();
     routes.put("/list", this::handleList);
     routes.put("/status", this::handleStatus);
@@ -168,22 +151,21 @@ public class HttpAdminService {
     routes.put("/killall", this::handleKillAll);
     routes.put("/sayall", this::handleSayAll);
 
-    server.createContext("/", this::handleRequest);
-    this.executor =
-        new ThreadPoolExecutor(
-            WORKER_THREADS,
-            WORKER_THREADS,
-            60L,
-            TimeUnit.SECONDS,
-            new ArrayBlockingQueue<>(WORKER_QUEUE_SIZE),
-            r -> {
-              var thread = new Thread(r, "fakeplayer-http");
-              thread.setDaemon(true);
-              return thread;
-            },
-            new ThreadPoolExecutor.CallerRunsPolicy());
-    server.setExecutor(this.executor);
-    server.start();
+    try {
+      server =
+          Undertow.builder()
+              .addHttpListener(config.getHttpAdminPort(), config.getHttpAdminHost())
+              // 本地管理接口: 限制请求体大小, 空闲连接 30 秒回收
+              .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, (long) MAX_REQUEST_URI_LENGTH)
+              .setServerOption(UndertowOptions.IDLE_TIMEOUT, 30_000)
+              .setHandler(
+                  new BlockingHandler(exchange -> handleRequest(new UndertowExchange(exchange))))
+              .build();
+      server.start();
+    } catch (RuntimeException e) {
+      log.severe("Failed to start HTTP admin server: " + e);
+      return;
+    }
     log.info(
         "HTTP admin server started on "
             + config.getHttpAdminHost()
@@ -193,18 +175,14 @@ public class HttpAdminService {
 
   public void stop() {
     if (server != null) {
-      server.stop(0);
+      server.stop();
       server = null;
       log.info("HTTP admin server stopped");
-    }
-    if (executor != null) {
-      executor.shutdownNow();
-      executor = null;
     }
     clients.clear();
   }
 
-  private void handleRequest(HttpExchange ex) throws IOException {
+  private void handleRequest(Exchange ex) throws IOException {
     var endpoint = routes.get(ex.getRequestURI().getPath());
     if (endpoint == null) {
       sendJsonNoQuery(ex, 404, "failure", "Not found");
@@ -251,7 +229,7 @@ public class HttpAdminService {
     endpoint.handle(ex);
   }
 
-  private static String remoteAddress(HttpExchange ex) {
+  private static String remoteAddress(Exchange ex) {
     var remote = ex.getRemoteAddress();
     return remote == null ? "unknown" : remote.getAddress().getHostAddress();
   }
@@ -268,21 +246,21 @@ public class HttpAdminService {
     return clients.computeIfAbsent(ip, key -> new ClientState());
   }
 
-  private boolean checkHost(HttpExchange ex) {
+  private boolean checkHost(Exchange ex) {
     var allowed = config.getHttpAdminAllowedHosts();
     if (allowed == null || allowed.isEmpty()) {
       return true;
     }
-    var host = ex.getRequestHeaders().getFirst("Host");
+    var host = ex.getRequestHeader("Host");
     return host != null && isAllowedHost(allowed, host);
   }
 
-  private boolean checkOrigin(HttpExchange ex) {
-    var origin = ex.getRequestHeaders().getFirst("Origin");
+  private boolean checkOrigin(Exchange ex) {
+    var origin = ex.getRequestHeader("Origin");
     if (origin == null || origin.isBlank()) {
       return true;
     }
-    var host = ex.getRequestHeaders().getFirst("Host");
+    var host = ex.getRequestHeader("Host");
     if (host == null) {
       return false;
     }
@@ -297,7 +275,7 @@ public class HttpAdminService {
     return allowed != null && isAllowedHost(allowed, originHost);
   }
 
-  private boolean isMethodAllowed(HttpExchange ex) {
+  private boolean isMethodAllowed(Exchange ex) {
     var method = ex.getRequestMethod();
     if ("POST".equalsIgnoreCase(method)) {
       return true;
@@ -406,7 +384,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleList(HttpExchange ex) throws IOException {
+  private void handleList(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminList())) {
       return;
     }
@@ -415,7 +393,7 @@ public class HttpAdminService {
     send(ex, 200, "application/json", "{\"fakeplayer\":" + toJsonArray(names) + "}");
   }
 
-  private void handleSpawn(HttpExchange ex) throws IOException {
+  private void handleSpawn(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminSpawn())) {
       return;
     }
@@ -457,7 +435,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleKick(HttpExchange ex) throws IOException {
+  private void handleKick(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminKick())) {
       return;
     }
@@ -474,7 +452,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleKill(HttpExchange ex) throws IOException {
+  private void handleKill(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminKill())) {
       return;
     }
@@ -505,7 +483,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleSay(HttpExchange ex) throws IOException {
+  private void handleSay(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminSay())) {
       return;
     }
@@ -540,7 +518,7 @@ public class HttpAdminService {
   }
 
   /** 让假人用 AI 说一句; {@code continuous=true} 时持续发言直到 /aichat/stop */
-  private void handleAiChat(HttpExchange ex) throws IOException {
+  private void handleAiChat(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminAichat())) {
       return;
     }
@@ -609,7 +587,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleAiChatStop(HttpExchange ex) throws IOException {
+  private void handleAiChatStop(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminAichat())) {
       return;
     }
@@ -628,7 +606,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleStatus(HttpExchange ex) throws IOException {
+  private void handleStatus(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminStatus())) {
       return;
     }
@@ -661,7 +639,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleInfo(HttpExchange ex) throws IOException {
+  private void handleInfo(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminInfo())) {
       return;
     }
@@ -688,7 +666,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleAction(HttpExchange ex) throws IOException {
+  private void handleAction(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminAction())) {
       return;
     }
@@ -762,7 +740,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleStop(HttpExchange ex) throws IOException {
+  private void handleStop(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminStop())) {
       return;
     }
@@ -783,7 +761,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleTeleport(HttpExchange ex) throws IOException {
+  private void handleTeleport(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminTeleport())) {
       return;
     }
@@ -841,7 +819,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleLook(HttpExchange ex) throws IOException {
+  private void handleLook(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminLook())) {
       return;
     }
@@ -934,7 +912,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleHold(HttpExchange ex) throws IOException {
+  private void handleHold(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminHold())) {
       return;
     }
@@ -971,7 +949,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleSwap(HttpExchange ex) throws IOException {
+  private void handleSwap(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminSwap())) {
       return;
     }
@@ -992,7 +970,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleGoto(HttpExchange ex) throws IOException {
+  private void handleGoto(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminGoto())) {
       return;
     }
@@ -1071,7 +1049,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleSetPing(HttpExchange ex) throws IOException {
+  private void handleSetPing(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminSetPing())) {
       return;
     }
@@ -1109,21 +1087,21 @@ public class HttpAdminService {
     sendJson(ex, 200, "success", null);
   }
 
-  private void handleSneak(HttpExchange ex) throws IOException {
+  private void handleSneak(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminSneak())) {
       return;
     }
     setSneakOrSprint(ex, query(ex, "name"), true);
   }
 
-  private void handleSprint(HttpExchange ex) throws IOException {
+  private void handleSprint(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminSprint())) {
       return;
     }
     setSneakOrSprint(ex, query(ex, "name"), false);
   }
 
-  private void setSneakOrSprint(HttpExchange ex, String name, boolean sneak) throws IOException {
+  private void setSneakOrSprint(Exchange ex, String name, boolean sneak) throws IOException {
     var fake = requireFake(ex, name);
     if (fake == null) {
       return;
@@ -1157,7 +1135,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleReload(HttpExchange ex) throws IOException {
+  private void handleReload(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminReload())) {
       return;
     }
@@ -1175,7 +1153,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleRespawn(HttpExchange ex) throws IOException {
+  private void handleRespawn(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminRespawn())) {
       return;
     }
@@ -1200,7 +1178,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleCmd(HttpExchange ex) throws IOException {
+  private void handleCmd(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminCmd())) {
       return;
     }
@@ -1226,7 +1204,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleKickAll(HttpExchange ex) throws IOException {
+  private void handleKickAll(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminBatch())) {
       return;
     }
@@ -1238,7 +1216,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleKillAll(HttpExchange ex) throws IOException {
+  private void handleKillAll(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminBatch())) {
       return;
     }
@@ -1262,7 +1240,7 @@ public class HttpAdminService {
     }
   }
 
-  private void handleSayAll(HttpExchange ex) throws IOException {
+  private void handleSayAll(Exchange ex) throws IOException {
     if (!preflight(ex, config.isHttpAdminBatch())) {
       return;
     }
@@ -1328,7 +1306,7 @@ public class HttpAdminService {
     return status;
   }
 
-  private boolean preflight(HttpExchange ex, boolean enabled) throws IOException {
+  private boolean preflight(Exchange ex, boolean enabled) throws IOException {
     if (!isMethodAllowed(ex)) {
       sendJson(ex, 405, "failure", "Method not allowed");
       return false;
@@ -1340,7 +1318,7 @@ public class HttpAdminService {
     return true;
   }
 
-  private @Nullable Player requireFake(HttpExchange ex, @Nullable String name) throws IOException {
+  private @Nullable Player requireFake(Exchange ex, @Nullable String name) throws IOException {
     if (name == null || name.isBlank()) {
       sendJson(ex, 400, "failure", "Name is required");
       return null;
@@ -1353,7 +1331,7 @@ public class HttpAdminService {
     return fake;
   }
 
-  private static @Nullable Integer intQuery(HttpExchange ex, String key) {
+  private static @Nullable Integer intQuery(Exchange ex, String key) {
     var raw = query(ex, key);
     if (raw == null || raw.isBlank()) {
       return null;
@@ -1365,7 +1343,7 @@ public class HttpAdminService {
     }
   }
 
-  private static @Nullable Double doubleQuery(HttpExchange ex, String key) {
+  private static @Nullable Double doubleQuery(Exchange ex, String key) {
     var raw = query(ex, key);
     if (raw == null || raw.isBlank()) {
       return null;
@@ -1432,8 +1410,8 @@ public class HttpAdminService {
     return result.get();
   }
 
-  private boolean authorize(HttpExchange ex) {
-    var auth = ex.getRequestHeaders().getFirst("Authorization");
+  private boolean authorize(Exchange ex) {
+    var auth = ex.getRequestHeader("Authorization");
     if (auth == null || !auth.regionMatches(true, 0, "Bearer ", 0, 7)) {
       return false;
     }
@@ -1445,17 +1423,17 @@ public class HttpAdminService {
         token.getBytes(StandardCharsets.UTF_8), provided.getBytes(StandardCharsets.UTF_8));
   }
 
-  private void sendUnauthorized(HttpExchange ex) throws IOException {
+  private void sendUnauthorized(Exchange ex) throws IOException {
     sendJsonNoQuery(
         ex, 401, "failure", "Unauthorized: pass the token via the Authorization: Bearer header");
   }
 
-  private static void logCall(HttpExchange ex, int code, String status, String detail) {
+  private static void logCall(Exchange ex, int code, String status, String detail) {
     logCall(ex, code, status, detail, true);
   }
 
   private static void logCall(
-      HttpExchange ex, int code, String status, String detail, boolean withQuery) {
+      Exchange ex, int code, String status, String detail, boolean withQuery) {
     var uri = ex.getRequestURI();
     var sb = new StringBuilder(uri.getPath());
     var q = uri.getQuery();
@@ -1496,18 +1474,18 @@ public class HttpAdminService {
     return truncated ? sb.append("...").toString() : sb.toString();
   }
 
-  private void sendJson(HttpExchange ex, int code, String status, String msg) throws IOException {
+  private void sendJson(Exchange ex, int code, String status, String msg) throws IOException {
     logCall(ex, code, status, msg);
     writeJson(ex, code, status, msg);
   }
 
-  private void sendJsonNoQuery(HttpExchange ex, int code, String status, String msg)
+  private void sendJsonNoQuery(Exchange ex, int code, String status, String msg)
       throws IOException {
     logCall(ex, code, status, msg, false);
     writeJson(ex, code, status, msg);
   }
 
-  private void writeJson(HttpExchange ex, int code, String status, String msg) throws IOException {
+  private void writeJson(Exchange ex, int code, String status, String msg) throws IOException {
     var body =
         msg == null
             ? "{\"status\":\"" + status + "\"}"
@@ -1515,24 +1493,23 @@ public class HttpAdminService {
     send(ex, code, "application/json", body);
   }
 
-  private void sendJson(HttpExchange ex, int code, Map<String, Object> payload) throws IOException {
+  private void sendJson(Exchange ex, int code, Map<String, Object> payload) throws IOException {
     logCall(ex, code, String.valueOf(payload.getOrDefault("status", "success")), null);
     send(ex, code, "application/json", toJson(payload));
   }
 
-  private void send(HttpExchange ex, int code, String contentType, String body) throws IOException {
+  private void send(Exchange ex, int code, String contentType, String body) throws IOException {
     var bytes = body.getBytes(StandardCharsets.UTF_8);
-    var headers = ex.getResponseHeaders();
-    headers.add("Content-Type", contentType + "; charset=utf-8");
-    headers.add("Cache-Control", "no-store");
-    headers.add("X-Content-Type-Options", "nosniff");
+    ex.addResponseHeader("Content-Type", contentType + "; charset=utf-8");
+    ex.addResponseHeader("Cache-Control", "no-store");
+    ex.addResponseHeader("X-Content-Type-Options", "nosniff");
     ex.sendResponseHeaders(code, bytes.length);
     try (OutputStream os = ex.getResponseBody()) {
       os.write(bytes);
     }
   }
 
-  private static String query(HttpExchange ex, String key) {
+  private static String query(Exchange ex, String key) {
     var q = ex.getRequestURI().getQuery();
     if (q == null) {
       return null;

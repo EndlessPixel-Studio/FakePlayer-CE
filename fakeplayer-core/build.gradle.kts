@@ -38,6 +38,9 @@ dependencies {
     implementation("com.github.tanyaofei.devtools:devtools-command:0.1.7-SNAPSHOT")
     implementation("com.github.tanyaofei.devtools:devtools-database:0.1.7-SNAPSHOT")
     
+    // HTTP 管理接口: JDK 自带的 com.sun.net.httpserver 无法限制连接/请求体, 换 Undertow
+    implementation("io.undertow:undertow-core:2.3.27.Final")
+
     // MySQL 驱动: 只有 database.type = mysql 时才会加载, 但必须打进产物 (服务端不自带)
     runtimeOnly("com.mysql:mysql-connector-j:9.1.0")
 

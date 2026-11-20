@@ -17,6 +17,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **Fixed the login-plugin exemption surviving a removed fake player (#143, thanks @lldxlzy).** When the creator had already been cleaned up, the after-quit step was skipped entirely, so an AuthMe / LibreLogin exemption could stay behind for the rest of the session. The cleanup now always runs.
 - **New `/fp autosleep on|off [name]`.** A fake player with it enabled walks into a free bed on its own during the night instead of standing awake until morning; `/fp sleep` still sleeps once and `/fp wakeup` still wakes. Overworld only, and it needs an unoccupied bed within 4 blocks.
 - **MySQL support, and a command to migrate existing data.** Setting `database.type: mysql` and filling in the new `database.mysql` block stores passwords, UUID mappings, skins and personal configs in MySQL instead of the local `data.db`; `/fp migrate-db` copies an existing SQLite file over once, so switching loses nothing. Changing the setting needs a restart; `config.yml` is now version 35.
+- **The HTTP admin API moved to Undertow.** The JDK's built-in HTTP server cannot limit request sizes or idle connections, keeps no keep-alive budget and shuts down abruptly. The API now caps a request URI at 4 KB, reclaims idle connections after 30 seconds and stops gracefully on disable, with no config or endpoint change.
 
 ### 中文
 
@@ -24,6 +25,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **修复假人被移除后登录插件豁免残留（#143，感谢 @lldxlzy）。** 创建者已被先行清理时，退出后的收尾步骤会被整段跳过，AuthMe / LibreLogin 的豁免标记可能一直留到关服；现在清理一定会执行。
 - **新增 `/fp autosleep on|off [假人]`。** 开启后假人夜里会自己找空床躺下，不再整夜站着；`/fp sleep` 仍是睡一次，`/fp wakeup` 仍是叫醒。仅主世界生效，且 4 格内要有没被占用的床。
 - **支持 MySQL，并附带数据迁移命令。** 把 `database.type` 设为 `mysql` 并填好新增的 `database.mysql` 段后，密码、UUID 映射、皮肤与个人配置改存 MySQL（默认仍是插件目录下的 `data.db`）；`/fp migrate-db` 可把已有的 SQLite 数据一次性搬过去，换库不丢数据。改配置需要重启，`config.yml` 版本提升至 35。
+- **HTTP 管理接口改用 Undertow。** JDK 自带的 HTTP 服务器无法限制请求体与空闲连接，也没有平滑关闭；现在单请求 URI 上限 4 KB、空闲连接 30 秒回收、插件停用/重启时优雅关闭。接口路径与配置项都没有变化。
 
 ## fp.build19 - 2026-11-14
 
