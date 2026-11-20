@@ -13,10 +13,12 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **Fake players can be hit and take damage.** They never send the "client loaded" packet a real client sends, and vanilla treats a player whose client has not loaded as invulnerable, so even with invulnerability off they could not be damaged. The fake connection now reports itself as loaded, on 26.1+ and, explicitly, on 1.21.9; 1.21.11 has no equivalent hook yet and is unchanged.
 - **The HTTP admin API can serve cross-origin requests.** Off by default: with `http-admin.cors.enabled: false` no `Access-Control-*` header is sent and browsers block cross-origin calls exactly as before. Turning it on with a list of `allowed-origins` (or `*`) makes the API answer preflights and echo the origin, so a panel served from another host can call it; origins outside the list still get `403`. `config.yml` is now version 36.
 
 ### 中文
 
+- **假人现在可以被攻击、会掉血。** 假人不会发送真实客户端那个「已加载」数据包，而原版把客户端尚未加载的玩家当作无敌，所以即使关掉无敌也打不掉血。现在假人连接会主动报告已加载（26.1+ 与 1.21.9）；1.21.11 还没有对应的钩子，该版本行为不变。
 - **HTTP 管理接口支持跨域请求。** 默认关闭：`http-admin.cors.enabled: false` 时不返回任何 `Access-Control-*` 响应头，浏览器照旧拦住跨域调用，行为与之前完全一致。开启并在 `allowed-origins` 里列出面板来源（或写 `*`）后，接口会应答预检请求并回显来源，从而允许部署在别的主机上的面板调用；不在名单里的来源仍返回 `403`。`config.yml` 版本提升至 36。
 
 ## fp.build20 - 2026-11-20
