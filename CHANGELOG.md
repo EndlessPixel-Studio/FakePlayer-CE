@@ -333,84 +333,104 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
-- **Fixed fake player chat.** `/fp say` now supports `once / continuous / interval / stop` modes.
-- Fixed "ghost" fake players that could not be removed.
+- **Fixed fake players being unable to chat (Leaf 26.2 and later).** `ServerGamePacketListenerImpl#chat` pushes the message through the signed-chat validation chain, and a fake player has no session, so its null signature was silently dropped. Messages are now broadcast as an unsigned `PlayerChatMessage`, which bypasses the signature check.
+- **`/fp say` became a proper action command.** It gained the same `once / continuous / interval / stop` modes as the other actions, a TAB-completable fake player name and a `<name> <msg>` argument layout; the text rides on a new `message` field of `ActionSetting`, and every version module handles the new `ActionType.SAY`.
+- **Fixed "ghost" fake players that could not be removed.** They were still in the server's player list while the plugin had lost its own record.
+- **Inherits the build6 fixes.** Real removal through the NMS player list, and compatibility with Leaf forks whose `CraftServer#getServer()` returns the player list.
 
 ### 中文
 
-- **修复假人聊天失效。** `/fp say` 支持 `once / continuous / interval / stop` 子命令。
-- 修复"幽灵假人"无法移除的问题。
+- **修复假人无法发言（Leaf 26.2 及以后）。** `ServerGamePacketListenerImpl#chat` 会走聊天签名校验链，而假人没有真实会话，传入的空签名被静默丢弃。现在改为直接广播未签名的 `PlayerChatMessage`，绕过签名校验。
+- **`/fp say` 改为标准的动作命令。** 与其他动作一样支持 `once / continuous / interval / stop`，假人名可 TAB 补全，参数为 `<name> <msg>`；文本通过 `ActionSetting` 新增的 `message` 字段携带，各版本模块都补上了新的 `ActionType.SAY` 分支。
+- **修复无法移除的「幽灵假人」。** 这类假人仍在服务端的玩家列表里，但插件内部已经丢了记录。
+- **包含 build6 的修复。** 通过 NMS 玩家列表真正注销假人，并兼容 `CraftServer#getServer()` 返回玩家列表的 Leaf 分支。
 
 ## fp.build6 - 2026-08-13
 
 ### English
 
-- **Fixed fake players could not be removed (Issue #3).** `/fp kill` / `/fp killall` now deregister the entity from the server instead of only clearing internal records; compatible with Leaf forks. Vanilla `/kick` does not affect fake players by design.
-- Includes the build5 fix: resolved `ClassCastException` when spawning on Leaf 1.21.11 / 26.2.
-- Note: vanilla `/kick` does not affect fake players by design (they are not real connections). Use `/fp kill` or `/fp killall` to remove them.
+- **Fake players are really removed now (Issue #3).** `Player#kick` is a no-op for a fake player, because it never had a real connection; the old cleanup only cleared the plugin's own records and left the entity behind. It now calls the NMS `PlayerList.remove(ServerPlayer)`, so `/fp kill` and `/fp killall` actually deregister the entity and stop it from reappearing in `/list` and `/fp list`.
+- **Compatible with Leaf forks.** Those return the player list from `CraftServer#getServer()`, which previously made the removal path fail.
+- **Not a bug: vanilla `/kick` cannot affect fake players.** They do not occupy a real connection; use `/fp kill` or `/fp killall` instead.
+- **Inherits the build5 fixes.** CommandAPI 12.0.0 support, and the `ClassCastException` that broke `/fp spawn` on Leaf 1.21.11 / 26.2.
 
 ### 中文
 
-- **修复假人无法移除（Issue #3）。** `/fp kill` 与 `/fp killall` 现会真正从服务器注销假人实体，而非仅清空内部记录；兼容 Leaf 分支。vanilla `/kick` 对假人无效为预期设计。
-- 包含此前 build5 的修复：解决 Leaf 1.21.11 / 26.2 上生成假人的 `ClassCastException`。
-- 说明：vanilla `/kick` 对假人无效为预期设计（假人并非真实连接），请使用 `/fp kill` 或 `/fp killall` 移除假人。
+- **假人现在会被真正移除（Issue #3）。** 假人没有真实连接，`Player#kick` 对它是个空操作，旧逻辑只清了插件自己的记录，实体还留在服务端。现在改为调用 NMS 的 `PlayerList.remove(ServerPlayer)`，`/fp kill` 与 `/fp killall` 会真正注销实体，也不会再出现在 `/list`、`/fp list` 里。
+- **兼容 Leaf 分支。** 这类服务端的 `CraftServer#getServer()` 返回的是玩家列表，此前会让移除流程直接失败。
+- **不是 bug：原版 `/kick` 对假人无效。** 假人不占用真实连接，移除请用 `/fp kill` 或 `/fp killall`。
+- **包含 build5 的修复。** CommandAPI 12.0.0 支持，以及 Leaf 1.21.11 / 26.2 上 `/fp spawn` 的 `ClassCastException`。
 
 ## fp.build5 - 2026-08-12
 
 ### English
 
-- Upgraded to CommandAPI 12.0.0 and migrated off the removed `UTF8ResourceBundleControl` (now self-hosted), fixing `NoClassDefFoundError` on load.
-- Resolved `ClassCastException` when spawning on Leaf 1.21.11 / 26.2 (`DedicatedPlayerList` cannot be cast to `MinecraftServer`).
+- **CommandAPI 12.0.0 support.** Command arguments were migrated to the new construction signature, so the plugin loads on servers that ship CommandAPI 12.
+- **Adventure is bundled now.** `adventure-api` and `adventure-text-minimessage` used to be `compileOnly`, so the plugin shared the server's copy; after adventure 4.17 removed `UTF8ResourceBundleControl` the devtools loader threw `NoClassDefFoundError` at startup on Leaf 26.2. Both are shaded now, with a self-contained UTF-8 `ResourceBundle.Control`.
+- **Fixed `/fp spawn` throwing `ClassCastException` on Leaf 1.21.11 / 26.2.** `CraftServer#getServer()` returns a `DedicatedPlayerList` there instead of the `MinecraftServer`, so the server handle is now resolved through the typed `console` field and only falls back to `getServer()` when that field is absent.
 
 ### 中文
 
-- 升级至 CommandAPI 12.0.0，并迁移掉已被移除的 `UTF8ResourceBundleControl`（改为内置实现），修复加载时的 `NoClassDefFoundError`。
-- 解决 Leaf 1.21.11 / 26.2 上生成假人时的 `ClassCastException`（`DedicatedPlayerList` 无法转换为 `MinecraftServer`）。
+- **支持 CommandAPI 12.0.0。** 命令参数改用新的构造签名，装了 CommandAPI 12 的服务端也能正常加载。
+- **adventure 改为内置。** `adventure-api` 与 `adventure-text-minimessage` 原本是 `compileOnly`，用的是服务端自带的副本；adventure 4.17 移除 `UTF8ResourceBundleControl` 之后，devtools 的加载器在 Leaf 26.2 上启动就抛 `NoClassDefFoundError`。现在两者都打进插件，并自带一个基于 JDK 的 UTF-8 `ResourceBundle.Control`。
+- **修复 Leaf 1.21.11 / 26.2 上 `/fp spawn` 的 `ClassCastException`。** 这类服务端的 `CraftServer#getServer()` 返回 `DedicatedPlayerList` 而不是 `MinecraftServer`；现在改为按精确类型读 `console` 字段拿服务端句柄，只有该字段不存在时才回退到 `getServer()`。
 
 ## fp.build4 - 2026-08-10
 
 ### English
 
-- Auto-repair for worn tools (replenish).
-- Feature config changes now apply to online fake players immediately.
-- Compatibility with Mohist: removed the dependency on Paper's `LookAnchor` (upstream #200).
+- **Feature changes apply to online fake players immediately.** `/fp config` used to only write the database, so `invulnerable false` looked broken until the fake player respawned (upstream #178, #181, #199). Saved changes are pushed to the creator's online fake players right away.
+- **Tools are repaired during replenish (upstream #195).** Tools wear through durability loss, which fires no refill event, so a worn pickaxe was never replaced. A periodic check (`replenish.tools.durability-threshold`, wear percentage, off by default) repairs the held item.
+- **Mohist compatibility (upstream #200).** The look/move code referenced `io.papermc.paper.entity.LookAnchor`, which Mohist remaps and then cannot resolve; angles are now computed with plain NMS maths, so the plugin loads without `io.papermc` classes.
 
 ### 中文
 
-- 自动修复磨损工具（补货）。
-- 修改特性配置时实时应用到已生成的在线假人。
-- 兼容 Mohist：移除对 Paper `LookAnchor` 的依赖（上游 #200）。
+- **修改特性配置立即作用于在线假人。** `/fp config` 原先只写数据库，`invulnerable false` 要等假人重新生成才生效，看起来就是「关不掉无敌」（上游 #178、#181、#199）。现在保存后会立刻推给该创建者名下的在线假人。
+- **补货会修复磨损的工具（上游 #195）。** 工具靠耐久磨损消耗，而磨损不触发任何补货事件，磨损的镐子永远不会被换。新增周期性检查（`replenish.tools.durability-threshold`，按磨损百分比，默认关闭），超过阈值就修好手中物品。
+- **兼容 Mohist（上游 #200）。** 朝向/移动代码引用了 `io.papermc.paper.entity.LookAnchor`，Mohist 会重映射该类导致解析失败；现在改用纯 NMS 角度计算，加载时不依赖 `io.papermc` 的类。
 
 ## fp.build3 - 2026-08-10
 
 ### English
 
-- **New `/fp say` command** — fake players can send chat messages (via NMS chat).
-- Support for Minecraft 26.2; build upgraded to Java 25.
-- Fixed NMS/plugin lifecycle stability and server-handle resolution; fixed the chat method signature mismatch.
+- **New `/fp say` command.** Fake players can send chat messages through NMS, i.e. they appear as a normal chat line from them.
+- **Fixed the chat method signature.** The newer `chat` overload takes a `lastSeenMessages` argument, which this build was not passing, so sending a message threw `NoSuchMethodError` on newer servers.
+- **Fixed crashes on `/reload` and plugin disable.** Commands are unregistered and resources released during shutdown, so the reload no longer ends in `IllegalPluginAccessException`.
+- **Fixed NMS packet handling for 1.20.1 – 26.2.** `ClientboundRespawnPacket` (dimension change bookkeeping) and the entity motion packet were handled per version.
+- **Fixed the BungeeCord plugin channel check.** The channel name is now validated the same way the server does, so forwarding works behind a proxy.
 
 ### 中文
 
-- **新增 `/fp say` 命令** —— 假人可发送聊天消息（基于 NMS chat 实现）。
-- 适配 Minecraft 26.2，构建升级至 Java 25。
-- 修复 NMS 与插件生命周期稳定性、server handle 解析；修复聊天方法签名不匹配。
+- **新增 `/fp say` 命令。** 假人可以通过 NMS 发送聊天消息，看起来就是它本人说的一句话。
+- **修复聊天方法签名不匹配。** 新版 `chat` 重载多了 `lastSeenMessages` 参数，这个版本没传，导致在新服务端上发消息直接 `NoSuchMethodError`。
+- **修复 `/reload` 与停用插件时的崩溃。** 关停时会注销命令、释放资源，重载不再以 `IllegalPluginAccessException` 收场。
+- **修复 1.20.1 – 26.2 的 NMS 数据包处理。** `ClientboundRespawnPacket`（跨维度状态）与实体运动包都按版本做了处理。
+- **修复 BungeeCord 插件通道校验。** 通道名按服务端的方式规范化后再比较，代理网络下能正常转发。
 
 ## fp.build2 - 2026-07-28
 
 ### English
 
-- Support for Minecraft 26.1 / 26.2 (new versioning scheme).
+- **Minecraft 26.1 and 26.2 support.** The new versioning scheme gets its own modules (26.1 / 26.1.1 / 26.1.2 / 26.2) alongside 1.20.1 – 1.21.11, picked at runtime.
+- **Java 25 is now required for 26.x.** Those server versions do not run on Java 21; the 1.20/1.21 modules keep working on Java 21+.
 
 ### 中文
 
-- 支持 Minecraft 26.1 / 26.2（新版本号方案）。
+- **支持 Minecraft 26.1 与 26.2。** 新的版本号方案有独立模块（26.1 / 26.1.1 / 26.1.2 / 26.2），与 1.20.1 – 1.21.11 并列，运行时按服务端版本挑选。
+- **26.x 需要 Java 25。** 这些服务端版本无法在 Java 21 上运行；1.20 / 1.21 的模块仍然只要 Java 21+。
 
 ## fp.build1 - 2026-06-19
 
 ### English
 
-- First community edition release: Gradle multi-module architecture with a single universal jar for Minecraft 1.20.1+.
+- **First community edition release.** The abandoned upstream project was rebuilt on Gradle Kotlin DSL and Paperweight userdev with Mojang mappings, so a single universal jar covers Minecraft 1.20.1 – 1.21.11 and stays around 500 KB — no dependency conflicts with the server or with other plugins.
+- **One NMS module per Minecraft version.** The right bridge is chosen at runtime from the server version, instead of patching a single class set for every release.
+- **Fixed on the way:** fake player inventories failing to load, `/openinv` compatibility, untranslated placeholders, `%fakeplayer_actions%` resolution, commands that ran after a fake player had already quit, and the NMS mappings that broke between 1.21.9 and 1.21.11.
+- **Requires Java 21+**, Paper 1.20.1+ (Purpur and Pufferfish compatible) and CommandAPI 11.1.0+.
 
 ### 中文
 
-- 首个社区版发布：Gradle 多模块架构，单一通用 Jar 支持 Minecraft 1.20.1+。
+- **首个社区版发布。** 弃坑的上游项目改用 Gradle Kotlin DSL 与 Paperweight userdev（Mojang 映射）重建，一个通用 jar 覆盖 Minecraft 1.20.1 – 1.21.11，体积约 500 KB，不会和服务端或其他插件抢依赖。
+- **每个 Minecraft 版本一个 NMS 模块。** 运行时按服务端版本挑选对应的桥接实现，而不是让一套类同时兼容所有版本。
+- **顺带修复：** 假人背包加载失败、`/openinv` 兼容性、未翻译的占位符、`%fakeplayer_actions%` 解析、假人退出后仍在执行的命令，以及 1.21.9 – 1.21.11 之间断裂的 NMS 映射。
+- **需要 Java 21+**、Paper 1.20.1+（兼容 Purpur 与 Pufferfish）以及 CommandAPI 11.1.0+。
