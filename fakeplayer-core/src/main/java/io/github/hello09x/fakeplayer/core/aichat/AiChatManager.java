@@ -22,6 +22,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -257,14 +258,23 @@ public class AiChatManager {
       if (!target.isOnline()) {
         return;
       }
+      // 模型输出先转成组件再塞进格式串: 既能显示 Markdown 对应的样式,
+      // 又不会让模型写的 <red> / <click:...> 被当成 MiniMessage 标签执行
       var format =
-          config.getPrivateFormat().replace("{name}", fake.getName()).replace("{message}", message);
-      target.sendMessage(MiniMessage.miniMessage().deserialize(format));
+          config
+              .getPrivateFormat()
+              .replace("{name}", fake.getName())
+              .replace("{message}", "<message>");
+      target.sendMessage(
+          MiniMessage.miniMessage()
+              .deserialize(
+                  format, Placeholder.component("message", MarkdownRenderer.toComponent(message))));
       return;
     }
 
+    // 公共聊天走 Player#chat, 只接受字符串, 所以退化成去掉标记的纯文本
     var setting = ActionSetting.once();
-    setting.message = message;
+    setting.message = MarkdownRenderer.toPlainText(message);
     this.bridge.createAction(fake, ActionType.SAY, setting).tick();
   }
 
