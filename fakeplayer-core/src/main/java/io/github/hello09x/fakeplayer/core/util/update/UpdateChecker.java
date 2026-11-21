@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import io.github.hello09x.devtools.core.version.InvalidVersionException;
 import io.github.hello09x.devtools.core.version.Version;
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,15 +21,32 @@ public class UpdateChecker {
   /** 本项目的版本号格式, 例如 {@code fp.build13} */
   private static final Pattern BUILD_NUMBER = Pattern.compile("fp\\.build(\\d+)");
 
+  /** 查最新版本的请求超时 */
+  private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
+
   private static final Gson gson = new Gson();
 
   private final String author;
 
   private final String repository;
 
+  /** 是否跳过证书校验 (给证书链有问题的内网镜像 / 代理用) */
+  private final boolean ignoreSslErrors;
+
   public UpdateChecker(@NotNull String author, @NotNull String repository) {
+    this(author, repository, false);
+  }
+
+  /**
+   * @param author 仓库作者
+   * @param repository 仓库名
+   * @param ignoreSslErrors 是否跳过证书与主机名校验
+   */
+  public UpdateChecker(
+      @NotNull String author, @NotNull String repository, boolean ignoreSslErrors) {
     this.author = author;
     this.repository = repository;
+    this.ignoreSslErrors = ignoreSslErrors;
   }
 
   /**
@@ -87,7 +101,7 @@ public class UpdateChecker {
    * @param current 当前版本号
    * @return 检查结果
    */
-  public @NotNull Result check(@NotNull String current) throws IOException, InterruptedException {
+  public @NotNull Result check(@NotNull String current) throws IOException {
     var release = this.getLastRelease();
     var latest = stripTagPrefix(release.getTagName());
     return new Result(
@@ -115,28 +129,31 @@ public class UpdateChecker {
     };
   }
 
-  public @NotNull Release getLastRelease() throws IOException, InterruptedException {
+  /**
+   * 读取最新一次发布。
+   *
+   * @return 发布信息
+   * @throws IOException 网络或解析失败
+   */
+  public @NotNull Release getLastRelease() throws IOException {
     var url =
-        String.format(
-            "https://api.github.com/repos/%s/%s/releases/latest", this.author, this.repository);
-    var client = HttpClient.newHttpClient();
-    var request =
-        HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            // GitHub API 要求携带 User-Agent, 否则会返回 403
-            .header("User-Agent", "FakePlayer-CE-UpdateChecker")
-            .header("Accept", "application/vnd.github+json")
-            .GET()
-            .build();
-
-    var response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-    if (response.statusCode() != 200) {
-      throw new IllegalStateException(
-          "Not 200 response: " + response.statusCode() + ": " + response.body());
+        new URL(
+            String.format(
+                "https://api.github.com/repos/%s/%s/releases/latest",
+                this.author, this.repository));
+    var connection = HttpSupport.open(url, REQUEST_TIMEOUT, this.ignoreSslErrors);
+    try {
+      var code = connection.getResponseCode();
+      try (var in = code == 200 ? connection.getInputStream() : connection.getErrorStream()) {
+        var body = in == null ? "" : new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        if (code != 200) {
+          throw new IllegalStateException("Not 200 response: " + code + ": " + body);
+        }
+        return gson.fromJson(body, Release.class);
+      }
+    } finally {
+      connection.disconnect();
     }
-
-    var body = response.body();
-    return gson.fromJson(body, Release.class);
   }
 
   /**
@@ -150,36 +167,33 @@ public class UpdateChecker {
    * @param timeout 下载超时时间
    * @return 写入的文件
    * @throws IOException 下载或写文件失败
-   * @throws InterruptedException 线程被中断
    * @throws IllegalStateException 发布页上没有可下载的 jar
    */
   public @NotNull Path download(
       @NotNull Release release, @NotNull Path directory, @NotNull Duration timeout)
-      throws IOException, InterruptedException {
+      throws IOException {
     var asset = findJarAsset(release);
-    var client =
-        HttpClient.newBuilder()
-            // GitHub 的附件地址会 302 到 objects.githubusercontent.com
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .connectTimeout(timeout)
-            .build();
-    var request =
-        HttpRequest.newBuilder()
-            .uri(URI.create(asset.getBrowserDownloadUrl()))
-            .header("User-Agent", "FakePlayer-CE-UpdateChecker")
-            .timeout(timeout)
-            .GET()
-            .build();
 
     Files.createDirectories(directory);
     var target = directory.resolve(asset.getName());
     var temp = directory.resolve(asset.getName() + ".part");
 
-    var response = client.send(request, HttpResponse.BodyHandlers.ofFile(temp));
-    if (response.statusCode() != 200) {
+    var connection =
+        HttpSupport.open(new URL(asset.getBrowserDownloadUrl()), timeout, this.ignoreSslErrors);
+    try {
+      var code = connection.getResponseCode();
+      if (code != 200) {
+        throw new IllegalStateException(
+            "Not 200 response: " + code + " while downloading " + asset.getName());
+      }
+      try (var in = connection.getInputStream()) {
+        Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
+      }
+    } catch (IOException | RuntimeException e) {
       Files.deleteIfExists(temp);
-      throw new IllegalStateException(
-          "Not 200 response: " + response.statusCode() + " while downloading " + asset.getName());
+      throw e;
+    } finally {
+      connection.disconnect();
     }
 
     // 先清掉目录里的旧版本, 否则核心会把两个版本都当成插件处理

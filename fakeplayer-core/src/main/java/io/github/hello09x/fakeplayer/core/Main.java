@@ -139,7 +139,11 @@ public final class Main extends JavaPlugin {
         () -> {
           var meta = this.getPluginMeta();
           // 本项目的版本号为 fp.buildN 格式, 因此检查本仓库自己的 GitHub Releases
-          var checker = new UpdateChecker("EndlessPixel-Studio", "FakePlayer-CE");
+          var checker =
+              new UpdateChecker(
+                  "EndlessPixel-Studio",
+                  "FakePlayer-CE",
+                  injector.getInstance(FakeplayerConfig.class).isUpdateIgnoreSslErrors());
           try {
             var result = checker.check(meta.getVersion());
             var latest = result.latest();
@@ -200,8 +204,6 @@ public final class Main extends JavaPlugin {
             "This server does not process the plugins/update folder automatically,"
                 + " move the jar to plugins/ manually");
       }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
     } catch (Throwable e) {
       log.warning("Failed to download the update: " + e.getMessage());
     }

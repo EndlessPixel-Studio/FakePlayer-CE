@@ -13,6 +13,10 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **Update checks and downloads can skip certificate validation.** Some mirrors and proxies serve an
+  incomplete chain, which made both fail with `PKIX path building failed` and left no way around it.
+  `update-ignore-ssl-errors: true` skips CA and hostname checks for these requests only; it is off by
+  default because it also removes the protection against a man-in-the-middle.
 - **Updates can be downloaded automatically (opt-in).** With `update-download: true` the plugin fetches the
   new jar from the release page into `plugins/update`; Paper-family cores swap it in on the next restart, so
   updating becomes "download, restart". The periodic check does the same, so an idle server stays one restart
@@ -24,9 +28,12 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
+- **更新检查与下载可以跳过证书校验。** 部分镜像 / 代理的证书链不完整，检查与下载都会直接报
+  `PKIX path building failed`，且没有绕开的办法。`update-ignore-ssl-errors: true` 只对这两个请求
+  跳过 CA 与主机名校验，默认关闭——它同时去掉了对中间人攻击的防护。
 - **更新包可以自动下载（默认关闭）。** 打开 `update-download` 后，插件会把新版 jar 下载到 `plugins/update`，
   Paper 系核心会在下次启动时自动替换，更新流程变成「下载 + 重启」。定时检查同样会下载，长期不重启的服务器
-  也只是差一次重启。默认关闭；核心不处理该目录时会输出警告。`config.yml` 版本提升至 37。
+  也只是差一次重启。默认关闭；核心不处理该目录时会输出警告。`config.yml` 版本提升至 38。
 - **AI 回复不再把 Markdown 原样吐进聊天栏。** 模型按 Markdown 回答，而聊天栏只当普通文字渲染，`**`、`###`、代码围栏全成了噪声。现在会做转换：加粗 / 斜体 / 删除线 / 行内代码映射成对应样式，标题转加粗，列表转 `•`，代码围栏与分隔线直接去掉，链接变成可点击文字（公共聊天只接受字符串，退化为「文字 (地址)」）。私聊模板也不再让模型输出注入 MiniMessage 标签。
 - **假人现在可以被攻击、会掉血。** 假人不会发送真实客户端那个「已加载」数据包，而原版把客户端尚未加载的玩家当作无敌，所以即使关掉无敌也打不掉血。现在假人连接会主动报告已加载（26.1+ 与 1.21.9）；1.21.11 还没有对应的钩子，该版本行为不变。
 - **HTTP 管理接口支持跨域请求。** 默认关闭：`http-admin.cors.enabled: false` 时不返回任何 `Access-Control-*` 响应头，浏览器照旧拦住跨域调用，行为与之前完全一致。开启并在 `allowed-origins` 里列出面板来源（或写 `*`）后，接口会应答预检请求并回显来源，从而允许部署在别的主机上的面板调用；不在名单里的来源仍返回 `403`。

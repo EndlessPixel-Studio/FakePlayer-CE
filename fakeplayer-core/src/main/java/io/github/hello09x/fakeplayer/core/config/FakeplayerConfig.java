@@ -153,6 +153,9 @@ public class FakeplayerConfig extends PluginConfig {
   /** 更新包下载超时 (秒) */
   private int updateDownloadTimeoutSeconds;
 
+  /** 检查/下载更新时是否跳过证书校验 (内网镜像或代理的证书链不完整时用) */
+  private boolean updateIgnoreSslErrors;
+
   /**
    * 假人在 Tab 列表里显示的延迟 (ping)
    *
@@ -395,6 +398,7 @@ public class FakeplayerConfig extends PluginConfig {
     this.updateDownload = file.getBoolean("update-download", false);
     this.updateDownloadTimeoutSeconds =
         Math.max(5, file.getInt("update-download-timeout-seconds", 60));
+    this.updateIgnoreSslErrors = file.getBoolean("update-ignore-ssl-errors", false);
     this.namePattern = getNamePattern(file);
     this.preventKicking = this.getPreventKicking(file);
     this.nameTemplate = getNameTemplate(file);

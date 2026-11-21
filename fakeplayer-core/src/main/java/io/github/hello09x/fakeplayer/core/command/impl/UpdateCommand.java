@@ -19,8 +19,10 @@ import org.jetbrains.annotations.NotNull;
 @Singleton
 public class UpdateCommand extends AbstractCommand {
 
-  private static final UpdateChecker checker =
-      new UpdateChecker("EndlessPixel-Studio", "FakePlayer-CE");
+  private @NotNull UpdateChecker checker() {
+    return new UpdateChecker(
+        "EndlessPixel-Studio", "FakePlayer-CE", config.isUpdateIgnoreSslErrors());
+  }
 
   /** 检查是否有新版本; 网络请求放到异步线程, 结果回给命令执行者 */
   public void check(@NotNull CommandSender sender, @NotNull CommandArguments args) {
@@ -30,7 +32,7 @@ public class UpdateCommand extends AbstractCommand {
     CompletableFuture.runAsync(
         () -> {
           try {
-            var result = checker.check(current);
+            var result = this.checker().check(current);
             if (!result.outdated()) {
               LangUtils.send(
                   sender,
@@ -47,7 +49,7 @@ public class UpdateCommand extends AbstractCommand {
                     text(result.latest() == null ? "" : result.latest()),
                     text(result.current())));
             if (config.isUpdateDownload()) {
-              this.download(sender, result);
+              this.download(sender, result, this.checker());
               return;
             }
             if (result.url() != null) {
@@ -68,7 +70,10 @@ public class UpdateCommand extends AbstractCommand {
   }
 
   /** 把更新包下载到 plugins/update, 由服务端核心在下次启动时替换 */
-  private void download(@NotNull CommandSender sender, @NotNull UpdateChecker.Result result) {
+  private void download(
+      @NotNull CommandSender sender,
+      @NotNull UpdateChecker.Result result,
+      @NotNull UpdateChecker checker) {
     try {
       var target =
           checker.download(
@@ -85,8 +90,6 @@ public class UpdateCommand extends AbstractCommand {
       if (!UpdateInstaller.isSupportedByServer()) {
         LangUtils.send(sender, translatable("fakeplayer.command.update.download.unsupported", RED));
       }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
     } catch (Throwable e) {
       LangUtils.send(
           sender,

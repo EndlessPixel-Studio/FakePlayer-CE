@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 37
+version: 38
 
 
 # ============================================================
@@ -420,6 +420,12 @@ update-download: false
 # 更新包下载超时 (秒)
 # Download timeout in seconds
 update-download-timeout-seconds: 60
+
+# 检查 / 下载更新时跳过 HTTPS 证书校验 (忽略 CA)
+# 只在内网镜像、代理的证书链不完整导致 PKIX / SSLHandshakeException 时打开; 开启后无法防御中间人
+# Skip HTTPS certificate validation when checking or downloading updates
+# Only for mirrors or proxies with a broken chain; it also removes the protection against MITM
+update-ignore-ssl-errors: false
 
 
 # ============================================================
