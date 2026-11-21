@@ -10,6 +10,8 @@ import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.util.update.UpdateChecker;
+import io.github.hello09x.fakeplayer.core.util.update.UpdateInstaller;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +46,10 @@ public class UpdateCommand extends AbstractCommand {
                     GRAY,
                     text(result.latest() == null ? "" : result.latest()),
                     text(result.current())));
+            if (config.isUpdateDownload()) {
+              this.download(sender, result);
+              return;
+            }
             if (result.url() != null) {
               LangUtils.send(
                   sender,
@@ -59,5 +65,35 @@ public class UpdateCommand extends AbstractCommand {
                     text(String.valueOf(e.getMessage()))));
           }
         });
+  }
+
+  /** 把更新包下载到 plugins/update, 由服务端核心在下次启动时替换 */
+  private void download(@NotNull CommandSender sender, @NotNull UpdateChecker.Result result) {
+    try {
+      var target =
+          checker.download(
+              result.release(),
+              UpdateInstaller.updateDirectory(),
+              Duration.ofSeconds(config.getUpdateDownloadTimeoutSeconds()));
+      LangUtils.send(
+          sender,
+          translatable(
+              "fakeplayer.command.update.download.success",
+              GRAY,
+              text(String.valueOf(result.latest())),
+              text(target.toString())));
+      if (!UpdateInstaller.isSupportedByServer()) {
+        LangUtils.send(sender, translatable("fakeplayer.command.update.download.unsupported", RED));
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    } catch (Throwable e) {
+      LangUtils.send(
+          sender,
+          translatable(
+              "fakeplayer.command.update.download.failed",
+              RED,
+              text(String.valueOf(e.getMessage()))));
+    }
   }
 }

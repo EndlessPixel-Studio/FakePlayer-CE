@@ -147,6 +147,12 @@ public class FakeplayerConfig extends PluginConfig {
   /** 重复检测更新的间隔 (小时), 0 表示只在开服时检测一次 */
   private int updateCheckIntervalHours;
 
+  /** 发现新版本时是否直接下载到 plugins/update, 由服务端核心在下次启动时替换 */
+  private boolean updateDownload;
+
+  /** 更新包下载超时 (秒) */
+  private int updateDownloadTimeoutSeconds;
+
   /**
    * 假人在 Tab 列表里显示的延迟 (ping)
    *
@@ -386,6 +392,9 @@ public class FakeplayerConfig extends PluginConfig {
     this.shareFakeplayer = file.getBoolean("share-fakeplayer", false);
     this.checkForUpdates = file.getBoolean("check-for-updates", true);
     this.updateCheckIntervalHours = Math.max(0, file.getInt("update-check-interval-hours", 24));
+    this.updateDownload = file.getBoolean("update-download", false);
+    this.updateDownloadTimeoutSeconds =
+        Math.max(5, file.getInt("update-download-timeout-seconds", 60));
     this.namePattern = getNamePattern(file);
     this.preventKicking = this.getPreventKicking(file);
     this.nameTemplate = getNameTemplate(file);

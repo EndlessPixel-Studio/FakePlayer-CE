@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 36
+version: 37
 
 
 # ============================================================
@@ -410,6 +410,16 @@ check-for-updates: true
 # Interval in hours between checks, 0 checks only once at startup
 # The same new version is announced once; changes take effect after a restart
 update-check-interval-hours: 24
+
+# 发现新版本时把更新包下载到 plugins/update, 由服务端核心在下次启动时替换旧版本
+# 只有 Paper 系核心 (Paper / Purpur / Folia) 会处理该目录, 原版 CraftBukkit / Spigot 需要手动移动
+# Download the new jar into plugins/update so the core swaps it in on the next start
+# Only Paper-family servers process that folder; on CraftBukkit / Spigot move the jar manually
+update-download: false
+
+# 更新包下载超时 (秒)
+# Download timeout in seconds
+update-download-timeout-seconds: 60
 
 
 # ============================================================

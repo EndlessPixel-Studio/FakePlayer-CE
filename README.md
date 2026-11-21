@@ -130,7 +130,7 @@ Data lives in SQLite (`plugins/FakePlayer-CE/data.db`) by default. To use MySQL,
 | /fp changepassword | Change fake player login password (old password optional) | fakeplayer.command.changepassword | |
 | /fp reload | Reload config | OP | |
 | /fp migrate-db | Copy the SQLite database into MySQL | OP | Needs `database.type: mysql`; run after a restart |
-| /fp update check | Check GitHub for a newer build | OP | |
+| /fp update check | Check GitHub for a newer build (and download it into `plugins/update` when `update-download: true`) | OP | |
 | /fp version | Show plugin, server and Java version | - | Anyone |
 | /fp sysinfo | Dump CPU, memory, disk, TPS and fake player state to JSON | OP | Written to `plugins/FakePlayer-CE/sysinfo/`; attach it to performance reports |
 | /fp lang | Switch your display language | - | Anyone; overrides the client language |

@@ -31,6 +31,8 @@ import io.github.hello09x.fakeplayer.core.placeholder.FakeplayerPlaceholderExpan
 import io.github.hello09x.fakeplayer.core.repository.UsedIdRepository;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.util.update.UpdateChecker;
+import io.github.hello09x.fakeplayer.core.util.update.UpdateInstaller;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import javax.sql.DataSource;
 import lombok.Getter;
@@ -161,10 +163,48 @@ public final class Main extends JavaPlugin {
                 log.info("\t" + line);
               }
             }
+
+            this.downloadUpdateIfConfigured(checker, result);
           } catch (Throwable e) {
             getLogger().warning("Error on checking for updates: " + e.getMessage());
           }
         });
+  }
+
+  /**
+   * 按配置把更新包下载到 {@code plugins/update}。
+   *
+   * <p>同一个新版本只会走一次 (调用方已用 {@code notifiedVersion} 去重)。
+   *
+   * @param checker 更新检查器
+   * @param result 检查结果
+   */
+  private void downloadUpdateIfConfigured(
+      @NotNull UpdateChecker checker, @NotNull UpdateChecker.Result result) {
+    var config = injector.getInstance(FakeplayerConfig.class);
+    if (!config.isUpdateDownload()) {
+      return;
+    }
+
+    var log = getLogger();
+    try {
+      var target =
+          checker.download(
+              result.release(),
+              UpdateInstaller.updateDirectory(),
+              Duration.ofSeconds(config.getUpdateDownloadTimeoutSeconds()));
+      log.info(
+          "Downloaded %s to %s, restart the server to apply it".formatted(result.latest(), target));
+      if (!UpdateInstaller.isSupportedByServer()) {
+        log.warning(
+            "This server does not process the plugins/update folder automatically,"
+                + " move the jar to plugins/ manually");
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    } catch (Throwable e) {
+      log.warning("Failed to download the update: " + e.getMessage());
+    }
   }
 
   @Override
