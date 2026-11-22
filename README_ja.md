@@ -130,6 +130,8 @@
 | /fp changepassword | 偽プレイヤーのログインパスワードを変更（旧パスワードは任意） | fakeplayer.command.changepassword | |
 | /fp reload | 設定を再読み込み | OP | |
 | /fp migrate-db | SQLite のデータを MySQL へ移行 | OP | `database.type: mysql` が必要。再起動後に実行 |
+| /fp update check | GitHub に新しいビルドがあるか確認（`update-download: true` なら `plugins/update` へダウンロード） | OP | |
+| /fp update config | テンプレートで追加された、config.yml に無い項目を追記（既存の値とコメントは変更せず、書換え前に config.yml.bak へバックアップ） | OP | |
 
 ## HTTP 管理 API
 

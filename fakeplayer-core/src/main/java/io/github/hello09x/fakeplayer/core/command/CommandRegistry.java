@@ -588,7 +588,10 @@ public class CommandRegistry {
                     .withSubcommands(
                         command("check")
                             .withShortDescription("fakeplayer.command.update.check.description")
-                            .executes(updateCommand::check)),
+                            .executes(updateCommand::check),
+                        command("config")
+                            .withShortDescription("fakeplayer.command.update.config.description")
+                            .executes(updateCommand::config)),
                 command("version")
                     .withShortDescription("fakeplayer.command.version.description")
                     .executes(versionCommand::version),

@@ -13,7 +13,17 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **New `/fp update config`.** A newer build only warned that `config.yml` was out of date and left every new
+  option to be copied by hand out of `config.tmpl.yml`. The command appends the options that exist in the
+  template but are missing from the user's file, keeps existing values and comments untouched, writes the file
+  to `config.yml.bak` first, and reports options whose structure clashes with the template instead of
+  overwriting them. Running it a second time changes nothing.
+
 ### 中文
+
+- **新增 `/fp update config`。** 以前升级只提示 `config.yml` 版本过旧，新增的配置项仍要照着
+  `config.tmpl.yml` 手动补。该命令只把模板里有、用户配置里缺的项追加进去，已有取值与注释一律不动，
+  改写前先备份成 `config.yml.bak`；与模板结构冲突的项只报告、不覆盖。第二次执行不会产生任何改动。
 
 ## fp.build21 - 2026-11-22
 

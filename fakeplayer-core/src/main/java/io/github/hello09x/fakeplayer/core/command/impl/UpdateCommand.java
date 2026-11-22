@@ -8,6 +8,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.RED;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.config.ConfigUpdater;
 import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.util.update.UpdateChecker;
 import io.github.hello09x.fakeplayer.core.util.update.UpdateInstaller;
@@ -67,6 +68,54 @@ public class UpdateCommand extends AbstractCommand {
                     text(String.valueOf(e.getMessage()))));
           }
         });
+  }
+
+  /** 把模板新增、用户还没有的配置项追加进 config.yml; 既有值与注释保持不变, 结构冲突只提示, 改写前备份 config.yml.bak。 */
+  public void config(@NotNull CommandSender sender, @NotNull CommandArguments args) {
+    try {
+      var result = ConfigUpdater.update(Main.getInstance());
+      if (!result.exists()) {
+        LangUtils.send(sender, translatable("fakeplayer.command.update.config.missing", RED));
+        return;
+      }
+
+      if (result.changed()) {
+        LangUtils.send(
+            sender,
+            translatable(
+                "fakeplayer.command.update.config.added",
+                GRAY,
+                text(result.added().size()),
+                text(result.templateVersion()),
+                text(String.valueOf(result.backup()))));
+      } else {
+        LangUtils.send(
+            sender,
+            translatable(
+                "fakeplayer.command.update.config.uptodate", GRAY, text(result.templateVersion())));
+      }
+
+      if (!result.conflicts().isEmpty()) {
+        LangUtils.send(
+            sender,
+            translatable(
+                "fakeplayer.command.update.config.conflict",
+                RED,
+                text(result.conflicts().size()),
+                text(String.join(", ", result.conflicts()))));
+      }
+
+      if (result.changed()) {
+        LangUtils.send(sender, translatable("fakeplayer.command.update.config.reload", GRAY));
+      }
+    } catch (Throwable e) {
+      LangUtils.send(
+          sender,
+          translatable(
+              "fakeplayer.command.update.config.failed",
+              RED,
+              text(String.valueOf(e.getMessage()))));
+    }
   }
 
   /** 把更新包下载到 plugins/update, 由服务端核心在下次启动时替换 */
