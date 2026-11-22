@@ -116,8 +116,10 @@ public class CommandRegistry {
                     .withShortDescription("fakeplayer.command.rename.description")
                     .withRequirement(CommandSupports::hasFakeplayer)
                     .withArguments(fakeplayerName("name"), text("new-name"))
-                    // 名称被占用时, 追加 force 才能接管
-                    .withOptionalArguments(new MultiLiteralArgument("force"))
+                    // 名称被占用时, 追加 force 才能接管。
+                    // 注意 MultiLiteralArgument 的第一个参数是节点名, 后面才是可选值,
+                    // 只传一个会被当成「没有字面量」并在 CommandAPI 12.1.0+ 直接抛异常
+                    .withOptionalArguments(new MultiLiteralArgument("force", "force"))
                     .executes(renameCommand::rename),
                 command("kick")
                     .withPermission(Permission.kick)
