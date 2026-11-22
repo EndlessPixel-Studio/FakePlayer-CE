@@ -26,6 +26,12 @@ body:
     validations:
       required: true
   - type: input
+    id: commit
+    attributes:
+      label: Build commit (unreleased CI builds only)
+      description: If you are running a test jar from Actions, put its short commit hash here; leave it empty for released versions
+      placeholder: e.g. 2d406f51
+  - type: input
     id: mc_version
     attributes:
       label: MC Server Version
