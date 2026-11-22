@@ -13,6 +13,10 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **Fixed the plugin refusing to enable with CommandAPI 12.1.0 (#150).** The optional `force` argument of
+  `/fp rename` was created with a node name but no literal, which 12.1.0 rejects with
+  `BadLiteralException` while registering commands — every `/fp` command was gone and the plugin was
+  disabled at startup. The literal is passed properly now.
 - **Update checks and downloads can skip certificate validation.** Some mirrors and proxies serve an
   incomplete chain, which made both fail with `PKIX path building failed` and left no way around it.
   `update-ignore-ssl-errors: true` skips CA and hostname checks for these requests only; it is off by
@@ -28,6 +32,9 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
+- **修复 CommandAPI 12.1.0 下插件无法启用（#150）。** `/fp rename` 的可选 `force` 参数只传了节点名、没有传字面量，
+  12.1.0 在注册命令时直接抛 `BadLiteralException`，导致插件在启动阶段就被禁用、所有 `/fp` 命令消失。
+  现在按正确方式传入字面量。
 - **更新检查与下载可以跳过证书校验。** 部分镜像 / 代理的证书链不完整，检查与下载都会直接报
   `PKIX path building failed`，且没有绕开的办法。`update-ignore-ssl-errors: true` 只对这两个请求
   跳过 CA 与主机名校验，默认关闭——它同时去掉了对中间人攻击的防护。
