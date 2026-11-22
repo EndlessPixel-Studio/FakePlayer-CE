@@ -1,0 +1,46 @@
+name: Feature Request (English)
+description: Suggest new features or improvements
+title: "[Feature] "
+labels: ["enhancement"]
+assignees: []
+body:
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and pull requests to confirm this feature request has not been submitted before.
+          required: true
+        - label: I have considered alternative solutions and believe this feature would benefit the broader user base.
+          required: true
+        - label: I have completed all checklist items (admittedly without reading them closely)
+          required: false
+  - type: textarea
+    id: feature_desc
+    attributes:
+      label: Feature Description
+      description: Describe the feature you want
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case / Problem
+      description: What problem this feature solves
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed Solution
+      description: How you imagine it should work
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Other workarounds or ideas you considered
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional Context
+      description: Links, screenshots or references (optional)

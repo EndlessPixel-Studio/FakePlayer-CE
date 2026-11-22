@@ -1,0 +1,65 @@
+name: Bug 反馈（中文）
+description: 提交 fp.buildx 的问题反馈
+title: "[Bug] "
+labels: ["bug"]
+assignees: []
+body:
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 检查清单
+      options:
+        - label: 我已检索现有 Issues 和 PR，确认该 Bug 尚未被提交或修复
+          required: true
+        - label: 我确认当前服务端环境满足插件运行要求
+          required: true
+        - label: 我已完成所有检查项（老实说我没仔细看）
+          required: false
+        - label: 如有日志，我会附上错误日志以方便排查
+          required: true
+  - type: input
+    id: plugin_version
+    attributes:
+      label: 插件版本
+      description: fp.buildx 版本，请勿填写 Latest，请提供准确版本号
+      placeholder: 例如 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: mc_version
+    attributes:
+      label: MC 服务端版本
+      placeholder: 例如 1.21.1
+    validations:
+      required: true
+  - type: input
+    id: server_core
+    attributes:
+      label: 服务端核心
+      placeholder: 例如 Paper / Purpur / Folia
+    validations:
+      required: true
+  - type: textarea
+    id: bug_desc
+    attributes:
+      label: Bug 描述
+      description: 简洁清晰地描述遇到的问题
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+      description: 如何触发这个 Bug
+      placeholder: |
+        1. 
+        2. 
+        3. 
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志
+      description: 粘贴报错日志，若无日志可留空
+      render: shell
