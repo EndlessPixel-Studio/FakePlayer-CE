@@ -69,3 +69,9 @@ body:
       label: 日志
       description: 粘贴报错日志，若无日志可留空
       render: shell
+  - type: textarea
+    id: sysinfo
+    attributes:
+      label: 性能问题请附 sysinfo
+      description: 如果是卡顿、掉 TPS、CPU / 内存占用异常这类问题，请在服务端执行 /fp sysinfo，把生成的 plugins/FakePlayer-CE/sysinfo/*.json 内容贴在这里；其他问题可留空
+      render: json

@@ -69,3 +69,9 @@ body:
       label: Logs
       description: Paste error logs here (leave blank if no logs are available)
       render: shell
+  - type: textarea
+    id: sysinfo
+    attributes:
+      label: sysinfo for performance issues
+      description: For lag, dropping TPS or unusual CPU / memory usage, run /fp sysinfo on the server and paste the content of the generated plugins/FakePlayer-CE/sysinfo/*.json here; leave it empty otherwise
+      render: json
