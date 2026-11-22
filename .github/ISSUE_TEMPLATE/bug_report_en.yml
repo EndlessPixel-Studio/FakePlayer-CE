@@ -22,14 +22,14 @@ body:
     attributes:
       label: Plugin Version
       description: fp.buildx version. Do NOT fill in "Latest". Specify the exact version number.
-      placeholder: e.g. 1.0.0
+      placeholder: e.g. fp.build21
     validations:
       required: true
   - type: input
     id: mc_version
     attributes:
       label: MC Server Version
-      placeholder: e.g. 1.21.1
+      placeholder: e.g. 1.21.8 / 26.3
     validations:
       required: true
   - type: input
