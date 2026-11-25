@@ -28,9 +28,9 @@ body:
   - type: input
     id: commit
     attributes:
-      label: 构建 commit（仅未发布的 CI 构建）
-      description: 如果你用的是 Actions 里的测试版 jar，请填上它对应的短 commit 号；正式发布版留空即可
-      placeholder: 例如 2d406f51
+      label: 构建 commit
+      description: 在服务端执行 /fp version，把输出的 Commit 一行里的 7 位短号填在这里；测过多个构建请填出问题时那个。CI 构建与正式发布版都建议填写
+      placeholder: 例如 a1b2c3d
   - type: input
     id: mc_version
     attributes:
