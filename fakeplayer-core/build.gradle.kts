@@ -42,7 +42,7 @@ dependencies {
     implementation("io.undertow:undertow-core:2.3.27.Final")
 
     // MySQL 驱动: 只有 database.type = mysql 时才会加载, 但必须打进产物 (服务端不自带)
-    runtimeOnly("com.mysql:mysql-connector-j:9.1.0")
+    runtimeOnly("com.mysql:mysql-connector-j:26.10.0")
 
     // CommandAPI for command handling
     // 12.1.0 adds Minecraft 26.3 support (required for the v26_3 module)
