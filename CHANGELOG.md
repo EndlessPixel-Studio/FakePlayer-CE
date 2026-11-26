@@ -20,6 +20,12 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
   the file is never rewritten as a whole. Existing values and comments are left untouched, the old file is
   saved as `config.yml.bak` first, options whose structure clashes with the template are reported instead of
   overwritten, and running the command a second time changes nothing.
+- **Fixed Velocity forwarding going undetected when the server is started from another directory (#155).** Proxy
+  detection read `config/paper-global.yml` and `paper.yml` through relative paths, which resolve against the JVM
+  working directory rather than the server directory. Started from outside that directory (`java -jar
+  /srv/mc/paper.jar`, a panel, or systemd without `WorkingDirectory`), the files were never found and Velocity was
+  treated as absent, so `follow-quiting` removed a player's fake players as soon as they switched servers. The
+  paths are now joined to the server directory.
 
 ### 中文
 
@@ -27,6 +33,10 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
   `config.tmpl.yml` 手动补。该命令把模板里有、用户配置里缺的项连同注释一起补进去：缺整个顶层节就追加到
   文件末尾，缺的是已有节里的子项就就地插入，不会把整个文件重新写一遍。已有取值与注释一律不动，改写前
   先备份成 `config.yml.bak`；与模板结构冲突的项只报告、不覆盖。第二次执行不会产生任何改动。
+- **修复从其他目录启动时 Velocity 转发漏判（#155）。** 代理检测用相对路径读 `config/paper-global.yml` 与
+  `paper.yml`，而相对路径解析的是 JVM 的工作目录、不是服务端目录。从服务端目录之外启动时（`java -jar
+  /srv/mc/paper.jar`、面板，或 systemd 没写 `WorkingDirectory`）读不到文件，Velocity 被当作未启用，
+  `follow-quiting` 会在玩家跨服后直接清掉他名下的假人。现在路径拼在服务端目录上。
 
 ## fp.build21 - 2026-11-22
 
