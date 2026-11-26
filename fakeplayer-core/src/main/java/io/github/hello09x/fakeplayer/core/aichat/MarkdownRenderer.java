@@ -112,34 +112,50 @@ public final class MarkdownRenderer {
     return appended ? builder.build() : Component.empty();
   }
 
+  /** 一行内的样式状态; 链接会把一行切成多段, 状态必须跨段延续, 否则收尾标记会断在链接处 */
+  private static final class InlineStyle {
+    boolean bold;
+    boolean italic;
+    boolean strike;
+    boolean code;
+  }
+
   private static void appendInline(
       @NotNull TextComponent.Builder builder,
       @NotNull String line,
       boolean plain,
       boolean heading) {
+    var style = new InlineStyle();
     var matcher = LINK.matcher(line);
     var last = 0;
     while (matcher.find()) {
-      appendStyled(builder, line.substring(last, matcher.start()), plain, heading);
+      appendStyled(builder, line.substring(last, matcher.start()), plain, heading, style);
       var label = matcher.group(1);
       var url = matcher.group(2);
       if (plain) {
-        appendStyled(builder, label + " (" + url + ")", plain, heading);
+        appendStyled(builder, label + " (" + url + ")", plain, heading, style);
       } else {
-        var style =
+        // 链接本身也继承当前的行内样式, 否则 **粗 [链接] 仍粗** 里只有链接不加粗
+        var applied =
             Style.style()
                 .color(NamedTextColor.AQUA)
                 .decoration(TextDecoration.UNDERLINED, TextDecoration.State.TRUE)
                 .clickEvent(ClickEvent.openUrl(url))
                 .hoverEvent(HoverEvent.showText(Component.text(url)));
-        if (heading) {
-          style = style.decoration(TextDecoration.BOLD, TextDecoration.State.TRUE);
+        if (heading || style.bold) {
+          applied = applied.decoration(TextDecoration.BOLD, TextDecoration.State.TRUE);
         }
-        builder.append(Component.text(label).style(style));
+        if (style.italic) {
+          applied = applied.decoration(TextDecoration.ITALIC, TextDecoration.State.TRUE);
+        }
+        if (style.strike) {
+          applied = applied.decoration(TextDecoration.STRIKETHROUGH, TextDecoration.State.TRUE);
+        }
+        builder.append(Component.text(label).style(applied));
       }
       last = matcher.end();
     }
-    appendStyled(builder, line.substring(last), plain, heading);
+    appendStyled(builder, line.substring(last), plain, heading, style);
   }
 
   /**
@@ -151,44 +167,41 @@ public final class MarkdownRenderer {
       @NotNull TextComponent.Builder builder,
       @NotNull String text,
       boolean plain,
-      boolean heading) {
+      boolean heading,
+      @NotNull InlineStyle style) {
     var buffer = new StringBuilder();
-    var bold = false;
-    var italic = false;
-    var strike = false;
-    var code = false;
 
     for (var i = 0; i < text.length(); i++) {
       var c = text.charAt(i);
       if (c == '`') {
-        flush(builder, buffer, plain, heading, bold, italic, strike, code);
-        code = !code;
+        flush(builder, buffer, plain, heading, style);
+        style.code = !style.code;
         continue;
       }
       if (c == '*' || c == '_' || c == '~') {
         var doubled = nextIs(text, i, c);
         // 收尾标记后面必然是空格或行尾, 所以「正在生效」时无条件认它; 只有起始标记才需要判断边界
-        var active = doubled ? (c == '~' ? strike : bold) : italic;
+        var active = doubled ? (c == '~' ? style.strike : style.bold) : style.italic;
         if (!active && !markerStartsHere(text, i)) {
           buffer.append(c);
           continue;
         }
-        flush(builder, buffer, plain, heading, bold, italic, strike, code);
+        flush(builder, buffer, plain, heading, style);
         if (doubled) {
           if (c == '~') {
-            strike = !strike;
+            style.strike = !style.strike;
           } else {
-            bold = !bold;
+            style.bold = !style.bold;
           }
           i++;
         } else {
-          italic = !italic;
+          style.italic = !style.italic;
         }
         continue;
       }
       buffer.append(c);
     }
-    flush(builder, buffer, plain, heading, bold, italic, strike, code);
+    flush(builder, buffer, plain, heading, style);
   }
 
   private static void flush(
@@ -196,28 +209,25 @@ public final class MarkdownRenderer {
       @NotNull StringBuilder buffer,
       boolean plain,
       boolean heading,
-      boolean bold,
-      boolean italic,
-      boolean strike,
-      boolean code) {
+      @NotNull InlineStyle style) {
     if (buffer.isEmpty()) {
       return;
     }
-    var style = Style.style();
-    if (bold || heading) {
-      style = style.decoration(TextDecoration.BOLD, TextDecoration.State.TRUE);
+    var applied = Style.style();
+    if (style.bold || heading) {
+      applied = applied.decoration(TextDecoration.BOLD, TextDecoration.State.TRUE);
     }
-    if (italic) {
-      style = style.decoration(TextDecoration.ITALIC, TextDecoration.State.TRUE);
+    if (style.italic) {
+      applied = applied.decoration(TextDecoration.ITALIC, TextDecoration.State.TRUE);
     }
-    if (strike && !plain) {
-      style = style.decoration(TextDecoration.STRIKETHROUGH, TextDecoration.State.TRUE);
+    if (style.strike && !plain) {
+      applied = applied.decoration(TextDecoration.STRIKETHROUGH, TextDecoration.State.TRUE);
     }
-    if (code) {
+    if (style.code) {
       // MC 没有等宽字体, 用灰色区分行内代码
-      style = style.color(NamedTextColor.GRAY);
+      applied = applied.color(NamedTextColor.GRAY);
     }
-    builder.append(Component.text(buffer.toString()).style(style));
+    builder.append(Component.text(buffer.toString()).style(applied));
     buffer.setLength(0);
   }
 
