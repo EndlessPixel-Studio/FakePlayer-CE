@@ -26,6 +26,12 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
   links inherit the surrounding style, and a closing marker is consumed instead of starting a new run. Markup
   inside a link label stays inside the link, a plain-text URL is never parsed as markup, and a marker that
   directly follows a link still sees the character before it.
+- **Fixed Velocity forwarding going undetected when the server is started from another directory (#155).** Proxy
+  detection read `config/paper-global.yml` and `paper.yml` through relative paths, which resolve against the JVM
+  working directory rather than the server directory. Started from outside that directory (`java -jar
+  /srv/mc/paper.jar`, a panel, or systemd without `WorkingDirectory`), the files were never found and Velocity was
+  treated as absent, so `follow-quiting` removed a player's fake players as soon as they switched servers. The
+  paths are now joined to the server directory.
 
 ### 中文
 
@@ -37,6 +43,10 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
   各段从零开始算加粗 / 斜体状态，`**粗 [链接] 仍是粗**` 在链接之后就丢了样式，收尾的 `*` 还会漏进聊天栏。
   现在状态整行延续，链接本身也继承当前样式，收尾标记会被正常吃掉、不再当成新的起始标记。链接文字里的
   标记只作用于链接自己，纯文本模式的地址不会被当成标记解析，紧跟在链接后面的标记也仍然按前一个字符判断。
+- **修复从其他目录启动时 Velocity 转发漏判（#155）。** 代理检测用相对路径读 `config/paper-global.yml` 与
+  `paper.yml`，而相对路径解析的是 JVM 的工作目录、不是服务端目录。从服务端目录之外启动时（`java -jar
+  /srv/mc/paper.jar`、面板，或 systemd 没写 `WorkingDirectory`）读不到文件，Velocity 被当作未启用，
+  `follow-quiting` 会在玩家跨服后直接清掉他名下的假人。现在路径拼在服务端目录上。
 
 ## fp.build21 - 2026-11-22
 

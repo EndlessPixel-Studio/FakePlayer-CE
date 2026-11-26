@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -44,8 +45,9 @@ public final class ProxySupport {
    * <p>1.20.5 起 Paper 把全局配置挪到了 {@code config/paper-global.yml}, 旧版本是 {@code paper.yml}, 两个都看。
    */
   private static boolean isVelocityForwarding() {
+    var root = serverDirectory();
     for (var path : new String[] {"config/paper-global.yml", "paper.yml"}) {
-      var file = new File(path);
+      var file = new File(root, path);
       if (!file.isFile()) {
         continue;
       }
@@ -60,6 +62,26 @@ public final class ProxySupport {
       }
     }
     return false;
+  }
+
+  /**
+   * 服务端根目录。
+   *
+   * <p>不能直接用相对路径: 相对的是 JVM 的工作目录, 从服务器目录之外启动时 ({@code java -jar /srv/mc/paper.jar} 或面板 / systemd 没写
+   * {@code WorkingDirectory}) 会读不到 {@code config/paper-global.yml}。
+   *
+   * @return 世界容器目录 (通常即服务端根目录); 取不到时退回进程工作目录
+   */
+  private static @NotNull File serverDirectory() {
+    try {
+      var container = Bukkit.getWorldContainer();
+      if (container != null) {
+        return container;
+      }
+    } catch (Throwable ignored) {
+      // 没有运行中的服务端 (例如离线测试) 时退回工作目录
+    }
+    return new File(".");
   }
 
   private static boolean isVelocityEnabled(Object root) {
