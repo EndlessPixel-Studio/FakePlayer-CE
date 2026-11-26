@@ -118,6 +118,19 @@ public final class MarkdownRenderer {
     boolean italic;
     boolean strike;
     boolean code;
+
+    /** 链接文字的基础样式 (aqua + 下划线 + 点击); 非链接段为 null */
+    Style.Builder linkBase;
+
+    InlineStyle copy() {
+      var copy = new InlineStyle();
+      copy.bold = bold;
+      copy.italic = italic;
+      copy.strike = strike;
+      copy.code = code;
+      copy.linkBase = linkBase;
+      return copy;
+    }
   }
 
   private static void appendInline(
@@ -135,23 +148,20 @@ public final class MarkdownRenderer {
       if (plain) {
         appendStyled(builder, label + " (" + url + ")", plain, heading, style);
       } else {
-        // 链接本身也继承当前的行内样式, 否则 **粗 [链接] 仍粗** 里只有链接不加粗
-        var applied =
+        // 链接文字也走 appendStyled 解析其中的加粗/斜体/代码标记, 否则 [**粗**](url) 的星号会漏进聊天栏。
+        // 用副本解析: 链接文字内的标记可以改变链接自己的样式, 但不能泄漏到链接之后的正文。
+        // 链接基础样式作为起点叠加, 于是 **粗 [链接] 仍粗** 里链接也继承当前的粗体。
+        var linkStyle = style.copy();
+        linkStyle.linkBase =
             Style.style()
                 .color(NamedTextColor.AQUA)
                 .decoration(TextDecoration.UNDERLINED, TextDecoration.State.TRUE)
                 .clickEvent(ClickEvent.openUrl(url))
                 .hoverEvent(HoverEvent.showText(Component.text(url)));
-        if (heading || style.bold) {
-          applied = applied.decoration(TextDecoration.BOLD, TextDecoration.State.TRUE);
+        if (heading) {
+          linkStyle.bold = true;
         }
-        if (style.italic) {
-          applied = applied.decoration(TextDecoration.ITALIC, TextDecoration.State.TRUE);
-        }
-        if (style.strike) {
-          applied = applied.decoration(TextDecoration.STRIKETHROUGH, TextDecoration.State.TRUE);
-        }
-        builder.append(Component.text(label).style(applied));
+        appendStyled(builder, label, plain, heading, linkStyle);
       }
       last = matcher.end();
     }
@@ -213,7 +223,8 @@ public final class MarkdownRenderer {
     if (buffer.isEmpty()) {
       return;
     }
-    var applied = Style.style();
+    // 链接文字以链接基础样式为起点叠加, 普通文字从空样式开始
+    var applied = style.linkBase == null ? Style.style() : style.linkBase;
     if (style.bold || heading) {
       applied = applied.decoration(TextDecoration.BOLD, TextDecoration.State.TRUE);
     }
