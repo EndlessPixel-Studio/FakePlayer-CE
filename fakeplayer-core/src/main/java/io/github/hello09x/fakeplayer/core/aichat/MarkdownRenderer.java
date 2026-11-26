@@ -119,8 +119,16 @@ public final class MarkdownRenderer {
     boolean strike;
     boolean code;
 
-    /** 链接文字的基础样式 (aqua + 下划线 + 点击); 非链接段为 null */
-    Style.Builder linkBase;
+    /**
+     * 链接文字的基础样式 (aqua + 下划线 + 点击); 非链接段为 null。
+     *
+     * <p>这里存不可变的 {@link Style} 而不是 {@link Style.Builder}: 后者的 {@code decoration} / {@code color}
+     * 是原地修改, 同一个 builder 被两次 flush 复用时会把上一段的加粗、灰色带到下一段。
+     */
+    Style linkBase;
+
+    /** 上一段最后一个可见字符; 切段之后段首标记只能靠它判断左边是不是字母数字 */
+    char before = ' ';
 
     InlineStyle copy() {
       var copy = new InlineStyle();
@@ -129,6 +137,7 @@ public final class MarkdownRenderer {
       copy.strike = strike;
       copy.code = code;
       copy.linkBase = linkBase;
+      copy.before = before;
       return copy;
     }
   }
@@ -146,22 +155,27 @@ public final class MarkdownRenderer {
       var label = matcher.group(1);
       var url = matcher.group(2);
       if (plain) {
-        appendStyled(builder, label + " (" + url + ")", plain, heading, style);
+        // 纯文本模式链接退化成「文字 (地址)」。地址里的 * _ ~ 是 URL 的一部分, 不能当标记解析,
+        // 否则半截地址会被吃掉, 没闭合的标记还会把整行后面的文字带成斜体。
+        // 链接文字用副本解析, 其中的标记同样不泄漏到链接之后。
+        appendStyled(builder, label, plain, heading, style.copy());
+        builder.append(Component.text(" (" + url + ")"));
+        style.before = ')';
       } else {
         // 链接文字也走 appendStyled 解析其中的加粗/斜体/代码标记, 否则 [**粗**](url) 的星号会漏进聊天栏。
         // 用副本解析: 链接文字内的标记可以改变链接自己的样式, 但不能泄漏到链接之后的正文。
         // 链接基础样式作为起点叠加, 于是 **粗 [链接] 仍粗** 里链接也继承当前的粗体。
         var linkStyle = style.copy();
         linkStyle.linkBase =
-            Style.style()
+            Style.empty()
                 .color(NamedTextColor.AQUA)
                 .decoration(TextDecoration.UNDERLINED, TextDecoration.State.TRUE)
                 .clickEvent(ClickEvent.openUrl(url))
                 .hoverEvent(HoverEvent.showText(Component.text(url)));
-        if (heading) {
-          linkStyle.bold = true;
-        }
         appendStyled(builder, label, plain, heading, linkStyle);
+        if (!label.isEmpty()) {
+          style.before = label.charAt(label.length() - 1);
+        }
       }
       last = matcher.end();
     }
@@ -192,7 +206,9 @@ public final class MarkdownRenderer {
         var doubled = nextIs(text, i, c);
         // 收尾标记后面必然是空格或行尾, 所以「正在生效」时无条件认它; 只有起始标记才需要判断边界
         var active = doubled ? (c == '~' ? style.strike : style.bold) : style.italic;
-        if (!active && !markerStartsHere(text, i)) {
+        // 段首左边没有字符, 用上一段的末字符代替, 否则 [链接](url)_字面_ 里的下划线会被当成斜体开始
+        var before = i == 0 ? style.before : text.charAt(i - 1);
+        if (!active && !markerStartsHere(c, before, text, i)) {
           buffer.append(c);
           continue;
         }
@@ -212,6 +228,9 @@ public final class MarkdownRenderer {
       buffer.append(c);
     }
     flush(builder, buffer, plain, heading, style);
+    if (!text.isEmpty()) {
+      style.before = text.charAt(text.length() - 1);
+    }
   }
 
   private static void flush(
@@ -223,8 +242,9 @@ public final class MarkdownRenderer {
     if (buffer.isEmpty()) {
       return;
     }
-    // 链接文字以链接基础样式为起点叠加, 普通文字从空样式开始
-    var applied = style.linkBase == null ? Style.style() : style.linkBase;
+    // 链接文字以链接基础样式为起点叠加, 普通文字从空样式开始。
+    // 起点必须是不可变 Style: Style.Builder 的装饰方法是原地修改, 复用会把上一段的加粗 / 灰色留在下一段。
+    var applied = style.linkBase == null ? Style.empty() : style.linkBase;
     if (style.bold || heading) {
       applied = applied.decoration(TextDecoration.BOLD, TextDecoration.State.TRUE);
     }
@@ -250,10 +270,10 @@ public final class MarkdownRenderer {
    * 判断某个标记是否是一个格式区的开始。
    *
    * <p>避免把 {@code name_1} 这种下划线、{@code a * b} 这种乘号当成格式标记: 起始标记后面不能是空白, 且 {@code _} 前面不能紧挨字母数字。
+   *
+   * @param before 标记左边的字符; 标记位于段首时由调用方用上一段的末字符补上
    */
-  private static boolean markerStartsHere(@NotNull String text, int index) {
-    var c = text.charAt(index);
-    var before = index == 0 ? ' ' : text.charAt(index - 1);
+  private static boolean markerStartsHere(char c, char before, @NotNull String text, int index) {
     var after = index + 1 < text.length() ? text.charAt(index + 1) : ' ';
     if (Character.isWhitespace(after)) {
       return false;

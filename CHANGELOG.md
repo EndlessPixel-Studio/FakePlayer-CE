@@ -23,7 +23,9 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - **Fixed inline styles breaking at links in AI replies (#154).** `MarkdownRenderer` cut a line at every
   `[label](url)` and styled each piece from a fresh bold / italic state, so `**bold [link] still bold**` lost the
   markup right after the link and the closing `*` leaked into chat. The state now carries across the whole line,
-  links inherit the surrounding style, and a closing marker is consumed instead of starting a new run.
+  links inherit the surrounding style, and a closing marker is consumed instead of starting a new run. Markup
+  inside a link label stays inside the link, a plain-text URL is never parsed as markup, and a marker that
+  directly follows a link still sees the character before it.
 
 ### 中文
 
@@ -33,7 +35,8 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
   先备份成 `config.yml.bak`；与模板结构冲突的项只报告、不覆盖。第二次执行不会产生任何改动。
 - **修复 AI 回复的行内样式在链接处断开（#154）。** `MarkdownRenderer` 每遇到一个 `[文字](地址)` 就把一行切开、
   各段从零开始算加粗 / 斜体状态，`**粗 [链接] 仍是粗**` 在链接之后就丢了样式，收尾的 `*` 还会漏进聊天栏。
-  现在状态整行延续，链接本身也继承当前样式，收尾标记会被正常吃掉、不再当成新的起始标记。
+  现在状态整行延续，链接本身也继承当前样式，收尾标记会被正常吃掉、不再当成新的起始标记。链接文字里的
+  标记只作用于链接自己，纯文本模式的地址不会被当成标记解析，紧跟在链接后面的标记也仍然按前一个字符判断。
 
 ## fp.build21 - 2026-11-22
 
