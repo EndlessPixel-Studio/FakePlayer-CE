@@ -7,7 +7,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.executors.CommandArguments;
-import io.github.endlesspixel.fakeplayer.config.ConfigUpdater;
+import io.github.endlesspixel.fakeplayer.core.config.ConfigUpdater;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.util.update.UpdateChecker;

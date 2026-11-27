@@ -1,4 +1,4 @@
-package io.github.endlesspixel.fakeplayer.database;
+package io.github.endlesspixel.fakeplayer.core.database;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

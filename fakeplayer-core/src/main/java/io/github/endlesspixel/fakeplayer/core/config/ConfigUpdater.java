@@ -1,4 +1,4 @@
-package io.github.endlesspixel.fakeplayer.config;
+package io.github.endlesspixel.fakeplayer.core.config;
 
 import io.github.hello09x.devtools.core.config.PluginConfig;
 import java.io.File;

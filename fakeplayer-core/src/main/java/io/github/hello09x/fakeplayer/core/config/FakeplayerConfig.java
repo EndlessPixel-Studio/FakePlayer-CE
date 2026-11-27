@@ -5,7 +5,7 @@ import static net.kyori.adventure.text.Component.translatable;
 import com.google.common.annotations.Beta;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.github.endlesspixel.fakeplayer.database.DatabaseType;
+import io.github.endlesspixel.fakeplayer.core.database.DatabaseType;
 import io.github.hello09x.devtools.core.config.ConfigUtils;
 import io.github.hello09x.devtools.core.config.PluginConfig;
 import io.github.hello09x.fakeplayer.core.Main;
@@ -70,8 +70,17 @@ public class FakeplayerConfig extends PluginConfig {
   /** 是否探测 IP */
   private boolean detectIp;
 
-  /** 服务器 tps 低于这个值移除所有假人 */
-  private int kaleTps;
+  /** 是否启用按最近一分钟平均 TPS 动态调整玩家上限 */
+  private boolean tpsAdaptiveEnabled;
+
+  /** TPS 检测间隔 (秒) */
+  private int tpsAdaptiveInterval;
+
+  /** 最近一分钟平均 TPS 低于该值时逐级降低上限 */
+  private double tpsAdaptiveThreshold;
+
+  /** 动态上限的最低值 */
+  private int tpsAdaptiveMinCount;
 
   /** 创建前执行命令 */
   private List<String> preSpawnCommands;
@@ -377,7 +386,13 @@ public class FakeplayerConfig extends PluginConfig {
     this.followQuitingForce = file.getBoolean("follow-quiting-force", false);
     this.followQuitingForceDelay = file.getInt("follow-quiting-force-delay", 3);
     this.detectIp = file.getBoolean("detect-ip", false);
-    this.kaleTps = file.getInt("kale-tps", 0);
+    // 旧配置只有 kale-tps: 非 0 时等价于启用动态上限, 其数值作为阈值
+    var legacyTps = file.getDouble("kale-tps", 0);
+    this.tpsAdaptiveEnabled = file.getBoolean("tps-adaptive.enabled", legacyTps > 0);
+    this.tpsAdaptiveInterval = Math.max(1, file.getInt("tps-adaptive.interval", 60));
+    this.tpsAdaptiveThreshold =
+        file.getDouble("tps-adaptive.threshold", legacyTps > 0 ? legacyTps : 17.0D);
+    this.tpsAdaptiveMinCount = Math.max(0, file.getInt("tps-adaptive.min-count", 1));
     this.selfCommands = file.getStringList("self-commands");
     this.preSpawnCommands = file.getStringList("pre-spawn-commands");
     this.postSpawnCommands = file.getStringList("post-spawn-commands");

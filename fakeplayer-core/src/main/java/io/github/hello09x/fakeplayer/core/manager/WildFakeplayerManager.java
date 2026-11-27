@@ -3,7 +3,7 @@ package io.github.hello09x.fakeplayer.core.manager;
 import com.google.common.io.ByteStreams;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.github.endlesspixel.fakeplayer.util.ProxySupport;
+import io.github.endlesspixel.fakeplayer.core.util.ProxySupport;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;

@@ -1,4 +1,4 @@
-package io.github.endlesspixel.fakeplayer.http;
+package io.github.endlesspixel.fakeplayer.core.http;
 
 import java.io.IOException;
 import java.io.OutputStream;

@@ -1,9 +1,9 @@
-package io.github.endlesspixel.fakeplayer.http;
+package io.github.endlesspixel.fakeplayer.core.http;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.github.endlesspixel.fakeplayer.aichat.AiChatConfig;
-import io.github.endlesspixel.fakeplayer.aichat.AiChatManager;
+import io.github.endlesspixel.fakeplayer.core.aichat.AiChatConfig;
+import io.github.endlesspixel.fakeplayer.core.aichat.AiChatManager;
 import io.github.hello09x.devtools.core.translation.PluginTranslator;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;

@@ -1,6 +1,6 @@
 package io.github.hello09x.fakeplayer.v26_2.network;
 
-import io.github.endlesspixel.fakeplayer.util.PacketSendGuard;
+import io.github.endlesspixel.fakeplayer.core.util.PacketSendGuard;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;

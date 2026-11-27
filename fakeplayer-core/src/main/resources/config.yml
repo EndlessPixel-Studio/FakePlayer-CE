@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 38
+version: 39
 
 
 # ============================================================
@@ -203,14 +203,21 @@ share-fakeplayer: false
 # 性能保护 / TPS protection
 # ============================================================
 
-# 服务器最近 1 分钟平均 TPS 低于此值时, 每 60 秒把假人上限降 1 (按创建者分别计算),
-# 超出当前上限的假人会从最新召唤的开始移除; 卡顿消失后每 60 秒恢复 1 个上限
-# 0 表示关闭; 不推荐开启, 移除假人可能导致玩家的红石机器出问题
-# When the 1-minute average TPS stays below this value, the per-player fake player limit
-# drops by one every 60 seconds and fake players above it are removed (newest first);
-# once the lag clears the limit recovers by one per cycle. 0 disables it
-# Not recommended: removing fake players may break redstone machines
-kale-tps: 0
+# 按最近 1 分钟平均 TPS 动态调整每位玩家的假人上限 (参考 FakePlayerPlus)
+# Dynamically adjust each player's fake player limit based on the 1-minute average TPS
+tps-adaptive:
+  # 是否启用; 旧的 kale-tps 配置若大于 0 会自动作为阈值启用此功能
+  # Whether to enable this feature; a positive legacy kale-tps is used as the threshold
+  enabled: false
+  # 检测间隔 (秒)
+  # Detection interval in seconds
+  interval: 60
+  # TPS 低于此值时每个周期把上限降 1, 恢复后每个周期升 1
+  # Lower the limit by one per interval below this TPS, restore one per interval above it
+  threshold: 17.0
+  # 动态上限最低值, 不会降到比这更少
+  # Minimum allowed fake player limit
+  min-count: 1
 
 
 # ============================================================
