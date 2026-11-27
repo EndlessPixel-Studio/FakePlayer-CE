@@ -1435,11 +1435,17 @@ public class HttpAdminService {
     if (raw == null || raw.isBlank()) {
       return null;
     }
+    final double value;
     try {
-      return Double.parseDouble(raw.trim());
+      value = Double.parseDouble(raw.trim());
     } catch (NumberFormatException e) {
       throw new IllegalArgumentException("Invalid number: " + key);
     }
+    // NaN / Infinity 能被 Double.parseDouble 接受, 但拿去传送会让假人落到非法坐标, 直接被客户端踢下线
+    if (!Double.isFinite(value)) {
+      throw new IllegalArgumentException("Invalid number: " + key);
+    }
+    return value;
   }
 
   private static void setRotation(NMSServerPlayer handle, float yaw, float pitch) {

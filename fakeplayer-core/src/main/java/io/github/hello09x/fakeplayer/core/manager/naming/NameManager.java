@@ -237,6 +237,20 @@ public class NameManager {
     }
   }
 
+  /**
+   * 只校验并规范化名称, 不建立名称与 UUID 的绑定。
+   *
+   * <p>调用方需要在「动别人的数据之前」确认名称可用时用它: {@link #getSpecifiedName(CommandSender, String)} 会顺手写入绑定,
+   * 校验失败与副作用就分不开。
+   *
+   * @param name 自定义名称 (不含前缀)
+   * @return 加上前缀后的实际名称
+   * @throws IllegalCustomNameException 名称不合法或与在线玩家冲突
+   */
+  public @NotNull String validateName(@NotNull String name) {
+    return this.normalizeName(name);
+  }
+
   /** 校验并规范化自定义名称 (前缀、长度、字符集、在线冲突) */
   private @NotNull String normalizeName(@NotNull String name) {
     if (StringUtils.isNotBlank(config.getNamePrefix())) {

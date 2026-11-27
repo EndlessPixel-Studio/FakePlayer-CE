@@ -309,17 +309,27 @@ public class FakeplayerManager {
           new CommandException(
               translatable("fakeplayer.command.not-owner", text(oldName, GOLD)).color(RED)));
     }
-    if (target.getName().equalsIgnoreCase(newName)) {
+    // 先校验名称, 再处理占用者: 名称非法 (超长 / 非法字符 / 与在线玩家重名) 时不能已经把人删了,
+    // 否则一条拼错的命令会顺手移除一个无关的假人。校验会加上 name-prefix, 后面的占用判断也用这个全名,
+    // 否则配了前缀时永远匹配不到占用者。
+    final String validated;
+    try {
+      validated = nameManager.validateName(newName);
+    } catch (RuntimeException e) {
+      return CompletableFuture.failedFuture(e);
+    }
+
+    if (target.getName().equalsIgnoreCase(validated)) {
       return CompletableFuture.completedFuture(target.getPlayer());
     }
 
     // 目标名称被另一个在线假人占着
-    var occupant = this.playerList.getByName(newName);
+    var occupant = this.playerList.getByName(validated);
     if (occupant != null) {
       if (!force) {
         return CompletableFuture.failedFuture(
             new CommandException(
-                translatable("fakeplayer.command.rename.error.exists", text(newName, GOLD))
+                translatable("fakeplayer.command.rename.error.exists", text(validated, GOLD))
                     .color(RED)));
       }
       this.remove(occupant.getName(), "renamed to " + oldName);
@@ -328,7 +338,7 @@ public class FakeplayerManager {
       if (!force) {
         return CompletableFuture.failedFuture(
             new CommandException(
-                translatable("fakeplayer.command.rename.error.exists-hint", text(newName, GOLD))
+                translatable("fakeplayer.command.rename.error.exists-hint", text(validated, GOLD))
                     .color(RED)));
       }
       nameManager.releaseName(newName);
@@ -526,6 +536,13 @@ public class FakeplayerManager {
   public void cleanup(@NotNull Player target) {
     var fakeplayer = this.playerList.removeByUUID(target.getUniqueId());
     if (fakeplayer == null) {
+      // 幽灵假人: 内部列表里已经没有记录, 但实体可能还挂在服务端在线列表里。
+      // 下面的 kick 对假人网络无效, 只有 PlayerList.remove 才能真正注销, 所以这里也要走一次 ——
+      // 否则这类假人既不会被移除, 也不会随下线消失, 一直占着名字。
+      // 只处理确认是假人的实体: cleanup 也可能被误传真实玩家, 绝不能把真人从在线列表里摘掉
+      if (target.isConnected() && MetadataKeys.getSpawnedAt(target) != null) {
+        this.removeFromServer(target);
+      }
       return;
     }
     this.nameManager.unregister(fakeplayer.getSequenceName());

@@ -240,13 +240,16 @@ public final class ConfigUpdater {
       if (!builder.isEmpty() && !builder.toString().endsWith(separator)) {
         builder.append(separator);
       }
-      builder.append(separator).append(header(version)).append(String.join(separator, appended));
+      builder
+          .append(separator)
+          .append(header(version, separator))
+          .append(String.join(separator, appended));
     }
     return builder.toString();
   }
 
-  private static @NotNull String header(int version) {
-    var separator = System.lineSeparator();
+  /** 说明区块的换行符必须跟着目标文件走, 否则在 LF 文件里混进 CRLF, 编辑器会显示成空行或 ^M */
+  private static @NotNull String header(int version, @NotNull String separator) {
     return String.join(
             separator,
             "# ----------------------------------------------------------------------",

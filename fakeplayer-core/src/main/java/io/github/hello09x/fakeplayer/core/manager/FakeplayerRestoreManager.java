@@ -74,7 +74,11 @@ public class FakeplayerRestoreManager implements Listener {
    */
   public void start() {
     Schedulers.asyncTimer(
-        Main.getInstance(), SNAPSHOT_INTERVAL_TICKS, SNAPSHOT_INTERVAL_TICKS, this::saveSnapshot);
+        Main.getInstance(),
+        SNAPSHOT_INTERVAL_TICKS,
+        SNAPSHOT_INTERVAL_TICKS,
+        // 定时器只是闹钟: 采集要读假人的位置、动作与特性, 这些都在主线程上, 不能在异步线程直接读
+        () -> Schedulers.global(Main.getInstance(), this::saveSnapshot));
   }
 
   /** 将当前在线假人 (名称 / 创建者 / 位置 / 特性 / 进行中的动作) 写入快照文件 */

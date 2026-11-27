@@ -7,6 +7,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Supplier;
@@ -34,6 +35,13 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  */
 public final class Schedulers {
+
+  /**
+   * 阻塞等待被调度任务的上限。
+   *
+   * <p>插件停用、服务端关服或任务被取消时, 目标线程可能永远不会执行这个任务, 无上限的 {@code park()} 会把调用线程永久挂起; 超过这个时间就让它失败。
+   */
+  private static final long AWAIT_TIMEOUT_MILLIS = 30_000L;
 
   private Schedulers() {}
 
@@ -128,6 +136,7 @@ public final class Schedulers {
     return CompletableFuture.supplyAsync(
         () -> {
           var blocker = Thread.currentThread();
+          var done = new AtomicBoolean();
           var exception = new AtomicReference<Throwable>();
           var value = new AtomicReference<T>();
           Bukkit.getRegionScheduler()
@@ -140,10 +149,11 @@ public final class Schedulers {
                     } catch (Throwable e) {
                       exception.set(e);
                     } finally {
+                      done.set(true);
                       LockSupport.unpark(blocker);
                     }
                   });
-          LockSupport.park(blocker);
+          awaitCompletion(done);
           if (exception.get() != null) {
             throw new CompletionException(exception.get());
           }
@@ -199,6 +209,7 @@ public final class Schedulers {
     return CompletableFuture.supplyAsync(
         () -> {
           var blocker = Thread.currentThread();
+          var done = new AtomicBoolean();
           var exception = new AtomicReference<Throwable>();
           var value = new AtomicReference<T>();
           Bukkit.getGlobalRegionScheduler()
@@ -210,10 +221,11 @@ public final class Schedulers {
                     } catch (Throwable e) {
                       exception.set(e);
                     } finally {
+                      done.set(true);
                       LockSupport.unpark(blocker);
                     }
                   });
-          LockSupport.park(blocker);
+          awaitCompletion(done);
           if (exception.get() != null) {
             throw new CompletionException(exception.get());
           }
@@ -239,6 +251,7 @@ public final class Schedulers {
     return CompletableFuture.supplyAsync(
         () -> {
           var blocker = Thread.currentThread();
+          var done = new AtomicBoolean();
           var exception = new AtomicReference<Throwable>();
           var value = new AtomicReference<T>();
           var scheduled =
@@ -252,12 +265,13 @@ public final class Schedulers {
                         } catch (Throwable e) {
                           exception.set(e);
                         } finally {
+                          done.set(true);
                           LockSupport.unpark(blocker);
                         }
                       },
                       null);
           if (scheduled != null) {
-            LockSupport.park(blocker);
+            awaitCompletion(done);
           }
           if (exception.get() != null) {
             throw new CompletionException(exception.get());
@@ -286,6 +300,7 @@ public final class Schedulers {
     return CompletableFuture.supplyAsync(
         () -> {
           var blocker = Thread.currentThread();
+          var done = new AtomicBoolean();
           var exception = new AtomicReference<Throwable>();
           var value = new AtomicReference<T>();
           Bukkit.getAsyncScheduler()
@@ -297,15 +312,35 @@ public final class Schedulers {
                     } catch (Throwable e) {
                       exception.set(e);
                     } finally {
+                      done.set(true);
                       LockSupport.unpark(blocker);
                     }
                   });
-          LockSupport.park(blocker);
+          awaitCompletion(done);
           if (exception.get() != null) {
             throw new CompletionException(exception.get());
           }
           return value.get();
         },
         executor);
+  }
+
+  /**
+   * 等待被调度的任务执行完毕, 超时后抛异常而不是永久挂起。
+   *
+   * <p>{@code park()} 会被虚假唤醒, 也会在任务永远不执行时一直等下去, 所以这里用带超时的循环 + 完成标记。
+   *
+   * @param done 任务执行完成标记
+   */
+  private static void awaitCompletion(@NotNull AtomicBoolean done) {
+    var deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(AWAIT_TIMEOUT_MILLIS);
+    while (!done.get()) {
+      var remaining = deadline - System.nanoTime();
+      if (remaining <= 0) {
+        throw new IllegalStateException(
+            "Timed out after " + AWAIT_TIMEOUT_MILLIS + "ms waiting for the scheduled task");
+      }
+      LockSupport.parkNanos(remaining);
+    }
   }
 }
