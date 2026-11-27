@@ -20,6 +20,12 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
   the file is never rewritten as a whole. Existing values and comments are left untouched, the old file is
   saved as `config.yml.bak` first, options whose structure clashes with the template are reported instead of
   overwritten, and running the command a second time changes nothing.
+- **Fixed inline styles breaking at links in AI replies (#154).** `MarkdownRenderer` cut a line at every
+  `[label](url)` and styled each piece from a fresh bold / italic state, so `**bold [link] still bold**` lost the
+  markup right after the link and the closing `*` leaked into chat. The state now carries across the whole line,
+  links inherit the surrounding style, and a closing marker is consumed instead of starting a new run. Markup
+  inside a link label stays inside the link, a plain-text URL is never parsed as markup, and a marker that
+  directly follows a link still sees the character before it.
 
 ### 中文
 
@@ -27,6 +33,10 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
   `config.tmpl.yml` 手动补。该命令把模板里有、用户配置里缺的项连同注释一起补进去：缺整个顶层节就追加到
   文件末尾，缺的是已有节里的子项就就地插入，不会把整个文件重新写一遍。已有取值与注释一律不动，改写前
   先备份成 `config.yml.bak`；与模板结构冲突的项只报告、不覆盖。第二次执行不会产生任何改动。
+- **修复 AI 回复的行内样式在链接处断开（#154）。** `MarkdownRenderer` 每遇到一个 `[文字](地址)` 就把一行切开、
+  各段从零开始算加粗 / 斜体状态，`**粗 [链接] 仍是粗**` 在链接之后就丢了样式，收尾的 `*` 还会漏进聊天栏。
+  现在状态整行延续，链接本身也继承当前样式，收尾标记会被正常吃掉、不再当成新的起始标记。链接文字里的
+  标记只作用于链接自己，纯文本模式的地址不会被当成标记解析，紧跟在链接后面的标记也仍然按前一个字符判断。
 
 ## fp.build21 - 2026-11-22
 

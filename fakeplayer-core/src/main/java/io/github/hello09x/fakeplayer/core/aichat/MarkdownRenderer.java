@@ -112,34 +112,74 @@ public final class MarkdownRenderer {
     return appended ? builder.build() : Component.empty();
   }
 
+  /** 一行内的样式状态; 链接会把一行切成多段, 状态必须跨段延续, 否则收尾标记会断在链接处 */
+  private static final class InlineStyle {
+    boolean bold;
+    boolean italic;
+    boolean strike;
+    boolean code;
+
+    /**
+     * 链接文字的基础样式 (aqua + 下划线 + 点击); 非链接段为 null。
+     *
+     * <p>这里存不可变的 {@link Style} 而不是 {@link Style.Builder}: 后者的 {@code decoration} / {@code color}
+     * 是原地修改, 同一个 builder 被两次 flush 复用时会把上一段的加粗、灰色带到下一段。
+     */
+    Style linkBase;
+
+    /** 上一段最后一个可见字符; 切段之后段首标记只能靠它判断左边是不是字母数字 */
+    char before = ' ';
+
+    InlineStyle copy() {
+      var copy = new InlineStyle();
+      copy.bold = bold;
+      copy.italic = italic;
+      copy.strike = strike;
+      copy.code = code;
+      copy.linkBase = linkBase;
+      copy.before = before;
+      return copy;
+    }
+  }
+
   private static void appendInline(
       @NotNull TextComponent.Builder builder,
       @NotNull String line,
       boolean plain,
       boolean heading) {
+    var style = new InlineStyle();
     var matcher = LINK.matcher(line);
     var last = 0;
     while (matcher.find()) {
-      appendStyled(builder, line.substring(last, matcher.start()), plain, heading);
+      appendStyled(builder, line.substring(last, matcher.start()), plain, heading, style);
       var label = matcher.group(1);
       var url = matcher.group(2);
       if (plain) {
-        appendStyled(builder, label + " (" + url + ")", plain, heading);
+        // 纯文本模式链接退化成「文字 (地址)」。地址里的 * _ ~ 是 URL 的一部分, 不能当标记解析,
+        // 否则半截地址会被吃掉, 没闭合的标记还会把整行后面的文字带成斜体。
+        // 链接文字用副本解析, 其中的标记同样不泄漏到链接之后。
+        appendStyled(builder, label, plain, heading, style.copy());
+        builder.append(Component.text(" (" + url + ")"));
+        style.before = ')';
       } else {
-        var style =
-            Style.style()
+        // 链接文字也走 appendStyled 解析其中的加粗/斜体/代码标记, 否则 [**粗**](url) 的星号会漏进聊天栏。
+        // 用副本解析: 链接文字内的标记可以改变链接自己的样式, 但不能泄漏到链接之后的正文。
+        // 链接基础样式作为起点叠加, 于是 **粗 [链接] 仍粗** 里链接也继承当前的粗体。
+        var linkStyle = style.copy();
+        linkStyle.linkBase =
+            Style.empty()
                 .color(NamedTextColor.AQUA)
                 .decoration(TextDecoration.UNDERLINED, TextDecoration.State.TRUE)
                 .clickEvent(ClickEvent.openUrl(url))
                 .hoverEvent(HoverEvent.showText(Component.text(url)));
-        if (heading) {
-          style = style.decoration(TextDecoration.BOLD, TextDecoration.State.TRUE);
+        appendStyled(builder, label, plain, heading, linkStyle);
+        if (!label.isEmpty()) {
+          style.before = label.charAt(label.length() - 1);
         }
-        builder.append(Component.text(label).style(style));
       }
       last = matcher.end();
     }
-    appendStyled(builder, line.substring(last), plain, heading);
+    appendStyled(builder, line.substring(last), plain, heading, style);
   }
 
   /**
@@ -151,44 +191,46 @@ public final class MarkdownRenderer {
       @NotNull TextComponent.Builder builder,
       @NotNull String text,
       boolean plain,
-      boolean heading) {
+      boolean heading,
+      @NotNull InlineStyle style) {
     var buffer = new StringBuilder();
-    var bold = false;
-    var italic = false;
-    var strike = false;
-    var code = false;
 
     for (var i = 0; i < text.length(); i++) {
       var c = text.charAt(i);
       if (c == '`') {
-        flush(builder, buffer, plain, heading, bold, italic, strike, code);
-        code = !code;
+        flush(builder, buffer, plain, heading, style);
+        style.code = !style.code;
         continue;
       }
       if (c == '*' || c == '_' || c == '~') {
         var doubled = nextIs(text, i, c);
         // 收尾标记后面必然是空格或行尾, 所以「正在生效」时无条件认它; 只有起始标记才需要判断边界
-        var active = doubled ? (c == '~' ? strike : bold) : italic;
-        if (!active && !markerStartsHere(text, i)) {
+        var active = doubled ? (c == '~' ? style.strike : style.bold) : style.italic;
+        // 段首左边没有字符, 用上一段的末字符代替, 否则 [链接](url)_字面_ 里的下划线会被当成斜体开始
+        var before = i == 0 ? style.before : text.charAt(i - 1);
+        if (!active && !markerStartsHere(c, before, text, i)) {
           buffer.append(c);
           continue;
         }
-        flush(builder, buffer, plain, heading, bold, italic, strike, code);
+        flush(builder, buffer, plain, heading, style);
         if (doubled) {
           if (c == '~') {
-            strike = !strike;
+            style.strike = !style.strike;
           } else {
-            bold = !bold;
+            style.bold = !style.bold;
           }
           i++;
         } else {
-          italic = !italic;
+          style.italic = !style.italic;
         }
         continue;
       }
       buffer.append(c);
     }
-    flush(builder, buffer, plain, heading, bold, italic, strike, code);
+    flush(builder, buffer, plain, heading, style);
+    if (!text.isEmpty()) {
+      style.before = text.charAt(text.length() - 1);
+    }
   }
 
   private static void flush(
@@ -196,28 +238,27 @@ public final class MarkdownRenderer {
       @NotNull StringBuilder buffer,
       boolean plain,
       boolean heading,
-      boolean bold,
-      boolean italic,
-      boolean strike,
-      boolean code) {
+      @NotNull InlineStyle style) {
     if (buffer.isEmpty()) {
       return;
     }
-    var style = Style.style();
-    if (bold || heading) {
-      style = style.decoration(TextDecoration.BOLD, TextDecoration.State.TRUE);
+    // 链接文字以链接基础样式为起点叠加, 普通文字从空样式开始。
+    // 起点必须是不可变 Style: Style.Builder 的装饰方法是原地修改, 复用会把上一段的加粗 / 灰色留在下一段。
+    var applied = style.linkBase == null ? Style.empty() : style.linkBase;
+    if (style.bold || heading) {
+      applied = applied.decoration(TextDecoration.BOLD, TextDecoration.State.TRUE);
     }
-    if (italic) {
-      style = style.decoration(TextDecoration.ITALIC, TextDecoration.State.TRUE);
+    if (style.italic) {
+      applied = applied.decoration(TextDecoration.ITALIC, TextDecoration.State.TRUE);
     }
-    if (strike && !plain) {
-      style = style.decoration(TextDecoration.STRIKETHROUGH, TextDecoration.State.TRUE);
+    if (style.strike && !plain) {
+      applied = applied.decoration(TextDecoration.STRIKETHROUGH, TextDecoration.State.TRUE);
     }
-    if (code) {
+    if (style.code) {
       // MC 没有等宽字体, 用灰色区分行内代码
-      style = style.color(NamedTextColor.GRAY);
+      applied = applied.color(NamedTextColor.GRAY);
     }
-    builder.append(Component.text(buffer.toString()).style(style));
+    builder.append(Component.text(buffer.toString()).style(applied));
     buffer.setLength(0);
   }
 
@@ -229,10 +270,10 @@ public final class MarkdownRenderer {
    * 判断某个标记是否是一个格式区的开始。
    *
    * <p>避免把 {@code name_1} 这种下划线、{@code a * b} 这种乘号当成格式标记: 起始标记后面不能是空白, 且 {@code _} 前面不能紧挨字母数字。
+   *
+   * @param before 标记左边的字符; 标记位于段首时由调用方用上一段的末字符补上
    */
-  private static boolean markerStartsHere(@NotNull String text, int index) {
-    var c = text.charAt(index);
-    var before = index == 0 ? ' ' : text.charAt(index - 1);
+  private static boolean markerStartsHere(char c, char before, @NotNull String text, int index) {
     var after = index + 1 < text.length() ? text.charAt(index + 1) : ' ';
     if (Character.isWhitespace(after)) {
       return false;
