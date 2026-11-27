@@ -28,9 +28,9 @@ body:
   - type: input
     id: commit
     attributes:
-      label: Build commit (unreleased CI builds only)
-      description: If you are running a test jar from Actions, put its short commit hash here; leave it empty for released versions
-      placeholder: e.g. 2d406f51
+      label: Build commit
+      description: Run /fp version on the server and paste the 7-character short hash from the Commit line here; if you tested several builds, use the one where the issue occurred. Recommended for both CI builds and released versions
+      placeholder: e.g. a1b2c3d
   - type: input
     id: mc_version
     attributes:
