@@ -15,7 +15,7 @@ jobs:
         with:
           script: |
             const TRIAGE = 'needs-triage';
-            const FUNCTIONAL = ['spawn','action','command','login','appearance','config','locale','compat','http-api','placeholder'];
+            const FUNCTIONAL = ['spawn','action','command','login','appearance','config','locale','compat','http-api','placeholder','aichat'];
             const { owner, repo } = context.repo;
             const payload = context.payload;
 
