@@ -1,4 +1,4 @@
-package io.github.hello09x.fakeplayer.core.database;
+package io.github.endlesspixel.fakeplayer.database;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;

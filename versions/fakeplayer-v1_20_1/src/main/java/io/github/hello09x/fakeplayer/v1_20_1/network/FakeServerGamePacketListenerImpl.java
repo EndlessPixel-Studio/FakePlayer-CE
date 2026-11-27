@@ -1,9 +1,9 @@
 package io.github.hello09x.fakeplayer.v1_20_1.network;
 
+import io.github.endlesspixel.fakeplayer.util.PacketSendGuard;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
-import io.github.hello09x.fakeplayer.core.util.PacketSendGuard;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundCustomPayloadPacket;

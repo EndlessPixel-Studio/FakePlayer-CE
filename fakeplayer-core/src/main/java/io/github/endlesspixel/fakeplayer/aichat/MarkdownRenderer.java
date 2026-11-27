@@ -1,4 +1,4 @@
-package io.github.hello09x.fakeplayer.core.aichat;
+package io.github.endlesspixel.fakeplayer.aichat;
 
 import java.util.regex.Pattern;
 import net.kyori.adventure.text.Component;

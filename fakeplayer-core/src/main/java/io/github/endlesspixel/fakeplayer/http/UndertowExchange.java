@@ -1,4 +1,4 @@
-package io.github.hello09x.fakeplayer.core.http;
+package io.github.endlesspixel.fakeplayer.http;
 
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.HttpString;

@@ -1,9 +1,9 @@
 package io.github.hello09x.fakeplayer.v1_20_6.network;
 
+import io.github.endlesspixel.fakeplayer.util.PacketSendGuard;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerGamePacketListener;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerManager;
-import io.github.hello09x.fakeplayer.core.util.PacketSendGuard;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Logger;
