@@ -66,9 +66,35 @@ dependencies {
 
 val pluginRevision: String = version.toString()
 
+// 构建标识 commit 短号: CI 优先用 GITHUB_SHA (checkout 一定是触发构建的提交),
+// 否则读本地 git HEAD; 两者都拿不到 (例如直接下发不含 .git 的源码包) 时回退 unknown。
+fun resolveCommit(): String {
+    System.getenv("GITHUB_SHA")
+        ?.takeIf { it.isNotBlank() }
+        ?.let { return it.take(7) }
+    return try {
+        val process =
+            ProcessBuilder("git", "rev-parse", "--short=7", "HEAD")
+                .directory(rootProject.projectDir)
+                .redirectErrorStream(true)
+                .start()
+        val output = process.inputStream.bufferedReader().readText().trim()
+        process.waitFor()
+        if (process.exitValue() == 0 && output.isNotBlank()) output else "unknown"
+    } catch (ignored: Exception) {
+        "unknown"
+    }
+}
+
+val pluginCommit: String = resolveCommit()
+
 tasks.named<ProcessResources>("processResources") {
     inputs.property("revision", pluginRevision)
+    inputs.property("commit", pluginCommit)
     filesMatching("plugin.yml") {
+        expand(inputs.properties)
+    }
+    filesMatching("build-info.properties") {
         expand(inputs.properties)
     }
 }
