@@ -1,15 +1,15 @@
-package io.github.hello09x.fakeplayer.core.http;
+package io.github.endlesspixel.fakeplayer.http;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import io.github.endlesspixel.fakeplayer.aichat.AiChatConfig;
+import io.github.endlesspixel.fakeplayer.aichat.AiChatManager;
 import io.github.hello09x.devtools.core.translation.PluginTranslator;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
 import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
 import io.github.hello09x.fakeplayer.api.spi.NMSServerPlayer;
 import io.github.hello09x.fakeplayer.core.Main;
-import io.github.hello09x.fakeplayer.core.aichat.AiChatConfig;
-import io.github.hello09x.fakeplayer.core.aichat.AiChatManager;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.constant.MetadataKeys;
 import io.github.hello09x.fakeplayer.core.entity.FakeplayerTicker;

@@ -1,4 +1,4 @@
-package io.github.hello09x.fakeplayer.core.aichat;
+package io.github.endlesspixel.fakeplayer.aichat;
 
 import org.jetbrains.annotations.NotNull;
 

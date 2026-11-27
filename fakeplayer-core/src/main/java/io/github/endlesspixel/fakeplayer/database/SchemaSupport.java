@@ -1,4 +1,4 @@
-package io.github.hello09x.fakeplayer.core.database;
+package io.github.endlesspixel.fakeplayer.database;
 
 import io.github.hello09x.devtools.database.jdbc.JdbcTemplate;
 import java.util.List;
