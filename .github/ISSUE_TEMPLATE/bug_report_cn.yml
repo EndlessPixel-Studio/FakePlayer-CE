@@ -1,3 +1,4 @@
+# labeler smoke test
 name: Bug 反馈（中文）
 description: 提交 fp.buildx 的问题反馈
 title: "[Bug] "
