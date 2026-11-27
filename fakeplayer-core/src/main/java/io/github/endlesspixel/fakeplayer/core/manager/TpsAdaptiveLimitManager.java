@@ -28,8 +28,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 根据最近一分钟的平均 TPS 动态调整每位玩家的假人上限。
  *
- * <p>参考 xiplugin/FakePlayerPlus 的同名功能：TPS 低于阈值时每隔一个周期把上限降 1，并移除创建者名下最新召唤的超额假人；TPS
- * 恢复后每周期降价 1，直到回到配置的上限。减少量只影响「该玩家上限」，不修改配置文件。
+ * <p>参考 xiplugin/FakePlayerPlus 的同名功能：TPS 低于阈值时每隔一个周期把上限降 1，并移除创建者名下最新召唤的超额假人；TPS 恢复后每周期降价
+ * 1，直到回到配置的上限。减少量只影响「该玩家上限」，不修改配置文件。
  */
 @Singleton
 public class TpsAdaptiveLimitManager {
@@ -86,8 +86,7 @@ public class TpsAdaptiveLimitManager {
   /** 扣除动态减少量后的玩家上限，至少为配置的下限 */
   public int effectiveLimit() {
     return Math.max(
-        this.config.getTpsAdaptiveMinCount(),
-        this.config.getPlayerLimit() - this.reduction);
+        this.config.getTpsAdaptiveMinCount(), this.config.getPlayerLimit() - this.reduction);
   }
 
   private void reschedule() {
