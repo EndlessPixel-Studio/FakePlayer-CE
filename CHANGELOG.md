@@ -13,6 +13,13 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **Dynamic fake-player limits based on TPS (from FakePlayerPlus).** The old `kale-tps` threshold could only be
+  turned on or off and removed every fake player above a limit that could fall to zero. The new `tps-adaptive`
+  section (off by default) adds a configurable detection interval, threshold and minimum count: when the
+  one-minute average TPS drops below the threshold, each player's limit drops by one per interval and the newest
+  fake players above it are removed; when it recovers, the limit climbs back one per interval. Players are told
+  what happened, and `/fp reload` picks up changes. Existing `kale-tps` values are still honoured as the threshold.
+  `config.yml` is now version 39.
 - **New `/fp update config`.** A newer build only warned that `config.yml` was out of date and left every new
   option to be copied by hand out of `config.tmpl.yml`. The command adds the options that exist in the
   template but are missing from the user's file, together with their comments: a missing top-level section
@@ -61,6 +68,10 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
+- **按 TPS 动态调整假人上限（移植自 FakePlayerPlus）。** 旧的 `kale-tps` 只能开关、可能把上限降到 0 并一次清掉所有超额假人。
+  新的 `tps-adaptive` 段（默认关闭）把检测间隔、阈值和最低上限都做成可配置：最近一分钟平均 TPS 低于阈值时，每个周期把每位玩家的
+  上限降 1，并移除最新召唤的超额假人；恢复后每周期升回 1。玩家会收到对应提示，`/fp reload` 会重新读取配置。旧的 `kale-tps`
+  仍会被当作阈值兼容读取。`config.yml` 版本提升至 39。
 - **新增 `/fp update config`。** 以前升级只提示 `config.yml` 版本过旧，新增的配置项仍要照着
   `config.tmpl.yml` 手动补。该命令把模板里有、用户配置里缺的项连同注释一起补进去：缺整个顶层节就追加到
   文件末尾，缺的是已有节里的子项就就地插入，不会把整个文件重新写一遍。已有取值与注释一律不动，改写前

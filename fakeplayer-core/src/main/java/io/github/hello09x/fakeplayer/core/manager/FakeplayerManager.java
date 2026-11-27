@@ -1,7 +1,5 @@
 package io.github.hello09x.fakeplayer.core.manager;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 import static net.kyori.adventure.text.Component.*;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.translatable;
@@ -9,8 +7,9 @@ import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.github.endlesspixel.fakeplayer.aichat.AiChatManager;
-import io.github.endlesspixel.fakeplayer.util.PlayerDataMigration;
+import io.github.endlesspixel.fakeplayer.core.aichat.AiChatManager;
+import io.github.endlesspixel.fakeplayer.core.manager.TpsAdaptiveLimitManager;
+import io.github.endlesspixel.fakeplayer.core.util.PlayerDataMigration;
 import io.github.hello09x.devtools.command.exception.CommandException;
 import io.github.hello09x.devtools.core.utils.Exceptions;
 import io.github.hello09x.devtools.core.utils.MetadataUtils;
@@ -38,9 +37,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
@@ -69,11 +65,8 @@ public class FakeplayerManager {
   private final NMSBridge nms;
   private final FakeplayerConfig config;
   private final FakeplayerSkinRepository skinRepository;
-  private final ScheduledExecutorService lagMonitor;
+  private final TpsAdaptiveLimitManager tpsLimiter;
   private volatile boolean stopping;
-
-  /** 卡顿时逐级降低的假人上限; 由全局区域线程写, 区域线程在 checkLimit 读 */
-  private volatile int laglevel = 0;
 
   private volatile @Nullable Method removeMethod;
   private volatile @Nullable Method broadcastMethod;
@@ -87,7 +80,8 @@ public class FakeplayerManager {
       NMSBridge nms,
       FakeplayerConfig config,
       AiChatManager aiChatManager,
-      FakeplayerSkinRepository skinRepository) {
+      FakeplayerSkinRepository skinRepository,
+      TpsAdaptiveLimitManager tpsLimiter) {
     this.nameManager = nameManager;
     this.playerList = playerList;
     this.featureManager = featureManager;
@@ -95,58 +89,9 @@ public class FakeplayerManager {
     this.config = config;
     this.aiChatManager = aiChatManager;
     this.skinRepository = skinRepository;
+    this.tpsLimiter = tpsLimiter;
 
-    this.lagMonitor = Executors.newSingleThreadScheduledExecutor();
-    this.lagMonitor.scheduleWithFixedDelay(
-        () -> {
-          // Detects TPS performance from the past 1 minute only
-          // 将服务器卡顿检测范围缩小到过去一分钟，以配合新功能获得更及时的反应
-          if (Bukkit.getServer().getTPS()[0] < config.getKaleTps()) {
-            Schedulers.global(
-                Main.getInstance(),
-                () -> {
-                  laglevel = min(laglevel + 1, this.config.getPlayerLimit());
-                  Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
-                  for (Player player : onlinePlayers) {
-                    if (isFake(player)) continue;
-                    List<Player> fakeplayerlist = getAll(player);
-                    if (fakeplayerlist.size() > this.config.getPlayerLimit() - laglevel) {
-                      for (int i = fakeplayerlist.size() - 1;
-                          i >= this.config.getPlayerLimit() - laglevel;
-                          i--) {
-                        // Remove fakeplayers in reverse order of summoning
-                        // 如果玩家召唤的假人数量超出降低后的上限，则按照反序移除假人
-                        remove(fakeplayerlist.get(i).getName(), "Server lag");
-                      }
-                    }
-                  }
-                  Bukkit.broadcast(
-                      translatable(
-                          "fakeplayer.manager.lag.server-lag",
-                          GOLD,
-                          text(this.config.getPlayerLimit() - laglevel, RED)));
-                });
-          } else {
-            // Restore fakeplayer limits, one at a time
-            // 如果卡顿恢复，则每周期恢复1个假人上限
-            // 在主线程中递减 laglevel 并广播, 避免跨线程竞争与主线程外调用 Bukkit API
-            Schedulers.global(
-                Main.getInstance(),
-                () -> {
-                  if (laglevel > 0) {
-                    Bukkit.broadcast(
-                        translatable(
-                            "fakeplayer.manager.lag.restrictions-removed",
-                            GREEN,
-                            text(this.config.getPlayerLimit() - laglevel + 1, AQUA)));
-                  }
-                  laglevel = max(laglevel - 1, 0);
-                });
-          }
-        },
-        0,
-        60,
-        TimeUnit.SECONDS);
+    this.tpsLimiter.start();
   }
 
   /**
@@ -916,22 +861,30 @@ public class FakeplayerManager {
       throw new CommandException(translatable("fakeplayer.command.spawn.error.server-limit"));
     }
 
-    // Apply dynamic limits to fakeplayers
-    // 对玩家创建假人上限判断应用新的计算规则
-    if (this.playerList.getByCreator(creator.getName()).size()
-        >= this.config.getPlayerLimit() - laglevel) {
-      throw new CommandException(translatable("fakeplayer.command.spawn.error.player-limit"));
+    // 动态 TPS 上限: 只收紧玩家自己的上限, 不改配置文件
+    var limit = this.tpsLimiter.effectiveLimit();
+    var tpsLimited = this.tpsLimiter.getReduction() > 0;
+    if (this.playerList.getByCreator(creator.getName()).size() >= limit) {
+      throw new CommandException(
+          translatable(
+              tpsLimited
+                  ? "fakeplayer.command.spawn.error.tps-limit"
+                  : "fakeplayer.command.spawn.error.player-limit"));
     }
 
     if (this.config.isDetectIp()
-        && this.countByAddress(AddressUtils.getAddress(creator))
-            >= this.config.getPlayerLimit() - laglevel) {
-      throw new CommandException(translatable("fakeplayer.command.spawn.error.ip-limit"));
+        && this.countByAddress(AddressUtils.getAddress(creator)) >= limit) {
+      throw new CommandException(
+          translatable(
+              tpsLimited
+                  ? "fakeplayer.command.spawn.error.tps-limit"
+                  : "fakeplayer.command.spawn.error.ip-limit"));
     }
   }
 
   public void onDisable() {
     this.stopping = true;
+    this.tpsLimiter.shutdown();
     Exceptions.suppress(Main.getInstance(), () -> this.removeAll("Plugin disabled"));
     Exceptions.suppress(
         Main.getInstance(),
@@ -953,6 +906,6 @@ public class FakeplayerManager {
                         player.getMetadata(MetadataKeys.SPAWNED_AT).stream()
                             .anyMatch(value -> value.getOwningPlugin() == Main.getInstance()))
                 .forEach(player -> player.kick(text(REMOVAL_REASON_PREFIX + "Plugin disabled"))));
-    Exceptions.suppress(Main.getInstance(), this.lagMonitor::shutdownNow);
+    Exceptions.suppress(Main.getInstance(), this.tpsLimiter::shutdown);
   }
 }

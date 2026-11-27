@@ -1,4 +1,4 @@
-package io.github.endlesspixel.fakeplayer.util;
+package io.github.endlesspixel.fakeplayer.core.util;
 
 import io.github.hello09x.fakeplayer.core.Main;
 import java.util.Map;

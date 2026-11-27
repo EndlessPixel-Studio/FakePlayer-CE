@@ -1,4 +1,4 @@
-package io.github.endlesspixel.fakeplayer.aichat;
+package io.github.endlesspixel.fakeplayer.core.aichat;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;

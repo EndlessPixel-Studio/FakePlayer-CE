@@ -6,7 +6,8 @@ import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.executors.CommandArguments;
-import io.github.endlesspixel.fakeplayer.aichat.AiChatConfig;
+import io.github.endlesspixel.fakeplayer.core.aichat.AiChatConfig;
+import io.github.endlesspixel.fakeplayer.core.manager.TpsAdaptiveLimitManager;
 import io.github.hello09x.devtools.core.translation.PluginTranslator;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
@@ -25,22 +26,27 @@ public class ReloadCommand extends AbstractCommand {
 
   private final AiChatConfig aiChatConfig;
 
+  private final TpsAdaptiveLimitManager tpsLimiter;
+
   @Inject
   public ReloadCommand(
       FakeplayerConfig config,
       PluginTranslator translator,
       FakeplayerPingSetter pingSetter,
-      AiChatConfig aiChatConfig) {
+      AiChatConfig aiChatConfig,
+      TpsAdaptiveLimitManager tpsLimiter) {
     this.config = config;
     this.translator = translator;
     this.pingSetter = pingSetter;
     this.aiChatConfig = aiChatConfig;
+    this.tpsLimiter = tpsLimiter;
   }
 
   public void reload(@NotNull CommandSender sender, @NotNull CommandArguments args) {
     config.reload();
     aiChatConfig.reload();
     pingSetter.restart();
+    tpsLimiter.reload();
     LangUtils.send(sender, translatable("fakeplayer.command.generic.success", GRAY));
     if (config.isConfigFileOutOfDate()) {
       LangUtils.send(sender, translatable("fakeplayer.configuration.out-of-date", GRAY));
