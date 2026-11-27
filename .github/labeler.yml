@@ -16,9 +16,20 @@
 "dependency":
   - changed-files:
       - any-glob-to-any-file:
-          - '.github/**'
           - '**/*.gradle.kts'
           - 'gradle/**'
+"ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/**'
+          - '.github/scripts/**'
+          - '.github/actions/**'
+          - '.github/labeler.yml'
+          - '.github/dependabot.yml'
+"issue-template":
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/ISSUE_TEMPLATE/**'
 "locale":
   - changed-files:
       - any-glob-to-any-file: ['fakeplayer-core/src/main/resources/message/**']
