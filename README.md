@@ -132,7 +132,7 @@ Data lives in SQLite (`plugins/FakePlayer-CE/data.db`) by default. To use MySQL,
 | /fp migrate-db | Copy the SQLite database into MySQL | OP | Needs `database.type: mysql`; run after a restart |
 | /fp update check | Check GitHub for a newer build (and download it into `plugins/update` when `update-download: true`) | OP | |
 | /fp update config | Append options the template added but your `config.yml` is missing (existing values and comments are kept, the old file is saved as `config.yml.bak`) | OP | |
-| /fp version | Show plugin, server and Java version | - | Anyone |
+| /fp version | Show plugin, server and Java version, plus the commit the jar was built from | - | Anyone |
 | /fp sysinfo | Dump CPU, memory, disk, TPS and fake player state to JSON | OP | Written to `plugins/FakePlayer-CE/sysinfo/`; attach it to performance reports |
 | /fp lang | Switch your display language | - | Anyone; overrides the client language |
 

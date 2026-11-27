@@ -132,7 +132,7 @@
 | /fp migrate-db | 把 SQLite 的資料遷移到 MySQL | OP | 需要 `database.type: mysql`；重新啟動後執行 |
 | /fp update check | 檢查 GitHub 上是否有新版本 | OP | |
 | /fp update config | 追加範本新增、目前 config.yml 缺少的配置項目（既有數值與註解不變，改寫前先備份為 config.yml.bak） | OP | |
-| /fp version | 顯示插件、伺服端與 Java 版本 | - | 所有玩家可用 |
+| /fp version | 顯示插件、伺服端與 Java 版本，以及建置該 jar 的 commit | - | 所有玩家可用 |
 | /fp sysinfo | 匯出 CPU、記憶體、磁碟、TPS 與假人狀態為 JSON | OP | 寫在 `plugins/FakePlayer-CE/sysinfo/`，可直接附到效能問題裡 |
 | /fp lang | 切換你的顯示語言 | - | 所有玩家可用；優先於用戶端語言 |
 
