@@ -101,7 +101,9 @@ public abstract class CommandSupports {
 
                   var names = targets.stream().map(Player::getName);
                   if (!arg.isEmpty()) {
-                    names = names.filter(n -> n.toLowerCase(Locale.ROOT).contains(arg));
+                    // 玩家名是大小写不敏感的, 但用户敲进来的片段可能是大写, 所以两边都要归一化
+                    var keyword = arg.toLowerCase(Locale.ROOT);
+                    names = names.filter(n -> n.toLowerCase(Locale.ROOT).contains(keyword));
                   }
 
                   return names.toArray(String[]::new);

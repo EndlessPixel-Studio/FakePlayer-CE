@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
@@ -205,27 +206,35 @@ public class AiChatManager {
     }
     messages.add(ChatMessage.user(turn));
 
-    this.client
-        .complete(config, apiKey, messages)
-        .whenComplete(
-            (reply, error) -> {
-              this.inFlight.remove(id);
-              if (error != null) {
-                log.warning("假人 %s 的 AI 对话请求失败: %s".formatted(fake.getName(), rootMessage(error)));
-                return;
-              }
-              if (reply.isBlank()) {
-                return;
-              }
+    final CompletableFuture<String> pending;
+    try {
+      pending = this.client.complete(config, apiKey, messages);
+    } catch (RuntimeException e) {
+      // 同步抛出的异常 (例如构造请求体时出错) 也要归还 inFlight, 否则这个假人再也不会开口
+      this.inFlight.remove(id);
+      log.warning("假人 %s 的 AI 对话请求无法发出: %s".formatted(fake.getName(), rootMessage(e)));
+      return;
+    }
 
-              synchronized (history) {
-                history.addLast(ChatMessage.user(turn));
-                history.addLast(ChatMessage.assistant(reply));
-                this.trim(history);
-              }
+    pending.whenComplete(
+        (reply, error) -> {
+          this.inFlight.remove(id);
+          if (error != null) {
+            log.warning("假人 %s 的 AI 对话请求失败: %s".formatted(fake.getName(), rootMessage(error)));
+            return;
+          }
+          if (reply.isBlank()) {
+            return;
+          }
 
-              Schedulers.runFor(Main.getInstance(), fake, () -> this.deliver(fake, target, reply));
-            });
+          synchronized (history) {
+            history.addLast(ChatMessage.user(turn));
+            history.addLast(ChatMessage.assistant(reply));
+            this.trim(history);
+          }
+
+          Schedulers.runFor(Main.getInstance(), fake, () -> this.deliver(fake, target, reply));
+        });
   }
 
   private @NotNull List<String> recentChatSnapshot() {

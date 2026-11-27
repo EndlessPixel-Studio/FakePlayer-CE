@@ -29,6 +29,29 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
   links inherit the surrounding style, and a closing marker is consumed instead of starting a new run. Markup
   inside a link label stays inside the link, a plain-text URL is never parsed as markup, and a marker that
   directly follows a link still sees the character before it.
+- **`/fp kick` can now remove a fake player the plugin has lost track of.** When the internal list no longer had a
+  record for a fake player (a ghost left behind by a failed spawn), the cleanup path returned before calling
+  `PlayerList.remove`, and a fake player network ignores `kick` — so the entity stayed online forever and kept its
+  name, while the command reported success. The removal is now applied to the server list as well, limited to
+  entities that still carry the fake player's metadata.
+- **A failed `/fp rename ... force` no longer removes the fake player that held the name.** The occupying fake
+  player was removed before the new name was validated, so a name that is too long, contains illegal characters
+  or belongs to an online player deleted an unrelated fake player and then failed. Validation now runs first, and
+  the occupant lookup uses the name with `name-prefix` applied, which never matched before.
+- **Waiting on the main thread can no longer hang forever.** The blocking scheduling helpers parked until the
+  target thread ran the task; if the plugin was disabled, the server was stopping, or the task was cancelled
+  before it ran, the calling thread never woke up. The wait is now bounded and fails with a clear error.
+- **Fixed the restore snapshot reading fake players off the main thread.** The 30-second snapshot task ran on an
+  async thread and read entity positions, actions and features from there. It now only acts as a timer and hands
+  the collection back to the main thread.
+- **The HTTP admin API rejects `NaN` and `Infinity`.** `Double.parseDouble` accepts both, so
+  `/teleport?x=NaN` produced a teleport to invalid coordinates instead of a 400.
+- **Tab completion matches fake player names case-insensitively.** The fragment being typed was compared as-is,
+  so `/fp kick AB` suggested nothing while `/fp kick ab` did.
+- **`/fp update config` keeps the file's line endings.** The appended block always used the platform separator, so
+  a `\n` config edited on Windows came back with a mix of both.
+- **A failed AI chat request no longer silences a fake player permanently.** If building the request threw before
+  the HTTP call, the fake player stayed marked as "request in flight" and every later reply was skipped.
 - **Fixed Velocity forwarding going undetected when the server is started from another directory (#155).** Proxy
   detection read `config/paper-global.yml` and `paper.yml` through relative paths, which resolve against the JVM
   working directory rather than the server directory. Started from outside that directory (`java -jar
@@ -48,6 +71,23 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
   各段从零开始算加粗 / 斜体状态，`**粗 [链接] 仍是粗**` 在链接之后就丢了样式，收尾的 `*` 还会漏进聊天栏。
   现在状态整行延续，链接本身也继承当前样式，收尾标记会被正常吃掉、不再当成新的起始标记。链接文字里的
   标记只作用于链接自己，纯文本模式的地址不会被当成标记解析，紧跟在链接后面的标记也仍然按前一个字符判断。
+- **`/fp kick` 现在能移除插件已经丢失记录的假人。** 内部列表里没有该假人的记录时（例如召唤中途失败留下的幽灵），
+  清理流程在调用 `PlayerList.remove` 之前就返回了，而假人网络又不吃 `kick`，于是这个实体一直在线、名字一直被占着，
+  命令却返回成功。现在对仍然带有假人元数据的实体也会同步从服务端在线列表里摘掉。
+- **`/fp rename ... force` 失败时不再顺手删掉占名的假人。** 之前先移除占用者、再校验新名称，名称超长、含非法字符
+  或与在线玩家重名时，先被删的是那个无关的假人，然后命令才报错。现在先校验；判断占用者也改用带上 `name-prefix`
+  的全名（之前配了前缀时永远匹配不到）。
+- **主线程上的等待不会再永久挂起。** 阻塞式调度助手会一直 park 到目标线程执行完任务，插件停用、服务端关服或任务
+  在执行前被取消时，调用线程再也醒不过来。现在等待有上限，超时会带着明确的错误失败。
+- **修复恢复快照在非主线程读取假人。** 30 秒一次的快照任务跑在异步线程上，却在那里读实体的位置、动作与特性。
+  现在它只当闹钟，采集交回主线程。
+- **HTTP 管理接口拒绝 `NaN` 与 `Infinity`。** `Double.parseDouble` 两个都收，于是 `/teleport?x=NaN` 会把假人传到
+  非法坐标，而不是返回 400。
+- **TAB 补全对假人名大小写不敏感。** 之前拿用户敲的片段直接比较，`/fp kick AB` 补不出任何东西，`/fp kick ab` 才行。
+- **`/fp update config` 保留原文件的换行符。** 之前追加的区块固定用平台换行符，在 Windows 上编辑过的 `\n` 配置文件
+  会被混进 `\r\n`。
+- **AI 聊天请求失败不再让假人永久闭嘴。** 如果在发出 HTTP 请求之前就抛了异常，这个假人会一直停留在「请求进行中」，
+  之后的每一轮发言都被跳过。
 - **修复从其他目录启动时 Velocity 转发漏判（#155）。** 代理检测用相对路径读 `config/paper-global.yml` 与
   `paper.yml`，而相对路径解析的是 JVM 的工作目录、不是服务端目录。从服务端目录之外启动时（`java -jar
   /srv/mc/paper.jar`、面板，或 systemd 没写 `WorkingDirectory`）读不到文件，Velocity 被当作未启用，
