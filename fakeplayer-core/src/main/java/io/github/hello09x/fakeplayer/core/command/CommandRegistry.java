@@ -94,7 +94,7 @@ public class CommandRegistry {
                     .withOptionalArguments(fakeplayer("name"))
                     .executesPlayer(selectCommand::select),
                 command("selection")
-                    .withPermission(Permission.select)
+                    .withPermission(Permission.selection)
                     .withShortDescription("fakeplayer.command.selection.description")
                     .withRequirement(CommandSupports::needSelect)
                     .executesPlayer(selectCommand::selection),

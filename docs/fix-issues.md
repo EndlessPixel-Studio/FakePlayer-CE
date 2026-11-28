@@ -55,6 +55,9 @@
 - [xiplugin/FakePlayerPlus commit b972a97a](https://github.com/xiplugin/FakePlayerPlus/commit/b972a97ac231fba484dc0e3db5751307d7525375)
 - [xiplugin/FakePlayerPlus FakePlayerLimiter.kt](https://github.com/xiplugin/FakePlayerPlus/blob/main/plugin/src/main/kotlin/com/coderxi/plugin/fakeplayer/component/FakePlayerLimiter.kt)
 
+## boxendo/minecraft-fakeplayer
+- [boxendo/minecraft-fakeplayer commit c436b5cf](https://github.com/boxendo/minecraft-fakeplayer/commit/c436b5cf)
+
 ## NotCbop/FakePlayer-CE
 - [NotCbop/FakePlayer-CE commit 6aaf5709](https://github.com/NotCbop/FakePlayer-CE/commit/6aaf5709bbdcc5767db380fe989c4511da515020)
 
