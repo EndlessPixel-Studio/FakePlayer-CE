@@ -48,6 +48,9 @@ public class FakeplayerConfig extends PluginConfig {
   /** 假人名称前缀 */
   private String namePrefix;
 
+  /** 假人名称后缀 */
+  private String nameSuffix;
+
   /** 名称样式, 颜色 */
   private NamedTextColor nameStyleColor;
 
@@ -418,6 +421,7 @@ public class FakeplayerConfig extends PluginConfig {
     this.preventKicking = this.getPreventKicking(file);
     this.nameTemplate = getNameTemplate(file);
     this.namePrefix = file.getString("name-prefix", "");
+    this.nameSuffix = file.getString("name-suffix", "");
     this.lifespan = getLifespan(file);
 
     this.defaultOnlineSkin = file.getBoolean("default-online-skin", false);

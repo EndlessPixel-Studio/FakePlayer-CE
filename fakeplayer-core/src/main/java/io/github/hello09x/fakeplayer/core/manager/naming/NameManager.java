@@ -218,11 +218,7 @@ public class NameManager {
    * @return 是否已绑定
    */
   public boolean isNameBound(@NotNull String name) {
-    var normalized =
-        StringUtils.isNotBlank(config.getNamePrefix())
-            ? config.getNamePrefix().trim() + name
-            : name;
-    return this.profileRepository.selectUUIDByName(normalized) != null;
+    return this.profileRepository.selectUUIDByName(this.applyDecoration(name)) != null;
   }
 
   /**
@@ -232,9 +228,7 @@ public class NameManager {
    */
   public void releaseName(@NotNull String name) {
     this.profileRepository.deleteByName(name);
-    if (StringUtils.isNotBlank(config.getNamePrefix())) {
-      this.profileRepository.deleteByName(config.getNamePrefix().trim() + name);
-    }
+    this.profileRepository.deleteByName(this.applyDecoration(name));
   }
 
   /**
@@ -251,11 +245,20 @@ public class NameManager {
     return this.normalizeName(name);
   }
 
-  /** 校验并规范化自定义名称 (前缀、长度、字符集、在线冲突) */
-  private @NotNull String normalizeName(@NotNull String name) {
+  /** 给名称加上前缀与后缀 */
+  private @NotNull String applyDecoration(@NotNull String name) {
     if (StringUtils.isNotBlank(config.getNamePrefix())) {
       name = config.getNamePrefix().trim() + name;
     }
+    if (StringUtils.isNotBlank(config.getNameSuffix())) {
+      name = name + config.getNameSuffix().trim();
+    }
+    return name;
+  }
+
+  /** 校验并规范化自定义名称 (前缀、后缀、长度、字符集、在线冲突) */
+  private @NotNull String normalizeName(@NotNull String name) {
+    name = this.applyDecoration(name);
     if (name.startsWith("-")) {
       throw new IllegalCustomNameException(
           translatable("fakeplayer.spawn.error.name.start-with-illegal-character", text("-", WHITE))
@@ -305,9 +308,7 @@ public class NameManager {
       source = creator.getName();
     }
     source = source.replace("%c", creator.getName());
-    if (StringUtils.isNotBlank(config.getNamePrefix())) {
-      source = config.getNamePrefix().trim() + source;
-    }
+    source = this.applyDecoration(source);
 
     for (int i = 0; i < 10; i++) {
       var seq =
