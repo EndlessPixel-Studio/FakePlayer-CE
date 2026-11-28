@@ -1,12 +1,18 @@
 # 快速开始
 
-FakePlayer-CE 用于在服务端生成对服务器完全透明的假人玩家，适用于区块常驻加载与自动化。
+FakePlayer-CE 是一套 Minecraft 服务端假人插件：假人对服务器来说就是真实在线玩家，可用于区块常驻加载、自动化与测试。
 
-## 安装
+## 从这里开始
 
-1. 安装 [CommandAPI](https://commandapi.jorel.dev) 到 `plugins/`。
-2. 将插件 jar 放入 `plugins/`。
-3. 启动服务器一次，把生成的 `config.tmpl.yml` 重命名为 `config.yml`。
-4. 执行 `/fp spawn`。
+- [下载安装插件](/guide/install)
+- [插件配置文件](/guide/config/)
+- [创建第一个假人](/guide/first-fake)
 
-更完整的命令与配置说明见项目 [README](https://github.com/EndlessPixel-Studio/FakePlayer-CE#readme)。
+## 按需阅读
+
+- [指令总览](/commands/)
+- [HTTP 管理接口](/http/)
+- [占位符变量](/placeholders)
+- [联动插件](/compat/)
+- [版本更新日志](/changelog/)
+- [贡献指南](/contributing/)
