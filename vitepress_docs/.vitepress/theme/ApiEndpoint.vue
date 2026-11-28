@@ -3,6 +3,8 @@
     <span class="api-method">{{ method }}</span>
     <code class="api-host">{{ host }}</code>
     <code class="api-path">{{ path }}</code>
+    <span v-if="requestType" class="api-meta">请求 {{ requestType }}</span>
+    <span v-if="responseType" class="api-meta">响应 {{ responseType }}</span>
     <button type="button" class="api-copy" @click="copy">
       {{ copied ? '已复制' : '复制链接' }}
     </button>
@@ -13,7 +15,13 @@
 import { ref } from 'vue'
 
 const props = withDefaults(
-  defineProps<{ method: string; path: string; host?: string }>(),
+  defineProps<{
+    method: string
+    path: string
+    host?: string
+    requestType?: string
+    responseType?: string
+  }>(),
   { host: '127.0.0.1:3253' },
 )
 

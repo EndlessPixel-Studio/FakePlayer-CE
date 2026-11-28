@@ -26,6 +26,11 @@
   font-size: 13px;
 }
 
+.api-meta {
+  color: var(--vp-c-text-3);
+  font-size: 12px;
+}
+
 .api-host {
   color: var(--vp-c-text-2);
 }
@@ -73,6 +78,30 @@
   border-color: var(--vp-c-red-1);
 }
 
+.api-alerts {
+  margin: 16px 0;
+}
+
+.api-alert {
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-left: 4px solid var(--vp-c-yellow-1);
+  border-radius: 6px;
+  background: var(--vp-c-bg-soft);
+}
+
+.api-alert p {
+  margin: 4px 0 0;
+}
+
+.api-alert-danger {
+  border-left-color: var(--vp-c-red-1);
+}
+
+.api-alert-info {
+  border-left-color: var(--vp-c-brand-1);
+}
+
 .api-response {
   margin: 16px 0;
   border: 1px solid var(--vp-c-divider);
@@ -112,6 +141,10 @@
 
 .api-response-code {
   padding: 0 14px 14px;
+}
+
+.api-fields {
+  margin-top: 12px;
 }
 
 .api-code-tabs {
