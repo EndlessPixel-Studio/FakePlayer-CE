@@ -4,6 +4,7 @@ on:
   push:
     branches: [master]
     paths-ignore:
+      - 'vitepress-docs/**'
       - '**/*.md'
       - 'docs/**'
       - 'LICENSE'
@@ -11,6 +12,7 @@ on:
   pull_request:
     branches: [master]
     paths-ignore:
+      - 'vitepress-docs/**'
       - '**/*.md'
       - 'docs/**'
       - 'LICENSE'
