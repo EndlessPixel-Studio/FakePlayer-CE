@@ -10,6 +10,7 @@ import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.CustomArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
+import dev.jorel.commandapi.arguments.TextArgument;
 import io.github.hello09x.devtools.core.utils.ComponentUtils;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
@@ -27,6 +28,9 @@ import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -168,6 +172,41 @@ public abstract class CommandSupports {
 
                   return names.toArray(String[]::new);
                 }));
+  }
+
+  /** CommandAPI 12 的 WorldArgument 只认维度 key, 这里按 Bukkit 世界名解析并兼容维度 key */
+  public static @NotNull Argument<World> bukkitWorld(@NotNull String nodeName) {
+    return new CustomArgument<World, String>(
+            new TextArgument(nodeName),
+            info -> {
+              var input = info.currentInput();
+              var world = resolveWorld(input);
+              if (world == null) {
+                var available =
+                    String.join(", ", Bukkit.getWorlds().stream().map(World::getName).toList());
+                throw CustomArgument.CustomArgumentException.fromAdventureComponent(
+                    Component.text(
+                        "Unknown world '%s', available: %s".formatted(input, available)));
+              }
+              return world;
+            })
+        .replaceSuggestions(
+            ArgumentSuggestions.strings(
+                info -> Bukkit.getWorlds().stream().map(World::getName).toArray(String[]::new)));
+  }
+
+  private static @Nullable World resolveWorld(@NotNull String input) {
+    var world = Bukkit.getWorld(input);
+    if (world != null) {
+      return world;
+    }
+    for (var candidate : Bukkit.getWorlds()) {
+      var key = candidate.getKey();
+      if (key.getKey().equals(input) || key.toString().equals(input)) {
+        return candidate;
+      }
+    }
+    return null;
   }
 
   public static @NotNull Argument<Feature> configKey(@NotNull String nodeName) {

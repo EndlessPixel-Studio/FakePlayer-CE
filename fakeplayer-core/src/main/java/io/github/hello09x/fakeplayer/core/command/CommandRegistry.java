@@ -101,10 +101,7 @@ public class CommandRegistry {
                 command("spawn")
                     .withPermission(Permission.spawn)
                     .withShortDescription("fakeplayer.command.spawn.description")
-                    .withOptionalArguments(
-                        text("name").withPermission(Permission.spawnName),
-                        world("world").withPermission(Permission.spawnLocation),
-                        location("location").withPermission(Permission.spawnLocation))
+                    .withOptionalArguments(text("name"), bukkitWorld("world"), location("location"))
                     .executes(spawnCommand::spawn),
                 command("spawnjson")
                     .withPermission(Permission.spawnJson)
@@ -116,7 +113,7 @@ public class CommandRegistry {
                     .withShortDescription("fakeplayer.command.spawnuuid.deprecated")
                     .withArguments(text("name").withPermission(Permission.spawnName), text("uuid"))
                     .withOptionalArguments(
-                        world("world").withPermission(Permission.spawnLocation),
+                        bukkitWorld("world").withPermission(Permission.spawnLocation),
                         location("location").withPermission(Permission.spawnLocation))
                     .executes(spawnCommand::spawnWithUuid),
                 command("rename")

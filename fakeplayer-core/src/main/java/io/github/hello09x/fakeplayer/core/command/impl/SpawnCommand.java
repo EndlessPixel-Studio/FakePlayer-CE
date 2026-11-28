@@ -10,6 +10,7 @@ import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.devtools.command.exception.CommandException;
 import io.github.hello09x.devtools.command.exception.HandleCommandException;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.command.Permission;
 import io.github.hello09x.fakeplayer.core.entity.FakeplayerTicker;
 import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.util.Mth;
@@ -55,6 +56,9 @@ public class SpawnCommand extends AbstractCommand {
       // "-" 让只有 spawn.location 权限的玩家也能跳过名称参数去指定坐标
       name = null;
     }
+    if (name != null && !sender.hasPermission(Permission.spawnName)) {
+      throw new CommandException(translatable("fakeplayer.command.spawn.error.no-permission-name"));
+    }
     this.spawn(sender, name, this.resolveSpawnpoint(sender, args), null);
   }
 
@@ -81,6 +85,10 @@ public class SpawnCommand extends AbstractCommand {
       @NotNull CommandSender sender, @NotNull CommandArguments args) {
     var world = (World) args.get("world");
     var location = (Location) args.get("location");
+    if ((world != null || location != null) && !sender.hasPermission(Permission.spawnLocation)) {
+      throw new CommandException(
+          translatable("fakeplayer.command.spawn.error.no-permission-location"));
+    }
     if (world != null && location != null) {
       return new Location(world, location.getX(), location.getY(), location.getZ());
     }

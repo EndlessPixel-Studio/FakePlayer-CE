@@ -57,6 +57,7 @@
 
 ## boxendo/minecraft-fakeplayer
 - [boxendo/minecraft-fakeplayer commit c436b5cf](https://github.com/boxendo/minecraft-fakeplayer/commit/c436b5cf)
+- [boxendo/minecraft-fakeplayer commit eb443564](https://github.com/boxendo/minecraft-fakeplayer/commit/eb443564)
 
 ## NotCbop/FakePlayer-CE
 - [NotCbop/FakePlayer-CE commit 6aaf5709](https://github.com/NotCbop/FakePlayer-CE/commit/6aaf5709bbdcc5767db380fe989c4511da515020)
