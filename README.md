@@ -85,6 +85,8 @@ Inventory sharing is off by default. Set `inventory-context.fakeplayer` / `inven
 
 ## Commands
 
+Any command that takes a fake-player name also accepts `-a` to apply it to every fake player you can see (OP/console: all fake players; regular players: only their own). `select`, `spawn`/`spawnuuid` and `rename` are excluded.
+
 | Command | Description | Permission | Note |
 |------|---------|---------|------|
 | /fp spawn | Spawn a fake player | fakeplayer.command.spawn | |
