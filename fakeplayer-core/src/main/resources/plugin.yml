@@ -32,6 +32,9 @@ permissions:
   fakeplayer.command.spawn.uuid:
     description: 'Allow player to run /fp spawnuuid and specify a UUID'
     default: op
+  fakeplayer.command.spawn.json:
+    description: 'Allow player to run /fp spawnjson with advanced options'
+    default: op
   fakeplayer.command.rename:
     description: 'Allow player to run /fp rename'
   fakeplayer.command.rename.force:

@@ -81,7 +81,8 @@
 | コマンド | 説明 | 権限ノード | 備考 |
 |------|---------|---------|------|
 | /fp spawn | 偽プレイヤーを生成 | fakeplayer.command.spawn | |
-| /fp spawnuuid | 指定した UUID で偽プレイヤーを生成 | fakeplayer.command.spawn.uuid | `<名前> <UUID> [ワールド] [座標]`。名前が別の UUID に紐付いている場合は拒否 |
+| /fp spawnjson | JSON で詳細オプションを指定して生成 | fakeplayer.command.spawn.json | `<json>`；`name`、`uuid`、`world`、`x/y/z`、`yaw/pitch`、`lifespan_seconds` に対応。未知フィールドはエラー、NBT は未対応 |
+| /fp spawnuuid | **非推奨**、`/fp spawnjson` を使用 | fakeplayer.command.spawn.uuid | `<名前> <UUID> [ワールド] [座標]` |
 | /fp kick | 偽プレイヤーをキック（サーバーから削除） | fakeplayer.command.kick | |
 | /fp kickall | サーバー上の全偽プレイヤーをキック | OP | |
 | /fp kill | 偽プレイヤーを倒す（実際に死亡し、ドロップあり） | fakeplayer.command.kill | |
@@ -118,6 +119,12 @@
 | /fp move | 指定方向へ移動 | fakeplayer.command.move | |
 | /fp goto | 指定座標まで歩く | fakeplayer.command.goto | 障害物を避けて自動で経路探索。到達不能な目標は拒否 |
 | /fp gotostop | 進行中の移動を中止する | fakeplayer.command.goto | 他の動作には影響しない |
+
+`/fp spawnjson` の例（すべて省略可能、未知フィールドはエラー）：
+
+```
+/fp spawnjson {"name":"Bot_1","world":"world","x":0,"y":64,"z":0,"lifespan_seconds":600}
+```
 | /fp ride | 騎乗 | fakeplayer.command.ride | |
 | /fp sneak | スニーク | fakeplayer.command.sneak | |
 | /fp sprint | ダッシュ | fakeplayer.command.sprint | |

@@ -13,6 +13,10 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **New `/fp spawnjson` for advanced spawning.** `/fp spawn` stays the simple entry point, while `/fp spawnuuid`
+  is deprecated in favour of one JSON argument: `name`, `uuid`, `world`, `x/y/z`, `yaw/pitch` and
+  `lifespan_seconds` can now be combined freely. Unknown fields are rejected so typos do not silently do
+  nothing; specifying a UUID still needs `fakeplayer.command.spawn.uuid`. NBT is deliberately not included yet.
 - **Fixed fake players being removed twice on 1.21.x (thanks @NotCbop / Cbop and co-author Claude Fable 5, `6aaf570`).** On 1.21.11, `Player.kick()`
   already runs the full disconnect path for the fake connection, so the follow-up `PlayerList.remove` fired a
   second `PlayerQuitEvent`, threw `IllegalStateException: Already retired` and left half-removed ghost bots that
@@ -21,6 +25,9 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
+- **新增 `/fp spawnjson` 处理高级召唤。** `/fp spawn` 保持基础入口，`/fp spawnuuid` 弃用，改由一个 JSON 参数承载
+  `name`、`uuid`、`world`、`x/y/z`、`yaw/pitch`、`lifespan_seconds`，可自由组合。未知字段会直接报错，避免拼错后
+  静默失效；指定 UUID 仍需要 `fakeplayer.command.spawn.uuid` 权限。NBT 暂不支持。
 - **修复 1.21.x 上假人被重复移除（感谢 @NotCbop / Cbop，共同作者 Claude Fable 5，commit `6aaf570`）。** 1.21.11 上 `Player.kick()` 已经替假人连接走完断线流程，
   紧接着的 `PlayerList.remove` 会二次触发 `PlayerQuitEvent`、抛出 `IllegalStateException: Already retired`，并留下
   `/fp kick` 再也删不掉的半移除幽灵假人。现在只有在 kick 之后玩家仍在线时才做兜底移除；幽灵假人 kick 失败会被兜住，

@@ -10,6 +10,7 @@ import dev.jorel.commandapi.CommandPermission;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.MultiLiteralArgument;
+import io.github.endlesspixel.fakeplayer.core.command.impl.SpawnJsonCommand;
 import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
 import io.github.hello09x.fakeplayer.api.spi.ActionType;
@@ -60,6 +61,7 @@ public class CommandRegistry {
   @Inject private SneakCommand sneakCommand;
   @Inject private SprintCommand sprintCommand;
   @Inject private SpawnCommand spawnCommand;
+  @Inject private SpawnJsonCommand spawnJsonCommand;
   @Inject private StatusCommand statusCommand;
   @Inject private SwapCommand swapCommand;
   @Inject private TeleportCommand teleportCommand;
@@ -103,9 +105,14 @@ public class CommandRegistry {
                         world("world").withPermission(Permission.spawnLocation),
                         location("location").withPermission(Permission.spawnLocation))
                     .executes(spawnCommand::spawn),
+                command("spawnjson")
+                    .withPermission(Permission.spawnJson)
+                    .withShortDescription("fakeplayer.command.spawn.json.description")
+                    .withArguments(new GreedyStringArgument("json"))
+                    .executes(spawnJsonCommand::spawn),
                 command("spawnuuid")
                     .withPermission(Permission.spawnUUID)
-                    .withShortDescription("fakeplayer.command.spawnuuid.description")
+                    .withShortDescription("fakeplayer.command.spawnuuid.deprecated")
                     .withArguments(text("name").withPermission(Permission.spawnName), text("uuid"))
                     .withOptionalArguments(
                         world("world").withPermission(Permission.spawnLocation),

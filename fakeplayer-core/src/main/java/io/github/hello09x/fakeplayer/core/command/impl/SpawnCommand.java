@@ -17,6 +17,7 @@ import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -87,24 +88,33 @@ public class SpawnCommand extends AbstractCommand {
     return new Location(world, location.getX(), location.getY(), location.getZ());
   }
 
+  /** 普通 /fp spawn 使用配置里的寿命; /fp spawnjson 走 spawnWithOptions */
   private void spawn(
       @NotNull CommandSender sender,
       @Nullable String name,
       @NotNull Location spawnpoint,
       @Nullable UUID uuid) {
-    var removedAt =
-        Optional.ofNullable(config.getLifespan())
-            .map(lifespan -> LocalDateTime.now().plus(lifespan))
-            .orElse(null);
-    manager
-        .spawnAsync(
-            sender,
-            name,
-            spawnpoint,
-            Optional.ofNullable(config.getLifespan())
+    this.spawnWithOptions(sender, name, spawnpoint, uuid, null);
+  }
+
+  public void spawnWithOptions(
+      @NotNull CommandSender sender,
+      @Nullable String name,
+      @NotNull Location spawnpoint,
+      @Nullable UUID uuid,
+      @Nullable Long lifespanMillis) {
+    var effectiveLifespan =
+        lifespanMillis != null
+            ? lifespanMillis
+            : Optional.ofNullable(config.getLifespan())
                 .map(Duration::toMillis)
-                .orElse(FakeplayerTicker.NON_REMOVE_AT),
-            uuid)
+                .orElse(FakeplayerTicker.NON_REMOVE_AT);
+    var removedAt =
+        effectiveLifespan == FakeplayerTicker.NON_REMOVE_AT
+            ? null
+            : LocalDateTime.now().plus(effectiveLifespan, ChronoUnit.MILLIS);
+    manager
+        .spawnAsync(sender, name, spawnpoint, effectiveLifespan, uuid)
         .thenAcceptAsync(
             player -> {
               if (player == null) {
