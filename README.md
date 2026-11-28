@@ -77,6 +77,8 @@ Data lives in SQLite (`plugins/FakePlayer-CE/data.db`) by default. To use MySQL,
 
 Define several models under `models:` in `ai-chat.yml`; each entry may override `model`, `api`, `api-key` and `api-key-env`, and unset fields fall back to the top-level values. `active-model` picks the default; OPs can change it at runtime with `/fp aichat model <name>` (persisted back to `ai-chat.yml`).
 
+Inventory sharing is off by default. Set `inventory-context.fakeplayer` / `inventory-context.questioner` in `ai-chat.yml` **and** the matching personal switch (`aichat_fake_inventory` for the fake player's creator, `aichat_questioner_inventory` for the player being replied to) with `/fp config set <name> true`; only item types and counts are added to the prompt.
+
 `auto-reply` is the recommended mode: the fake player answers only when a player says something worth answering (short, symbol-only and spam messages are filtered), paced by `chance` and `cooldown-seconds`. `continuous` talks on a timer, is off by default and needs `allow-continuous: true`. Persona, prompts, retained context and pacing live in `system-prompt`, `turn-prompt`, `max-context`, `recent-chat-lines` and `interval-ticks`.
 
 ## Commands
@@ -249,6 +251,8 @@ Each player can save their own defaults; changes apply on the **next spawn**. Us
 | `replenish` | Refill consumed or used items |
 | `replace_tools` | GCA-style tool replacement |
 | `autofish` | Enable auto-fishing |
+| `aichat_fake_inventory` | Allow AI to read the fake player's inventory (also needs the `ai-chat.yml` switch) |
+| `aichat_questioner_inventory` | Allow AI to read the asking player's inventory (also needs the `ai-chat.yml` switch) |
 | `simulation_distance` | Simulation distance (chunk radius) of the fake player; `-1` keeps the world setting |
 
 - **`replace_tools`**: GCA-style — broken non-Mending tools, and Mending tools worn below `tool-replacement.remaining-durability-threshold` (default `10`), are swapped for an identical item from the inventory; enchantments are ignored.

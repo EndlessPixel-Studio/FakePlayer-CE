@@ -130,6 +130,24 @@ public enum Feature implements Translatable, Singletons {
       faker -> String.valueOf(autofishManager.get().isAutofish(faker)),
       (faker, value) -> autofishManager.get().setAutofish(faker, Boolean.parseBoolean(value))),
 
+  /** AI 聊天是否允许读取假人的背包物品 (需同时开启 ai-chat.yml 的总开关) */
+  aichat_fake_inventory(
+      "fakeplayer.config.aichat_fake_inventory",
+      List.of(Permission.config),
+      List.of("true", "false"),
+      "false",
+      null,
+      null),
+
+  /** AI 聊天是否允许读取提问玩家的背包物品 (需同时开启 ai-chat.yml 的总开关) */
+  aichat_questioner_inventory(
+      "fakeplayer.config.aichat_questioner_inventory",
+      List.of(Permission.config),
+      List.of("true", "false"),
+      "false",
+      null,
+      null),
+
   /**
    * 假人的模拟距离 (区块半径); -1 表示沿用世界设置
    *

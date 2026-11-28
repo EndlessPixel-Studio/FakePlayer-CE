@@ -31,6 +31,12 @@ models:
   default:
     model: "gpt-4o"
 
+# 是否把背包物品作为对话上下文 (默认关闭; 还需要玩家自己的 /fp config set 开关同时打开)
+# 假人背包按创建者的个人开关判断, 提问者背包按提问者自己的个人开关判断
+inventory-context:
+  fakeplayer: false
+  questioner: false
+
 temperature: 1.0
 top-p: 1.0
 presence-penalty: 0.0

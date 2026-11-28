@@ -13,6 +13,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **AI chat can optionally use inventory context.** `ai-chat.yml` gains `inventory-context.fakeplayer` / `inventory-context.questioner`; together with the matching per-player switches (`aichat_fake_inventory`, `aichat_questioner_inventory`, via `/fp config set`) the item types and counts in the fake player's or asking player's inventory are added to the prompt. Both switches are off by default; `config.yml` is now version 41.
 - **AI chat now supports multiple models.** `ai-chat.yml` can define named models with their own endpoint and key; `active-model` selects the default and OPs can switch at runtime with `/fp aichat model <name>` (the choice is saved). Existing configs keep working with a single implicit `default` model.
 - **New `/fp spawnjson` for advanced spawning.** `/fp spawn` stays the simple entry point, while `/fp spawnuuid`
   is deprecated in favour of one JSON argument: `name`, `uuid`, `world`, `x/y/z`, `yaw/pitch` and
@@ -29,6 +30,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
+- **AI 聊天可选择性读取背包上下文。** `ai-chat.yml` 新增 `inventory-context.fakeplayer` / `inventory-context.questioner`，与玩家开关 `aichat_fake_inventory` / `aichat_questioner_inventory`（`/fp config set`）同时开启时，假人或提问玩家背包里的物品种类与数量会进入提示词。默认全部关闭，`config.yml` 版本提升至 41。
 - **AI 聊天支持多模型。** `ai-chat.yml` 的 `models` 可配置多个具名模型（各自独立接口与密钥），`active-model` 指定默认，OP 可用 `/fp aichat model <名称>` 运行时切换并保存。旧配置仍按单个 `default` 模型工作。
 - **新增 `/fp spawnjson` 处理高级召唤。** `/fp spawn` 保持基础入口，`/fp spawnuuid` 弃用，改由一个 JSON 参数承载
   `name`、`uuid`、`world`、`x/y/z`、`yaw/pitch`、`lifespan_seconds`，可自由组合。未知字段会直接报错，避免拼错后

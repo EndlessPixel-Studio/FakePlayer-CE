@@ -51,6 +51,10 @@ public class AiChatConfig {
 
   private final Map<String, AiChatModel> models = new LinkedHashMap<>();
 
+  private boolean inventoryContextFakeplayer;
+
+  private boolean inventoryContextQuestioner;
+
   private double temperature;
 
   private double topP;
@@ -113,6 +117,8 @@ public class AiChatConfig {
     this.apiKeyEnv = yaml.getString("api-key-env", "FAKEPLAYER_AI_KEY");
     this.model = yaml.getString("model", "gpt-4o");
     this.activeModel = yaml.getString("active-model", DEFAULT_MODEL_NAME);
+    this.inventoryContextFakeplayer = yaml.getBoolean("inventory-context.fakeplayer", false);
+    this.inventoryContextQuestioner = yaml.getBoolean("inventory-context.questioner", false);
     this.temperature = yaml.getDouble("temperature", 1.0D);
     this.topP = yaml.getDouble("top-p", 1.0D);
     this.presencePenalty = yaml.getDouble("presence-penalty", 0.0D);
