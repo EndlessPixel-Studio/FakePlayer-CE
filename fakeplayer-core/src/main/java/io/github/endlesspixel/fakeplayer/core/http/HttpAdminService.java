@@ -20,11 +20,9 @@ import io.github.hello09x.fakeplayer.core.manager.action.ActionManager;
 import io.github.hello09x.fakeplayer.core.util.LookUtils;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.github.hello09x.fakeplayer.core.util.WalkUtils;
-import io.undertow.Undertow;
-import io.undertow.UndertowOptions;
-import io.undertow.server.handlers.BlockingHandler;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -88,7 +86,6 @@ public class HttpAdminService {
 
   private final Map<String, ClientState> clients = new ConcurrentHashMap<>();
 
-  private Undertow server;
   private String token;
 
   @Inject
@@ -152,17 +149,17 @@ public class HttpAdminService {
     routes.put("/sayall", this::handleSayAll);
 
     try {
-      server =
-          Undertow.builder()
-              .addHttpListener(config.getHttpAdminPort(), config.getHttpAdminHost())
-              // 本地管理接口: 限制请求体大小, 空闲连接 30 秒回收
-              .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, (long) MAX_REQUEST_URI_LENGTH)
-              .setServerOption(UndertowOptions.IDLE_TIMEOUT, 30_000)
-              .setHandler(
-                  new BlockingHandler(exchange -> handleRequest(new UndertowExchange(exchange))))
-              .build();
-      server.start();
-    } catch (RuntimeException e) {
+      UndertowSupport.start(
+          config.getHttpAdminHost(),
+          config.getHttpAdminPort(),
+          exchange -> {
+            try {
+              this.handleRequest(exchange);
+            } catch (IOException e) {
+              throw new UncheckedIOException(e);
+            }
+          });
+    } catch (Exception e) {
       log.severe("Failed to start HTTP admin server: " + e);
       return;
     }
@@ -174,11 +171,7 @@ public class HttpAdminService {
   }
 
   public void stop() {
-    if (server != null) {
-      server.stop();
-      server = null;
-      log.info("HTTP admin server stopped");
-    }
+    UndertowSupport.stop();
     clients.clear();
   }
 

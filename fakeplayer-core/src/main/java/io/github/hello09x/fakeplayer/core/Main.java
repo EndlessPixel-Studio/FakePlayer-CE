@@ -7,6 +7,7 @@ import dev.jorel.commandapi.CommandAPI;
 import io.github.endlesspixel.fakeplayer.core.aichat.AiChatListener;
 import io.github.endlesspixel.fakeplayer.core.database.DatabaseModule;
 import io.github.endlesspixel.fakeplayer.core.http.HttpAdminService;
+import io.github.endlesspixel.fakeplayer.core.util.library.LibraryManager;
 import io.github.hello09x.devtools.command.CommandModule;
 import io.github.hello09x.devtools.core.TranslationModule;
 import io.github.hello09x.devtools.core.translation.TranslationConfig;
@@ -62,6 +63,12 @@ public final class Main extends JavaPlugin {
   @Override
   public void onEnable() {
     stopped = false;
+    try {
+      LibraryManager.ensureEnabledFeatures(getConfig());
+    } catch (RuntimeException e) {
+      // 下载失败不应让整个插件禁用; 对应功能会自己记录不可用
+      getLogger().severe("Failed to download optional libraries: " + e);
+    }
     injector =
         Guice.createInjector(
             new FakeplayerModule(),
