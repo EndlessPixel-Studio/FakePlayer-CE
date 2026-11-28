@@ -60,6 +60,8 @@
 
 首次載入只會生成範本 `config.tmpl.yml`，需手動重新命名為 `config.yml` 後才會生效。此機制便於升級時對照新增設定項，不會覆寫既有設定。範例見 [config.yml](fakeplayer-core/src/main/resources/config.yml)。
 
+**依權限設定假人上限**：`player-limit` 是預設上限；在 `spawn-limit` 下設定如 `vip: 10`，並給玩家 `fakeplayer.spawn.limit.vip` 權限。命中多個權限時取最大值；OP 不受上限限制，`detect-ip` 仍按全域 `player-limit` 計算。
+
 ## 資料庫
 
 資料預設存在 SQLite（`plugins/FakePlayer-CE/data.db`）。想用 MySQL，先建一個空庫，在 `config.yml` 裡把 `database.type` 改成 `mysql` 並填好 `database.mysql`，然後重新啟動——資料表會自動建立。既有資料之後用 `/fp migrate-db` 遷移（僅 OP；SQLite 檔案不會被刪除）。

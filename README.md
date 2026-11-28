@@ -60,6 +60,8 @@ FakePlayer CE ships as a single `fakeplayer-fp.buildX.jar`. Drop it into your se
 
 On first launch only a template `config.tmpl.yml` is generated; rename it to `config.yml` to activate it. The template lets you preview new options when upgrading without overwriting existing settings. See the [sample config](fakeplayer-core/src/main/resources/config.yml).
 
+**Per-permission spawn limits:** `player-limit` is the default for everyone. Add entries under `spawn-limit` (for example `vip: 10`) and grant `fakeplayer.spawn.limit.vip`; when several nodes match, the highest value wins. OPs bypass the limit, and `detect-ip` still uses the global `player-limit`.
+
 ## Database
 
 Data lives in SQLite (`plugins/FakePlayer-CE/data.db`) by default. To use MySQL, create an empty database, set `database.type: mysql` and fill in the `database.mysql` block in `config.yml`, then restart — the tables are created automatically. Existing data can be copied afterwards with `/fp migrate-db` (OP only; the SQLite file is left untouched).

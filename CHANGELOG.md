@@ -13,6 +13,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **Per-permission fake player limits (#187, thanks @kuxiaole; #64, thanks @Chaostarts).** `player-limit` stays the default; configure `spawn-limit` entries (e.g. `vip: 10`) and grant `fakeplayer.spawn.limit.vip` to raise the cap for specific players. Multiple matching permissions use the highest value; OPs are unaffected and dynamic TPS limits now respect the player's own cap. `config.yml` is now version 42.
 - **AI chat can optionally use inventory context.** `ai-chat.yml` gains `inventory-context.fakeplayer` / `inventory-context.questioner`; together with the matching per-player switches (`aichat_fake_inventory`, `aichat_questioner_inventory`, via `/fp config set`) the item types and counts in the fake player's or asking player's inventory are added to the prompt. Both switches are off by default; `config.yml` is now version 41.
 - **AI chat now supports multiple models.** `ai-chat.yml` can define named models with their own endpoint and key; `active-model` selects the default and OPs can switch at runtime with `/fp aichat model <name>` (the choice is saved). Existing configs keep working with a single implicit `default` model.
 - **New `/fp spawnjson` for advanced spawning.** `/fp spawn` stays the simple entry point, while `/fp spawnuuid`
@@ -30,6 +31,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
+- **按权限设置假人数量上限（#187，感谢 @kuxiaole；#64，感谢 @Chaostarts）。** `player-limit` 仍是默认值；在 `spawn-limit` 中配置如 `vip: 10` 并授予 `fakeplayer.spawn.limit.vip` 即可提高指定玩家上限。命中多个权限时取最大值；OP 不受限制，动态 TPS 上限也会按玩家实际额度扣减。`config.yml` 版本提升至 42。
 - **AI 聊天可选择性读取背包上下文。** `ai-chat.yml` 新增 `inventory-context.fakeplayer` / `inventory-context.questioner`，与玩家开关 `aichat_fake_inventory` / `aichat_questioner_inventory`（`/fp config set`）同时开启时，假人或提问玩家背包里的物品种类与数量会进入提示词。默认全部关闭，`config.yml` 版本提升至 41。
 - **AI 聊天支持多模型。** `ai-chat.yml` 的 `models` 可配置多个具名模型（各自独立接口与密钥），`active-model` 指定默认，OP 可用 `/fp aichat model <名称>` 运行时切换并保存。旧配置仍按单个 `default` 模型工作。
 - **新增 `/fp spawnjson` 处理高级召唤。** `/fp spawn` 保持基础入口，`/fp spawnuuid` 弃用，改由一个 JSON 参数承载

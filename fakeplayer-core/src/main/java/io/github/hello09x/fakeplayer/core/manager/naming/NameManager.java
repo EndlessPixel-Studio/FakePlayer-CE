@@ -318,7 +318,7 @@ public class NameManager {
     for (int i = 0; i < 10; i++) {
       var seq =
           nameSources
-              .computeIfAbsent(source, ignored -> new NameSource(config.getPlayerLimit()))
+              .computeIfAbsent(source, ignored -> new NameSource(config.getMaxSpawnLimit()))
               .pop();
       var seqSuffix = "_" + (seq + 1);
       var budget = MAX_LENGTH - seqSuffix.length() - suffix.length();

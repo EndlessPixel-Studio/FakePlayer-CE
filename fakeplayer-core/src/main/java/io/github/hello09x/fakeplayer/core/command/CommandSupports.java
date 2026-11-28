@@ -286,7 +286,8 @@ public abstract class CommandSupports {
   }
 
   public static boolean needSelect(@NotNull CommandSender sender) {
-    return sender.isOp() || (config().getPlayerLimit() > 1 && manager().countByCreator(sender) > 0);
+    return sender.isOp()
+        || (config().getSpawnLimit(sender) > 1 && manager().countByCreator(sender) > 0);
   }
 
   public static boolean hasFakeplayer(@NotNull CommandSender sender) {

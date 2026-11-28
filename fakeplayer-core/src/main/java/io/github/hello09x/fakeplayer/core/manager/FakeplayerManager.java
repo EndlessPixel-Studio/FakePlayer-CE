@@ -877,7 +877,7 @@ public class FakeplayerManager {
     }
 
     // 动态 TPS 上限: 只收紧玩家自己的上限, 不改配置文件
-    var limit = this.tpsLimiter.effectiveLimit();
+    var limit = this.tpsLimiter.effectiveLimit(creator);
     var tpsLimited = this.tpsLimiter.getReduction() > 0;
     if (this.playerList.getByCreator(creator.getName()).size() >= limit) {
       throw new CommandException(
@@ -888,7 +888,8 @@ public class FakeplayerManager {
     }
 
     if (this.config.isDetectIp()
-        && this.countByAddress(AddressUtils.getAddress(creator)) >= limit) {
+        && this.countByAddress(AddressUtils.getAddress(creator))
+            >= this.tpsLimiter.effectiveLimit()) {
       throw new CommandException(
           translatable(
               tpsLimited

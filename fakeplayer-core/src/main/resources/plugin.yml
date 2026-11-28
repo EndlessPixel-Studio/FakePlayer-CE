@@ -35,6 +35,9 @@ permissions:
   fakeplayer.command.spawn.json:
     description: 'Allow player to run /fp spawnjson with advanced options'
     default: op
+  fakeplayer.spawn.limit:
+    description: 'Higher fake player limit: append .<name> from the spawn-limit config (e.g. fakeplayer.spawn.limit.vip)'
+    default: false
   fakeplayer.command.rename:
     description: 'Allow player to run /fp rename'
   fakeplayer.command.rename.force:

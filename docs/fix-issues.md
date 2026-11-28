@@ -10,6 +10,7 @@
 - [EndlessPixel/FakePlayer-CE PR #10](https://github.com/EndlessPixel/FakePlayer-CE/pull/10)
 
 ## tanyaofei/minecraft-fakeplayer (上游项目)
+- [tanyaofei/minecraft-fakeplayer Issue #64](https://github.com/tanyaofei/minecraft-fakeplayer/issues/64)
 - [tanyaofei/minecraft-fakeplayer Issue #104](https://github.com/tanyaofei/minecraft-fakeplayer/issues/104)
 - [tanyaofei/minecraft-fakeplayer Issue #128](https://github.com/tanyaofei/minecraft-fakeplayer/issues/128)
 - [tanyaofei/minecraft-fakeplayer Issue #129](https://github.com/tanyaofei/minecraft-fakeplayer/issues/129)
@@ -24,6 +25,7 @@
 - [tanyaofei/minecraft-fakeplayer Issue #181](https://github.com/tanyaofei/minecraft-fakeplayer/issues/181)
 - [tanyaofei/minecraft-fakeplayer Issue #185](https://github.com/tanyaofei/minecraft-fakeplayer/issues/185)
 - [tanyaofei/minecraft-fakeplayer Issue #186](https://github.com/tanyaofei/minecraft-fakeplayer/issues/186)
+- [tanyaofei/minecraft-fakeplayer Issue #187](https://github.com/tanyaofei/minecraft-fakeplayer/issues/187)
 - [tanyaofei/minecraft-fakeplayer Issue #189](https://github.com/tanyaofei/minecraft-fakeplayer/issues/189)
 - [tanyaofei/minecraft-fakeplayer PR #190](https://github.com/tanyaofei/minecraft-fakeplayer/pull/190)
 - [tanyaofei/minecraft-fakeplayer Issue #193](https://github.com/tanyaofei/minecraft-fakeplayer/issues/193)
@@ -51,6 +53,7 @@
 - [xiplugin/FakePlayerPlus PR #39](https://github.com/xiplugin/FakePlayerPlus/pull/39)
 - [xiplugin/FakePlayerPlus commit 021bb3d2](https://github.com/xiplugin/FakePlayerPlus/commit/021bb3d2dd056d8ec61a4a0289fd6454f9b2c8ab)
 - [xiplugin/FakePlayerPlus commit b972a97a](https://github.com/xiplugin/FakePlayerPlus/commit/b972a97ac231fba484dc0e3db5751307d7525375)
+- [xiplugin/FakePlayerPlus FakePlayerLimiter.kt](https://github.com/xiplugin/FakePlayerPlus/blob/main/plugin/src/main/kotlin/com/coderxi/plugin/fakeplayer/component/FakePlayerLimiter.kt)
 
 ## NotCbop/FakePlayer-CE
 - [NotCbop/FakePlayer-CE commit 6aaf5709](https://github.com/NotCbop/FakePlayer-CE/commit/6aaf5709bbdcc5767db380fe989c4511da515020)
