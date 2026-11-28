@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -164,8 +165,8 @@ public class AiChatConfig {
   }
 
   private static @NotNull String stringValue(
-      @NotNull YamlConfiguration yaml, @NotNull String path, @Nullable String fallback) {
-    var value = yaml.getString(path);
+      @NotNull ConfigurationSection section, @NotNull String path, @Nullable String fallback) {
+    var value = section.getString(path);
     return value == null ? (fallback == null ? "" : fallback) : value;
   }
 
