@@ -8,6 +8,8 @@ public interface Permission {
   String spawnLocation = "fakeplayer.command.spawn.location";
   String spawnUUID = "fakeplayer.command.spawn.uuid";
 
+  String spawnJson = "fakeplayer.command.spawn.json";
+
   String rename = "fakeplayer.command.rename";
   String renameForce = "fakeplayer.command.rename.force";
 

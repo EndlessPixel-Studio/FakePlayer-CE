@@ -81,7 +81,8 @@ Data lives in SQLite (`plugins/FakePlayer-CE/data.db`) by default. To use MySQL,
 | Command | Description | Permission | Note |
 |------|---------|---------|------|
 | /fp spawn | Spawn a fake player | fakeplayer.command.spawn | |
-| /fp spawnuuid | Spawn a fake player with a given UUID | fakeplayer.command.spawn.uuid | `<name> <uuid> [world] [location]`; a name already bound to another UUID is rejected |
+| /fp spawnjson | Spawn with advanced options in JSON | fakeplayer.command.spawn.json | `<json>`; supports `name`, `uuid`, `world`, `x/y/z`, `yaw/pitch`, `lifespan_seconds`. Unknown fields are rejected; NBT is not supported yet |
+| /fp spawnuuid | **Deprecated**, use `/fp spawnjson` | fakeplayer.command.spawn.uuid | `<name> <uuid> [world] [location]` |
 | /fp kick | Kick fake players (remove from the server) | fakeplayer.command.kick | |
 | /fp kickall | Kick all fake players on the server | OP | |
 | /fp kill | Kill fake players (real death, may drop loot) | fakeplayer.command.kill | |
@@ -117,6 +118,12 @@ Data lives in SQLite (`plugins/FakePlayer-CE/data.db`) by default. To use MySQL,
 | /fp look | Look at specified location | fakeplayer.command.look | |
 | /fp move | Move | fakeplayer.command.move | |
 | /fp goto | Walk to the specified coordinates | fakeplayer.command.goto | Pathfinds around obstacles; rejects unreachable targets |
+
+Example for `/fp spawnjson` (all fields are optional; unknown fields are rejected):
+
+```
+/fp spawnjson {"name":"Bot_1","world":"world","x":0,"y":64,"z":0,"lifespan_seconds":600}
+```
 | /fp gotostop | Cancel an ongoing walk | fakeplayer.command.goto | Leaves other actions running |
 | /fp ride | Ride | fakeplayer.command.ride | |
 | /fp sneak | Sneak | fakeplayer.command.sneak | |

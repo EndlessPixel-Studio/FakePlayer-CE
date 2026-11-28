@@ -81,7 +81,8 @@
 | 指令 | 功能說明 | 權限節點 | 備註 |
 |------|---------|---------|------|
 | /fp spawn | 建立假人 | fakeplayer.command.spawn | |
-| /fp spawnuuid | 用指定 UUID 建立假人 | fakeplayer.command.spawn.uuid | 參數 `<名稱> <UUID> [世界] [座標]`；名稱已綁定其他 UUID 時拒絕 |
+| /fp spawnjson | 用 JSON 指定進階選項建立假人 | fakeplayer.command.spawn.json | `<json>`；支援 `name`、`uuid`、`world`、`x/y/z`、`yaw/pitch`、`lifespan_seconds`。未知欄位會報錯；暫不支援 NBT |
+| /fp spawnuuid | **已淘汰**，請用 `/fp spawnjson` | fakeplayer.command.spawn.uuid | 參數 `<名稱> <UUID> [世界] [座標]` |
 | /fp kick | 踢出假人（從伺服器移除） | fakeplayer.command.kick | |
 | /fp kickall | 踢出伺服器所有假人 | OP | |
 | /fp kill | 殺死假人（真實死亡，可能掉落物品） | fakeplayer.command.kill | |
@@ -118,6 +119,12 @@
 | /fp move | 假人定向移動 | fakeplayer.command.move | |
 | /fp goto | 讓假人尋路前往指定座標 | fakeplayer.command.goto | 自動尋路；無法抵達則拒絕 |
 | /fp gotostop | 中止正在進行的尋路 | fakeplayer.command.goto | 不影響其它動作 |
+
+`/fp spawnjson` 範例（欄位皆可省略，未知欄位會報錯）：
+
+```
+/fp spawnjson {"name":"Bot_1","world":"world","x":0,"y":64,"z":0,"lifespan_seconds":600}
+```
 | /fp ride | 假人騎乘實體 | fakeplayer.command.ride | |
 | /fp sneak | 假人進入潛行模式 | fakeplayer.command.sneak | |
 | /fp sprint | 假人疾跑 | fakeplayer.command.sprint | |
