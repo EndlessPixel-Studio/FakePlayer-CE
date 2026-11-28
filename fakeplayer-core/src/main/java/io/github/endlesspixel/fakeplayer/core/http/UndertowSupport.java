@@ -55,7 +55,8 @@ public final class UndertowSupport {
     var setOption = findMethod(built, "setServerOption");
     built = setOption.invoke(built, options.getField("MAX_ENTITY_SIZE").get(null), (long) 4096);
     built = setOption.invoke(built, options.getField("IDLE_TIMEOUT").get(null), 30_000);
-    built = built.getClass().getMethod("setHandler", httpHandler).invoke(built, proxy);
+    var blocking = blockingHandler.getConstructor(httpHandler).newInstance(proxy);
+    built = built.getClass().getMethod("setHandler", httpHandler).invoke(built, blocking);
     var instance = built.getClass().getMethod("build").invoke(built);
     instance.getClass().getMethod("start").invoke(instance);
     server = instance;
