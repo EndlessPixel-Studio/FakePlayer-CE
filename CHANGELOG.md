@@ -13,6 +13,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **AI chat now supports multiple models.** `ai-chat.yml` can define named models with their own endpoint and key; `active-model` selects the default and OPs can switch at runtime with `/fp aichat model <name>` (the choice is saved). Existing configs keep working with a single implicit `default` model.
 - **New `/fp spawnjson` for advanced spawning.** `/fp spawn` stays the simple entry point, while `/fp spawnuuid`
   is deprecated in favour of one JSON argument: `name`, `uuid`, `world`, `x/y/z`, `yaw/pitch` and
   `lifespan_seconds` can now be combined freely. Unknown fields are rejected so typos do not silently do
@@ -28,6 +29,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
+- **AI 聊天支持多模型。** `ai-chat.yml` 的 `models` 可配置多个具名模型（各自独立接口与密钥），`active-model` 指定默认，OP 可用 `/fp aichat model <名称>` 运行时切换并保存。旧配置仍按单个 `default` 模型工作。
 - **新增 `/fp spawnjson` 处理高级召唤。** `/fp spawn` 保持基础入口，`/fp spawnuuid` 弃用，改由一个 JSON 参数承载
   `name`、`uuid`、`world`、`x/y/z`、`yaw/pitch`、`lifespan_seconds`，可自由组合。未知字段会直接报错，避免拼错后
   静默失效；指定 UUID 仍需要 `fakeplayer.command.spawn.uuid` 权限。NBT 暂不支持。

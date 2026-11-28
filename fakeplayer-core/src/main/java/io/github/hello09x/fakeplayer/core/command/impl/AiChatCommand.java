@@ -1,6 +1,8 @@
 package io.github.hello09x.fakeplayer.core.command.impl;
 
+import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.translatable;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
 
 import com.google.inject.Inject;
@@ -73,13 +75,40 @@ public class AiChatCommand extends AbstractCommand {
     }
   }
 
+  /** 查看当前模型, 或由管理员切换到配置中已有的模型 */
+  public void model(@NotNull CommandSender sender, @NotNull CommandArguments args)
+      throws WrapperCommandSyntaxException {
+    var name = args.getOptional("model").map(String.class::cast).orElse(null);
+    if (name == null) {
+      var active = this.aiChatConfig.resolveActiveModel();
+      var current = active == null ? "-" : active.name();
+      LangUtils.send(
+          sender,
+          translatable(
+              "fakeplayer.command.aichat.model.current",
+              GRAY,
+              text(current, GOLD),
+              text(String.join(", ", this.aiChatConfig.getModelNames()), GOLD)));
+      return;
+    }
+    if (!this.aiChatConfig.selectModel(name)) {
+      throw CommandAPI.failWithString(
+          ComponentUtils.toString(
+              translatable("fakeplayer.command.aichat.model.error.unknown", text(name, GOLD)),
+              LangUtils.getLocale(sender)));
+    }
+    LangUtils.send(
+        sender, translatable("fakeplayer.command.aichat.model.set", GRAY, text(name, GOLD)));
+  }
+
   private @NotNull Player readyFakeplayer(
       @NotNull CommandSender sender, @NotNull CommandArguments args)
       throws WrapperCommandSyntaxException {
     if (!this.aiChatConfig.isEnabled()) {
       throw this.fail(sender, "fakeplayer.command.aichat.error.disabled");
     }
-    if (this.aiChatConfig.resolveApiKey() == null) {
+    var active = this.aiChatConfig.resolveActiveModel();
+    if (active == null || active.resolveApiKey() == null) {
       throw this.fail(sender, "fakeplayer.command.aichat.error.missing-api-key");
     }
     return super.getFakeplayer(sender, args);

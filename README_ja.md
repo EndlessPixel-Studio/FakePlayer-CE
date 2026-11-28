@@ -73,6 +73,9 @@
 | `/fp aichat public [once\|continuous\|interval <ticks>] [偽プレイヤー]` | 公共チャットへ送信。`continuous` は `stop` まで発言を続ける |
 | `/fp aichat private <プレイヤー> [once\|continuous\|interval <ticks>] [偽プレイヤー]` | 特定のプレイヤーにのみ送信 |
 | `/fp aichat stop [偽プレイヤー]` | 連続発言を停止 |
+| `/fp aichat model [名前]` | 現在のモデルと利用可能なモデルを表示、または指定モデルへ切り替え（OP のみ） |
+
+`ai-chat.yml` の `models:` に複数のモデルを定義できます。各項目は `model` / `api` / `api-key` / `api-key-env` を個別に上書きでき、未設定の項目はトップレベルの値を継承します。`active-model` が既定モデルで、OP は `/fp aichat model <名前>` で実行時に切り替えられます（選択は `ai-chat.yml` に保存されます）。
 
 推奨は `auto-reply` です。プレイヤーが反応に値する発言をしたときだけ返答し、短すぎる発言・記号だけの発言・連投は事前に除外されます。頻度は `chance` と `cooldown-seconds` で調整します。`continuous` はタイマー発言で、既定では無効、`allow-continuous: true` が必要です。人設・プロンプト・保持する文脈・発言間隔は `system-prompt` / `turn-prompt` / `max-context` / `recent-chat-lines` / `interval-ticks` で設定します。
 
