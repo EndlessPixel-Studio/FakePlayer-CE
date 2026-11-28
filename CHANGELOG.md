@@ -13,6 +13,9 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
+- **New `name-suffix` option (#144, thanks @fuzhulike).** Custom and generated fake-player names can now carry a
+  suffix as well as a prefix. Generated names put the sequence number before the suffix (`Bot_1_bot`) and keep both
+  decorations when the 16-character limit forces the middle part to be shortened. `config.yml` is now version 40.
 - **Fixed fake players being removed twice on 1.21.x (thanks @NotCbop / Cbop and co-author Claude Fable 5, `6aaf570`).** On 1.21.11, `Player.kick()`
   already runs the full disconnect path for the fake connection, so the follow-up `PlayerList.remove` fired a
   second `PlayerQuitEvent`, threw `IllegalStateException: Already retired` and left half-removed ghost bots that
@@ -21,6 +24,9 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
+- **新增 `name-suffix` 名称后缀配置（#144，感谢 @fuzhulike）。** 自定义与自动生成的假人名都可以同时带前缀和后缀；
+  自动生成的名称把序号放在后缀之前（`Bot_1_bot`），超过 16 字符时优先缩短中间部分，前后缀不会丢。
+  `config.yml` 版本提升至 40。
 - **修复 1.21.x 上假人被重复移除（感谢 @NotCbop / Cbop，共同作者 Claude Fable 5，commit `6aaf570`）。** 1.21.11 上 `Player.kick()` 已经替假人连接走完断线流程，
   紧接着的 `PlayerList.remove` 会二次触发 `PlayerQuitEvent`、抛出 `IllegalStateException: Already retired`，并留下
   `/fp kick` 再也删不掉的半移除幽灵假人。现在只有在 kick 之后玩家仍在线时才做兜底移除；幽灵假人 kick 失败会被兜住，

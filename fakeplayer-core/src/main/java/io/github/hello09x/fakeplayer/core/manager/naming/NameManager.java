@@ -218,11 +218,7 @@ public class NameManager {
    * @return 是否已绑定
    */
   public boolean isNameBound(@NotNull String name) {
-    var normalized =
-        StringUtils.isNotBlank(config.getNamePrefix())
-            ? config.getNamePrefix().trim() + name
-            : name;
-    return this.profileRepository.selectUUIDByName(normalized) != null;
+    return this.profileRepository.selectUUIDByName(this.applyDecoration(name)) != null;
   }
 
   /**
@@ -232,9 +228,7 @@ public class NameManager {
    */
   public void releaseName(@NotNull String name) {
     this.profileRepository.deleteByName(name);
-    if (StringUtils.isNotBlank(config.getNamePrefix())) {
-      this.profileRepository.deleteByName(config.getNamePrefix().trim() + name);
-    }
+    this.profileRepository.deleteByName(this.applyDecoration(name));
   }
 
   /**
@@ -251,11 +245,20 @@ public class NameManager {
     return this.normalizeName(name);
   }
 
-  /** 校验并规范化自定义名称 (前缀、长度、字符集、在线冲突) */
-  private @NotNull String normalizeName(@NotNull String name) {
+  /** 给名称加上前缀与后缀 */
+  private @NotNull String applyDecoration(@NotNull String name) {
     if (StringUtils.isNotBlank(config.getNamePrefix())) {
       name = config.getNamePrefix().trim() + name;
     }
+    if (StringUtils.isNotBlank(config.getNameSuffix())) {
+      name = name + config.getNameSuffix().trim();
+    }
+    return name;
+  }
+
+  /** 校验并规范化自定义名称 (前缀、后缀、长度、字符集、在线冲突) */
+  private @NotNull String normalizeName(@NotNull String name) {
+    name = this.applyDecoration(name);
     if (name.startsWith("-")) {
       throw new IllegalCustomNameException(
           translatable("fakeplayer.spawn.error.name.start-with-illegal-character", text("-", WHITE))
@@ -305,23 +308,25 @@ public class NameManager {
       source = creator.getName();
     }
     source = source.replace("%c", creator.getName());
-    if (StringUtils.isNotBlank(config.getNamePrefix())) {
-      source = config.getNamePrefix().trim() + source;
-    }
+    var decorated = this.applyDecoration(source);
+    var suffix =
+        StringUtils.isNotBlank(config.getNameSuffix()) ? config.getNameSuffix().trim() : "";
+    // 后缀放在最后, 序号插在它前面 (Bot_1_bot)。截断时优先砍中间的名字部分, 保证前后缀不丢。
+    var base =
+        suffix.isEmpty() ? decorated : decorated.substring(0, decorated.length() - suffix.length());
 
     for (int i = 0; i < 10; i++) {
       var seq =
           nameSources
               .computeIfAbsent(source, ignored -> new NameSource(config.getPlayerLimit()))
               .pop();
-      var suffix = "_" + (seq + 1);
-
-      String name;
-      if (source.length() + suffix.length() > MAX_LENGTH) {
-        name = source.substring(0, (MAX_LENGTH - suffix.length())) + suffix;
-      } else {
-        name = source + suffix;
+      var seqSuffix = "_" + (seq + 1);
+      var budget = MAX_LENGTH - seqSuffix.length() - suffix.length();
+      if (budget <= 0) {
+        break;
       }
+      var nameBase = base.length() > budget ? base.substring(0, budget) : base;
+      var name = nameBase + seqSuffix + suffix;
 
       if (Bukkit.getPlayerExact(name) != null) {
         continue;
