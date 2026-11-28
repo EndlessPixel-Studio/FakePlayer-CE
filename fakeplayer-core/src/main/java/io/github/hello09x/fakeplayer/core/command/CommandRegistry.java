@@ -77,6 +77,7 @@ public class CommandRegistry {
   @Inject private ChangepasswordCommand changepasswordCommand;
 
   @Inject private FakeplayerConfig config;
+  @Inject private AllTargetExpansion allTargetExpansion;
 
   public void register() {
     var helpLocale = TranslatorUtils.getDefaultLocale(Main.getInstance());
@@ -627,6 +628,7 @@ public class CommandRegistry {
         helpLocalizer.translate("fakeplayer.command.fp.short-description"),
         helpLocalizer.translate("fakeplayer.command.fp.full-description"));
     CommandHelpGenerator.generate(root, helpLocalizer);
+    allTargetExpansion.apply(root);
     root.register();
   }
 }

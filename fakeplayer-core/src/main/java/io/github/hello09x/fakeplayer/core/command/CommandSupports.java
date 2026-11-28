@@ -83,6 +83,10 @@ public abstract class CommandSupports {
             new StringArgument(nodeName),
             info -> {
               var sender = info.sender();
+              if (info.currentInput().equals("-a")) {
+                // 实际展开在命令执行器里完成, 这里只让参数解析通过
+                return null;
+              }
               var target =
                   sender.isOp()
                       ? manager().get(info.currentInput())
@@ -103,7 +107,7 @@ public abstract class CommandSupports {
                           ? manager().getAll(predicate)
                           : manager().getAll(sender, predicate);
 
-                  var names = targets.stream().map(Player::getName);
+                  var names = Stream.concat(targets.stream().map(Player::getName), Stream.of("-a"));
                   if (!arg.isEmpty()) {
                     // 玩家名是大小写不敏感的, 但用户敲进来的片段可能是大写, 所以两边都要归一化
                     var keyword = arg.toLowerCase(Locale.ROOT);
@@ -134,8 +138,7 @@ public abstract class CommandSupports {
 
                   var targets = sender.isOp() ? manager().getAll() : manager().getAll(sender);
 
-                  return targets.stream()
-                      .map(Player::getName)
+                  return Stream.concat(targets.stream().map(Player::getName), Stream.of("-a"))
                       .filter(name -> name.toLowerCase(Locale.ROOT).contains(arg))
                       .toArray(String[]::new);
                 }));

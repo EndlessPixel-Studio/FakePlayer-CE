@@ -14,6 +14,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 ### English
 
 - **Fixed `/fp spawn` world names and permission errors (thanks @Boxendo, commit `eb443564`).** World arguments are now resolved by Bukkit world name (dimension keys still work), and missing `spawn.name` / `spawn.location` permissions produce explicit messages instead of a generic argument error.
+- **`-a` now works on every name-based command (#123, #202).** Any command taking a fake-player name accepts `-a` to apply to all fake players you can see (OP/console: everyone; regular players: their own); only `select`, `spawn`/`spawnuuid` and `rename` are excluded. `kick`/`kill` keep their existing multi-target behavior.
 - **Fixed `/fp selection` permission and world-only spawning (thanks @Boxendo, commit `c436b5cf`).** `/fp selection` required `fakeplayer.command.select` instead of its own node; `/fp spawn <name> <world>` silently ignored the world, and `-` now skips the name argument so players without `spawn.name` can still set a location.
 - **Per-permission fake player limits (#187, thanks @kuxiaole; #64, thanks @Chaostarts).** `player-limit` stays the default; configure `spawn-limit` entries (e.g. `vip: 10`) and grant `fakeplayer.spawn.limit.vip` to raise the cap for specific players. Multiple matching permissions use the highest value; OPs are unaffected and dynamic TPS limits now respect the player's own cap. `config.yml` is now version 42.
 - **AI chat can optionally use inventory context.** `ai-chat.yml` gains `inventory-context.fakeplayer` / `inventory-context.questioner`; together with the matching per-player switches (`aichat_fake_inventory`, `aichat_questioner_inventory`, via `/fp config set`) the item types and counts in the fake player's or asking player's inventory are added to the prompt. Both switches are off by default; `config.yml` is now version 41.
@@ -35,6 +36,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 - **修复  权限与只给世界时的召唤（感谢 @Boxendo，commit ）。**  原先要求  而不是自己的权限节点； 会静默忽略世界，现在用  可跳过名字参数。
 - **修复 `/fp spawn` 世界名与权限报错（感谢 @Boxendo，commit `eb443564`）。** 世界参数现在按 Bukkit 世界名解析（同时兼容维度 key）；缺少 `spawn.name` / `spawn.location` 权限时给出明确提示，不再是含糊的参数错误。
+- **`-a` 支持所有名称类命令（#123、#202）。** 凡是假人名称参数都能用 `-a` 一次操作可见的全部假人（OP/控制台为全服，普通玩家仅限自己召唤的）；仅 `select`、`spawn`/`spawnuuid`、`rename` 除外。`kick`/`kill` 保持原有批量行为。
 - **修复 `/fp selection` 权限与只给世界时的召唤（感谢 @Boxendo，commit `c436b5cf`）。** `/fp selection` 原先要求 `fakeplayer.command.select` 而不是自己的权限节点；`/fp spawn <名> <世界>` 会静默忽略世界，现在用 `-` 可跳过名字参数。
 - **按权限设置假人数量上限（#187，感谢 @kuxiaole；#64，感谢 @Chaostarts）。** `player-limit` 仍是默认值；在 `spawn-limit` 中配置如 `vip: 10` 并授予 `fakeplayer.spawn.limit.vip` 即可提高指定玩家上限。命中多个权限时取最大值；OP 不受限制，动态 TPS 上限也会按玩家实际额度扣减。`config.yml` 版本提升至 42。
 - **AI 聊天可选择性读取背包上下文。** `ai-chat.yml` 新增 `inventory-context.fakeplayer` / `inventory-context.questioner`，与玩家开关 `aichat_fake_inventory` / `aichat_questioner_inventory`（`/fp config set`）同时开启时，假人或提问玩家背包里的物品种类与数量会进入提示词。默认全部关闭，`config.yml` 版本提升至 41。
