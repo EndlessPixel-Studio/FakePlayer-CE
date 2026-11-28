@@ -51,6 +51,9 @@
 - [xiplugin/FakePlayerPlus commit 021bb3d2](https://github.com/xiplugin/FakePlayerPlus/commit/021bb3d2dd056d8ec61a4a0289fd6454f9b2c8ab)
 - [xiplugin/FakePlayerPlus commit b972a97a](https://github.com/xiplugin/FakePlayerPlus/commit/b972a97ac231fba484dc0e3db5751307d7525375)
 
+## NotCbop/FakePlayer-CE
+- [NotCbop/FakePlayer-CE commit 6aaf5709](https://github.com/NotCbop/FakePlayer-CE/commit/6aaf5709bbdcc5767db380fe989c4511da515020)
+
 ## CraftAmethyst/fakeplayer-QM
 - [CraftAmethyst/fakeplayer-QM PR #1](https://github.com/CraftAmethyst/fakeplayer-QM/pull/1)
 - [CraftAmethyst/fakeplayer-QM commit b9a498c3](https://github.com/CraftAmethyst/fakeplayer-QM/commit/b9a498c3)

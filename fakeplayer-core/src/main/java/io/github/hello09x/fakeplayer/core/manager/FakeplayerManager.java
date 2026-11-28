@@ -407,8 +407,14 @@ public class FakeplayerManager {
     }
 
     if (target.isConnected()) {
-      // 仅在仍处于连接状态时踢出, 避免对已断开的假人重复触发断开/移除流程
-      target.kick(textOfChildren(text("[fakeplayer] "), reason == null ? text("removed") : reason));
+      // 1.21.x 上幽灵假人的实体调度器可能已经注销, kick 会抛 "Already retired";
+      // 不能让它中断 cleanup, 否则这个假人会永远留在在线列表里
+      try {
+        target.kick(
+            textOfChildren(text("[fakeplayer] "), reason == null ? text("removed") : reason));
+      } catch (IllegalStateException e) {
+        log.warning("Failed to kick " + name + " (" + e.getMessage() + "), forcing cleanup");
+      }
     }
     this.cleanup(target);
     return true;
@@ -447,7 +453,13 @@ public class FakeplayerManager {
 
     for (var target : targets) {
       if (target.isConnected()) {
-        target.kick(text(REMOVAL_REASON_PREFIX + (reason == null ? "removed" : reason)));
+        try {
+          target.kick(text(REMOVAL_REASON_PREFIX + (reason == null ? "removed" : reason)));
+        } catch (IllegalStateException e) {
+          // 一个幽灵假人 kick 失败不能中断其余假人的移除
+          log.warning(
+              "Failed to kick " + target.getName() + " (" + e.getMessage() + "), forcing cleanup");
+        }
       }
       this.cleanup(target);
     }
@@ -497,10 +509,11 @@ public class FakeplayerManager {
           .createAction(fakeplayer.getPlayer(), ActionType.DROP_INVENTORY, ActionSetting.once())
           .tick();
     }
-    // 真正从服务器在线玩家列表中注销该假人实体。
-    // 假人通过自定义 NetworkManager 注入, Player.kick() 在 fake 网络上不会使其断线,
-    // 必须调用 NMS PlayerList.remove(ServerPlayer) 才能让服务器真正移除它。
-    removeFromServer(fakeplayer.getPlayer());
+    // 1.21.11 上 Player.kick() 已经走完整断线流程 (触发 PlayerQuitEvent 并调用 PlayerList.remove),
+    // 此时再调一次会二次触发退出事件并抛 "Already retired"。只有 kick 没生效、玩家仍在线时才兜底移除。
+    if (fakeplayer.getPlayer().isOnline()) {
+      removeFromServer(fakeplayer.getPlayer());
+    }
   }
 
   /**
@@ -834,11 +847,13 @@ public class FakeplayerManager {
    * @param commands 命令
    */
   public void dispatchCommands(@NotNull Player player, @NotNull List<String> commands) {
+    var creatorName = this.getCreatorName(player);
+    if (creatorName == null) {
+      // 重复退出事件或幽灵假人: 内部列表已无记录, 无法替换 %c, 直接跳过
+      return;
+    }
     this.dispatchCommands(
-        new DispatchCommandArgs(
-            player.getName(),
-            player.getUniqueId().toString(),
-            Objects.requireNonNull(this.getCreatorName(player))),
+        new DispatchCommandArgs(player.getName(), player.getUniqueId().toString(), creatorName),
         commands);
   }
 
@@ -905,7 +920,18 @@ public class FakeplayerManager {
                     player ->
                         player.getMetadata(MetadataKeys.SPAWNED_AT).stream()
                             .anyMatch(value -> value.getOwningPlugin() == Main.getInstance()))
-                .forEach(player -> player.kick(text(REMOVAL_REASON_PREFIX + "Plugin disabled"))));
+                .forEach(
+                    player -> {
+                      try {
+                        player.kick(text(REMOVAL_REASON_PREFIX + "Plugin disabled"));
+                      } catch (IllegalStateException e) {
+                        log.warning(
+                            "Failed to kick "
+                                + player.getName()
+                                + " on disable: "
+                                + e.getMessage());
+                      }
+                    }));
     Exceptions.suppress(Main.getInstance(), this.tpsLimiter::shutdown);
   }
 }
