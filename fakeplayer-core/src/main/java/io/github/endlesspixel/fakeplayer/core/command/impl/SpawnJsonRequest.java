@@ -11,8 +11,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * {@code /fp spawnjson} 的参数。只解析与校验, 不碰 Bukkit API, 因此可以离线测试。
  *
- * <p>第一版支持名称、UUID、世界与坐标、朝向和寿命; NBT ({@code #192}) 不在范围内, 未知字段一律拒绝,
- * 这样拼错字段名能立刻发现, 以后加新字段再显式放开。
+ * <p>第一版支持名称、UUID、世界与坐标、朝向和寿命; NBT ({@code #192}) 不在范围内, 未知字段一律拒绝, 这样拼错字段名能立刻发现, 以后加新字段再显式放开。
  */
 public record SpawnJsonRequest(
     @Nullable String name,
@@ -99,8 +98,15 @@ public record SpawnJsonRequest(
     }
 
     return new SpawnJsonRequest(
-        name, uuid, world, x, y, z, yaw == null ? null : yaw.floatValue(),
-        pitch == null ? null : pitch.floatValue(), lifespan);
+        name,
+        uuid,
+        world,
+        x,
+        y,
+        z,
+        yaw == null ? null : yaw.floatValue(),
+        pitch == null ? null : pitch.floatValue(),
+        lifespan);
   }
 
   private static @Nullable String text(@NotNull JsonObject root, @NotNull String key) {
