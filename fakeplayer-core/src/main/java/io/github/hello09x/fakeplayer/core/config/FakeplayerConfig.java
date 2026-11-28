@@ -9,6 +9,7 @@ import io.github.endlesspixel.fakeplayer.core.database.DatabaseType;
 import io.github.hello09x.devtools.core.config.ConfigUtils;
 import io.github.hello09x.devtools.core.config.PluginConfig;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.command.Permission;
 import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import java.io.File;
@@ -23,7 +24,9 @@ import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +41,9 @@ public class FakeplayerConfig extends PluginConfig {
 
   /** 每位玩家最多多少个假人 */
   private int playerLimit;
+
+  /** 按权限覆盖的玩家上限: 配置名 -> 上限 */
+  private Map<String, Integer> spawnLimits;
 
   /** 服务器最多多少个假人 */
   private int serverLimit;
@@ -343,6 +349,29 @@ public class FakeplayerConfig extends PluginConfig {
     super(Main.getInstance());
   }
 
+  /** 实际可用的上限: 命中的权限节点取最大值, 没有则沿用 player-limit */
+  public int getSpawnLimit(@NotNull CommandSender sender) {
+    var limit = this.playerLimit;
+    if (!(sender instanceof Player player)) {
+      return limit;
+    }
+    for (var entry : this.spawnLimits.entrySet()) {
+      if (player.hasPermission(Permission.spawnLimit + "." + entry.getKey())) {
+        limit = Math.max(limit, entry.getValue());
+      }
+    }
+    return limit;
+  }
+
+  /** 配置里出现过的最大上限, 用于名称序号池与 TPS 扣减范围 */
+  public int getMaxSpawnLimit() {
+    var limit = this.playerLimit;
+    for (var value : this.spawnLimits.values()) {
+      limit = Math.max(limit, value);
+    }
+    return limit;
+  }
+
   private static int maxIfZero(int value) {
     return value <= 0 ? Integer.MAX_VALUE : value;
   }
@@ -384,6 +413,16 @@ public class FakeplayerConfig extends PluginConfig {
   @Override
   protected void reload(@NotNull FileConfiguration file) {
     this.playerLimit = maxIfZero(file.getInt("player-limit", 1));
+    this.spawnLimits = new LinkedHashMap<>();
+    var spawnLimitSection = file.getConfigurationSection("spawn-limit");
+    if (spawnLimitSection != null) {
+      for (var node : spawnLimitSection.getKeys(false)) {
+        var limit = spawnLimitSection.getInt(node, 0);
+        if (limit > 0 && node.matches("[A-Za-z0-9_-]+")) {
+          this.spawnLimits.put(node, limit);
+        }
+      }
+    }
     this.serverLimit = maxIfZero(file.getInt("server-limit", 1000));
     this.followQuiting = file.getBoolean("follow-quiting", true);
     this.followQuitingForce = file.getBoolean("follow-quiting-force", false);

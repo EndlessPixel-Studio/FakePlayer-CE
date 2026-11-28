@@ -22,6 +22,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -83,10 +84,16 @@ public class TpsAdaptiveLimitManager {
     return this.reduction;
   }
 
-  /** 扣除动态减少量后的玩家上限，至少为配置的下限 */
+  /** 扣除动态减少量后的全局上限 */
   public int effectiveLimit() {
     return Math.max(
         this.config.getTpsAdaptiveMinCount(), this.config.getPlayerLimit() - this.reduction);
+  }
+
+  /** 该玩家实际的上限: 按权限覆盖后再扣减 TPS */
+  public int effectiveLimit(@NotNull CommandSender sender) {
+    return Math.max(
+        this.config.getTpsAdaptiveMinCount(), this.config.getSpawnLimit(sender) - this.reduction);
   }
 
   private void reschedule() {
@@ -118,24 +125,33 @@ public class TpsAdaptiveLimitManager {
       if (this.reduction > 0) {
         this.reduction--;
         var tpsText = text(String.valueOf(tps), GOLD);
-        var limitText = text(this.effectiveLimit(), GOLD);
-        var message =
-            translatable("fakeplayer.tps-adaptive.limit-recovered", tpsText, limitText)
-                .color(GREEN);
-        Schedulers.global(Main.getInstance(), () -> this.notifyPlayers(message));
+        Schedulers.global(
+            Main.getInstance(),
+            () -> {
+              for (Player player : Bukkit.getOnlinePlayers()) {
+                if (this.manager.get().isFake(player)) {
+                  continue;
+                }
+                LangUtils.send(
+                    player,
+                    translatable(
+                            "fakeplayer.tps-adaptive.limit-recovered",
+                            tpsText,
+                            text(this.effectiveLimit(player), GOLD))
+                        .color(GREEN));
+              }
+            });
       }
       return;
     }
 
     var maxReduction =
-        Math.max(0, this.config.getPlayerLimit() - this.config.getTpsAdaptiveMinCount());
+        Math.max(0, this.config.getMaxSpawnLimit() - this.config.getTpsAdaptiveMinCount());
     if (this.reduction >= maxReduction) {
       return;
     }
     this.reduction++;
-    var limit = this.effectiveLimit();
     var tpsText = text(String.valueOf(tps), GOLD);
-    var limitText = text(limit, GOLD);
 
     Schedulers.global(
         Main.getInstance(),
@@ -144,9 +160,10 @@ public class TpsAdaptiveLimitManager {
             if (this.manager.get().isFake(player)) {
               continue;
             }
+            var limit = this.effectiveLimit(player);
             LangUtils.send(
                 player,
-                translatable("fakeplayer.tps-adaptive.limit-decreased", tpsText, limitText)
+                translatable("fakeplayer.tps-adaptive.limit-decreased", tpsText, text(limit, GOLD))
                     .color(RED));
             List<Player> fakes = this.manager.get().getAll(player);
             for (var i = fakes.size() - 1; i >= limit; i--) {
@@ -154,14 +171,5 @@ public class TpsAdaptiveLimitManager {
             }
           }
         });
-  }
-
-  private void notifyPlayers(net.kyori.adventure.text.Component message) {
-    for (Player player : Bukkit.getOnlinePlayers()) {
-      if (this.manager.get().isFake(player)) {
-        continue;
-      }
-      LangUtils.send(player, message);
-    }
   }
 }

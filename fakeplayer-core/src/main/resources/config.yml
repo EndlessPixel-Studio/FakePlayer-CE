@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 41
+version: 42
 
 
 # ============================================================
@@ -34,6 +34,13 @@ server-limit: 1000
 # 每个玩家可召唤的假人上限
 # Maximum fake players each player can spawn
 player-limit: 1
+
+# 按权限给指定玩家更高的上限: fakeplayer.spawn.limit.<下面的名称>
+# 拥有多个时取最大值, 没有对应权限则沿用 player-limit; OP 不受限制
+# Higher limits by permission: fakeplayer.spawn.limit.<name below>
+# The highest matching value wins; players without any of them keep player-limit. OPs are never limited.
+spawn-limit:
+  # vip: 10
 
 # 同一 IP 共享 player-limit (防止开小号刷假人)
 # Players sharing an IP share the player-limit

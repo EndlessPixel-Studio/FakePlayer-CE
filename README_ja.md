@@ -60,6 +60,8 @@
 
 初回起動時はテンプレートの `config.tmpl.yml` のみが生成されます。`config.yml` にリネームすると有効になります。この仕組みにより、アップグレード時に既存の設定を上書きせず、追加された項目だけを確認できます。記入例は [config.yml](fakeplayer-core/src/main/resources/config.yml) を参照してください。
 
+**権限別の生成上限**：`player-limit` は全員の既定値です。`spawn-limit` にたとえば `vip: 10` を追加し、`fakeplayer.spawn.limit.vip` 権限を付与してください。複数一致した場合は最大値を採用します。OP は上限の対象外で、`detect-ip` は引き続き全体の `player-limit` を使います。
+
 ## データベース
 
 データは既定で SQLite（`plugins/FakePlayer-CE/data.db`）に保存されます。MySQL を使う場合は空のデータベースを作成し、`config.yml` の `database.type` を `mysql` に、`database.mysql` を埋めてから再起動してください（テーブルは自動作成されます）。既存データは `/fp migrate-db` で移行できます（OP のみ、SQLite ファイルは残ります）。
