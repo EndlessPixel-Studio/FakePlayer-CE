@@ -9,7 +9,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 - 未发布的版本写作 `## fp.buildN - (Not published | 未发布)`：版本号可在开发期预置为下一版本，发布时把标题改成发布日期。
 - 每条条目以加粗短语概括要点，中英文段落条目数量与顺序保持一致。
 
-## fp.build23 - (Not published | 未发布)
+## fp.build23 - 2026-11-29
 
 ### English
 
@@ -35,7 +35,6 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
-- **修复  权限与只给世界时的召唤（感谢 @Boxendo，commit ）。**  原先要求  而不是自己的权限节点； 会静默忽略世界，现在用  可跳过名字参数。
 - **修复 `/fp spawn` 世界名与权限报错（感谢 @Boxendo，commit `eb443564`）。** 世界参数现在按 Bukkit 世界名解析（同时兼容维度 key）；缺少 `spawn.name` / `spawn.location` 权限时给出明确提示，不再是含糊的参数错误。
 - **可选依赖不再打包进 jar。** 开启 HTTP 接口或 MySQL 时，Undertow 与 MySQL 驱动会按需下载到 `plugins/FakePlayer-CE/libs`，产物体积明显减小。可用 `-DLeaf.library-download-repo=<url>` 指定 Maven 镜像源（默认 Maven 中央仓库）；仅接受 `http(s)` 地址，下载路径被限制在 `libs` 内。
 - **`-a` 支持所有名称类命令（#123、#202）。** 凡是假人名称参数都能用 `-a` 一次操作可见的全部假人（OP/控制台为全服，普通玩家仅限自己召唤的）；仅 `select`、`spawn`/`spawnuuid`、`rename` 除外。`kick`/`kill` 保持原有批量行为。
