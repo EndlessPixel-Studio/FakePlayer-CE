@@ -132,73 +132,33 @@ const ja: Labels = {
 
 const zhSidebar = [
   {
-    text: '快速开始',
-    items: [
-      { text: '概览', link: '/guide/' },
-      { text: '下载安装插件', link: '/guide/install' },
-      { text: '创建第一个假人', link: '/guide/first-fake' },
-    ],
+    text: '入门指南',
+    items: [{ text: '安装、验证与排错', link: '/guide/' }],
   },
   {
-    text: '插件配置文件',
-    items: [
-      { text: '总览', link: '/guide/config/' },
-      { text: '基础设置', link: '/guide/config/config-basic' },
-      { text: '数据库与依赖下载', link: '/guide/config/config-database' },
-      { text: '特性与性能', link: '/guide/config/config-features' },
-      { text: '高级设置', link: '/guide/config/config-advanced' },
-      { text: 'AI 聊天配置', link: '/guide/config/ai-chat' },
-    ],
+    text: '配置参考',
+    items: [{ text: 'config.yml 与 ai-chat.yml 完全手册', link: '/guide/config/' }],
   },
   {
-    text: '指令',
-    items: [
-      { text: '总览', link: '/commands/' },
-      { text: '生成与移除', link: '/commands/spawn-remove' },
-      { text: '状态与查看', link: '/commands/status-view' },
-      { text: '移动与动作', link: '/commands/move-action' },
-      { text: '物品与容器', link: '/commands/inventory' },
-      { text: '交互与聊天', link: '/commands/interaction-chat' },
-      { text: '管理与运维', link: '/commands/admin' },
-    ],
+    text: '命令参考',
+    items: [{ text: '完整命令树与通用规则', link: '/commands/' }],
   },
   {
     text: 'HTTP API',
-    items: [
-      { text: '如何调用', link: '/http/' },
-      { text: '信息类接口', link: '/http/endpoints-info' },
-      { text: '生命周期接口', link: '/http/endpoints-lifecycle' },
-      { text: '动作与移动接口', link: '/http/endpoints-action' },
-      { text: '高危接口', link: '/http/endpoints-admin' },
-    ],
+    items: [{ text: '鉴权、限流与全部端点', link: '/http/' }],
   },
   {
-    text: '占位符与联动',
+    text: '生态与扩展',
     items: [
       { text: '占位符变量', link: '/placeholders' },
       { text: '联动插件', link: '/compat/' },
-      { text: 'CatSeedLogin', link: '/compat/catseedlogin' },
-      { text: 'AuthMe', link: '/compat/authme' },
-      { text: 'LibreLogin', link: '/compat/librelogin' },
     ],
   },
   {
-    text: '版本更新日志',
+    text: '项目信息',
     items: [
-      { text: '概览', link: '/changelog/' },
-      { text: 'fp.build22', link: '/changelog/build22' },
-      { text: 'fp.build21', link: '/changelog/build21' },
-      { text: 'fp.build20', link: '/changelog/build20' },
-    ],
-  },
-  {
-    text: '贡献指南',
-    items: [
-      { text: '概览', link: '/contributing/' },
-      { text: '代码与提交规范', link: '/contributing/code' },
-      { text: '文档与翻译规范', link: '/contributing/docs' },
-      { text: '问题与反馈规范', link: '/contributing/issues' },
-      { text: '关于 FakePlayer-CE', link: '/contributing/about' },
+      { text: '版本变更史', link: '/changelog/' },
+      { text: '贡献指南', link: '/contributing/' },
     ],
   },
 ]
