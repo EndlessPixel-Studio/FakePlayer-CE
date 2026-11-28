@@ -129,12 +129,6 @@ Any command that takes a fake-player name also accepts `-a` to apply it to every
 | /fp look | Look at specified location | fakeplayer.command.look | |
 | /fp move | Move | fakeplayer.command.move | |
 | /fp goto | Walk to the specified coordinates | fakeplayer.command.goto | Pathfinds around obstacles; rejects unreachable targets |
-
-Example for `/fp spawnjson` (all fields are optional; unknown fields are rejected):
-
-```
-/fp spawnjson {"name":"Bot_1","world":"world","x":0,"y":64,"z":0,"lifespan_seconds":600}
-```
 | /fp gotostop | Cancel an ongoing walk | fakeplayer.command.goto | Leaves other actions running |
 | /fp ride | Ride | fakeplayer.command.ride | |
 | /fp sneak | Sneak | fakeplayer.command.sneak | |
@@ -153,6 +147,12 @@ Example for `/fp spawnjson` (all fields are optional; unknown fields are rejecte
 | /fp version | Show plugin, server and Java version, plus the commit the jar was built from | - | Anyone |
 | /fp sysinfo | Dump CPU, memory, disk, TPS and fake player state to JSON | OP | Written to `plugins/FakePlayer-CE/sysinfo/`; attach it to performance reports |
 | /fp lang | Switch your display language | - | Anyone; overrides the client language |
+
+Example for `/fp spawnjson` (all fields are optional; unknown fields are rejected):
+
+```
+/fp spawnjson {"name":"Bot_1","world":"world","x":0,"y":64,"z":0,"lifespan_seconds":600}
+```
 
 ## HTTP Admin API
 

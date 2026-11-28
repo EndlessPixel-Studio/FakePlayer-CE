@@ -130,12 +130,6 @@
 | /fp move | 假人定向移动 | fakeplayer.command.move | |
 | /fp goto | 让假人寻路前往指定坐标 | fakeplayer.command.goto | 自动寻路；无法抵达则拒绝 |
 | /fp gotostop | 中止正在进行的寻路 | fakeplayer.command.goto | 不影响其它动作 |
-
-`/fp spawnjson` 示例（字段均可省略，未知字段会报错）：
-
-```
-/fp spawnjson {"name":"Bot_1","world":"world","x":0,"y":64,"z":0,"lifespan_seconds":600}
-```
 | /fp ride | 假人骑乘实体 | fakeplayer.command.ride | |
 | /fp sneak | 假人进入潜行模式 | fakeplayer.command.sneak | |
 | /fp sprint | 假人疾跑 | fakeplayer.command.sprint | |
@@ -153,6 +147,12 @@
 | /fp version | 显示插件、服务端与 Java 版本，以及构建该 jar 的 commit | - | 所有玩家可用 |
 | /fp sysinfo | 导出 CPU、内存、磁盘、TPS 与假人状态为 JSON | OP | 写在 `plugins/FakePlayer-CE/sysinfo/`，可直接附到性能问题里 |
 | /fp lang | 切换你的显示语言 | - | 所有玩家可用；优先于客户端语言 |
+
+`/fp spawnjson` 示例（字段均可省略，未知字段会报错）：
+
+```
+/fp spawnjson {"name":"Bot_1","world":"world","x":0,"y":64,"z":0,"lifespan_seconds":600}
+```
 
 ## HTTP 管理接口
 
