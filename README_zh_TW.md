@@ -62,6 +62,8 @@
 
 **依權限設定假人上限**：`player-limit` 是預設上限；在 `spawn-limit` 下設定如 `vip: 10`，並給玩家 `fakeplayer.spawn.limit.vip` 權限。命中多個權限時取最大值；OP 不受上限限制，`detect-ip` 仍按全域 `player-limit` 計算。
 
+**可選依賴不打包**：Undertow（HTTP 介面）與 MySQL 驅動不在 jar 內；開啟對應功能後啟動時會自動下載到 `plugins/FakePlayer-CE/libs`。在 JVM 參數加入 `-DLeaf.library-download-repo=https://maven.aliyun.com/repository/public` 可改用鏡像來源（預設 Maven 中央倉庫）；只接受 `http(s)` 位址，下載路徑被限制在 `libs` 目錄內。
+
 ## 資料庫
 
 資料預設存在 SQLite（`plugins/FakePlayer-CE/data.db`）。想用 MySQL，先建一個空庫，在 `config.yml` 裡把 `database.type` 改成 `mysql` 並填好 `database.mysql`，然後重新啟動——資料表會自動建立。既有資料之後用 `/fp migrate-db` 遷移（僅 OP；SQLite 檔案不會被刪除）。

@@ -5,6 +5,8 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.github.endlesspixel.fakeplayer.core.util.library.LibraryManager;
+import io.github.endlesspixel.fakeplayer.core.util.library.LibrarySet;
 import io.github.hello09x.devtools.database.jdbc.JdbcTemplate;
 import io.github.hello09x.fakeplayer.core.config.FakeplayerConfig;
 import javax.sql.DataSource;
@@ -35,7 +37,19 @@ public class DatabaseModule extends AbstractModule {
     }
     hikari.setMaximumPoolSize(config.getDatabaseMaxPoolSize());
     hikari.setConnectionTimeout(config.getDatabaseConnectionTimeout());
-    return new HikariDataSource(hikari);
+    if (!config.getDatabaseType().isMysql()) {
+      return new HikariDataSource(hikari);
+    }
+
+    LibraryManager.ensure(LibrarySet.MYSQL);
+    var thread = Thread.currentThread();
+    var previous = thread.getContextClassLoader();
+    thread.setContextClassLoader(LibraryManager.loader(LibrarySet.MYSQL));
+    try {
+      return new HikariDataSource(hikari);
+    } finally {
+      thread.setContextClassLoader(previous);
+    }
   }
 
   @Provides

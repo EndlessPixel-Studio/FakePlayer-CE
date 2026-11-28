@@ -62,6 +62,8 @@ On first launch only a template `config.tmpl.yml` is generated; rename it to `co
 
 **Per-permission spawn limits:** `player-limit` is the default for everyone. Add entries under `spawn-limit` (for example `vip: 10`) and grant `fakeplayer.spawn.limit.vip`; when several nodes match, the highest value wins. OPs bypass the limit, and `detect-ip` still uses the global `player-limit`.
 
+**Optional libraries:** Undertow (for `http-admin`) and the MySQL driver (for `database.type: mysql`) are not bundled. Enabling the feature downloads them to `plugins/FakePlayer-CE/libs` at startup. Add `-DLeaf.library-download-repo=https://maven.aliyun.com/repository/public` to the JVM options to use a mirror (default: Maven Central). Only `http(s)` URLs are accepted and downloads stay inside `libs`.
+
 ## Database
 
 Data lives in SQLite (`plugins/FakePlayer-CE/data.db`) by default. To use MySQL, create an empty database, set `database.type: mysql` and fill in the `database.mysql` block in `config.yml`, then restart — the tables are created automatically. Existing data can be copied afterwards with `/fp migrate-db` (OP only; the SQLite file is left untouched).
