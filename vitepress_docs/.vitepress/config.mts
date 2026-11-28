@@ -221,7 +221,7 @@ const themeFor = (
   ],
   sidebar,
   lastUpdatedText: l.lastUpdated,
-  outline: { label: l.outline, level: [2, 3] },
+  outline: false,
   docFooter: { prev: l.prev, next: l.next },
   returnToTopLabel: l.toTop,
   sidebarMenuLabel: l.menu,

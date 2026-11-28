@@ -6,6 +6,7 @@ import ApiEndpoint from './ApiEndpoint.vue'
 import ApiBadge from './ApiBadge.vue'
 import ApiResponse from './ApiResponse.vue'
 import ApiCodeTabs from './ApiCodeTabs.vue'
+import ApiDocPage from './ApiDocPage.vue'
 import './style.css'
 
 export default {
@@ -17,5 +18,6 @@ export default {
     app.component('ApiBadge', ApiBadge)
     app.component('ApiResponse', ApiResponse)
     app.component('ApiCodeTabs', ApiCodeTabs)
+    app.component('ApiDocPage', ApiDocPage)
   },
 }
