@@ -1,4 +1,15 @@
 ######################
+# VitePress
+######################
+
+# npm
+vitepress_docs/node_modules/
+
+# vitepress
+vitepress_docs/.vitepress/dist
+vitepress_docs/.vitepress/cache
+
+######################
 # Gradle
 ######################
 .gradle/
