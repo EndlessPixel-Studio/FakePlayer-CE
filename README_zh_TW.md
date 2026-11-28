@@ -73,6 +73,9 @@
 | `/fp aichat public [once\|continuous\|interval <tick>] [假人]` | 發到公共聊天，`continuous` 持續發言直到 `stop` |
 | `/fp aichat private <玩家> [once\|continuous\|interval <tick>] [假人]` | 只發給指定玩家 |
 | `/fp aichat stop [假人]` | 停止持續發言 |
+| `/fp aichat model [名稱]` | 查看目前模型與可用模型，或切換到指定模型（僅 OP） |
+
+在 `ai-chat.yml` 的 `models:` 下可設定多個模型，每項都能單獨覆蓋 `model`、`api`、`api-key`、`api-key-env`，未填寫的繼承頂層預設值；`active-model` 指定預設模型。OP 可用 `/fp aichat model <名稱>` 在執行時切換，選擇會寫回 `ai-chat.yml`。
 
 建議開啟 `auto-reply`：只在玩家說了值得回應的話時才接一句（短訊息、純符號與洗頻會先被過濾），由 `chance` 與 `cooldown-seconds` 控制頻率。`continuous` 為定時發言，預設關閉，需要打開 `allow-continuous`。人設、提示詞、上下文與節奏分別由 `system-prompt` / `turn-prompt` / `max-context` / `recent-chat-lines` / `interval-ticks` 控制。
 

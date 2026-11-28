@@ -73,6 +73,9 @@ Data lives in SQLite (`plugins/FakePlayer-CE/data.db`) by default. To use MySQL,
 | `/fp aichat public [once\|continuous\|interval <ticks>] [fake player]` | Send to public chat; `continuous` keeps talking until `stop` |
 | `/fp aichat private <player> [once\|continuous\|interval <ticks>] [fake player]` | Send to one player only |
 | `/fp aichat stop [fake player]` | Stop continuous mode |
+| `/fp aichat model [name]` | Show the active model and available ones, or switch to `name` (OP only) |
+
+Define several models under `models:` in `ai-chat.yml`; each entry may override `model`, `api`, `api-key` and `api-key-env`, and unset fields fall back to the top-level values. `active-model` picks the default; OPs can change it at runtime with `/fp aichat model <name>` (persisted back to `ai-chat.yml`).
 
 `auto-reply` is the recommended mode: the fake player answers only when a player says something worth answering (short, symbol-only and spam messages are filtered), paced by `chance` and `cooldown-seconds`. `continuous` talks on a timer, is off by default and needs `allow-continuous: true`. Persona, prompts, retained context and pacing live in `system-prompt`, `turn-prompt`, `max-context`, `recent-chat-lines` and `interval-ticks`.
 

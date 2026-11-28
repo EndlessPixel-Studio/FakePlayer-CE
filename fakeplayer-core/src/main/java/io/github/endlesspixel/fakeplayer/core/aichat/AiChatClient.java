@@ -58,17 +58,20 @@ public class AiChatClient {
 
   /** 请求一次对话补全, 返回模型给出的文本 */
   public @NotNull CompletableFuture<String> complete(
-      @NotNull AiChatConfig config, @NotNull String apiKey, @NotNull List<ChatMessage> messages) {
+      @NotNull AiChatConfig config,
+      @NotNull AiChatModel model,
+      @NotNull List<ChatMessage> messages) {
     if (messages.isEmpty()) {
       return CompletableFuture.failedFuture(
           new IllegalArgumentException("messages must not be empty"));
     }
-    if (apiKey.isBlank()) {
+    var apiKey = model.resolveApiKey();
+    if (apiKey == null) {
       return CompletableFuture.failedFuture(
           new IllegalArgumentException("apiKey must not be blank"));
     }
 
-    var url = config.getCompletionsUrl();
+    var url = model.getCompletionsUrl();
     if (url == null || url.isBlank()) {
       return CompletableFuture.failedFuture(
           new IllegalArgumentException("completionsUrl must not be blank"));
@@ -85,7 +88,7 @@ public class AiChatClient {
               .header("User-Agent", USER_AGENT)
               .POST(
                   HttpRequest.BodyPublishers.ofString(
-                      this.buildBody(config, messages), StandardCharsets.UTF_8))
+                      this.buildBody(config, model, messages), StandardCharsets.UTF_8))
               .build();
     } catch (IllegalArgumentException e) {
       // URI 非法或 timeout <= 0 等情况
@@ -132,9 +135,11 @@ public class AiChatClient {
   }
 
   private @NotNull String buildBody(
-      @NotNull AiChatConfig config, @NotNull List<ChatMessage> messages) {
+      @NotNull AiChatConfig config,
+      @NotNull AiChatModel model,
+      @NotNull List<ChatMessage> messages) {
     var root = new JsonObject();
-    root.addProperty(FIELD_MODEL, config.getModel());
+    root.addProperty(FIELD_MODEL, model.model());
 
     var array = new JsonArray();
     for (var message : messages) {

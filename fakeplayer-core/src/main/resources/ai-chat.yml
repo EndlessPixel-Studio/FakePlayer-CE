@@ -18,7 +18,18 @@ api: "https://api.openai.com/v1"
 api-key: ""
 api-key-env: "FAKEPLAYER_AI_KEY"
 
+# 下面的 model / api / api-key / api-key-env 同时作为 models 各项的默认值 (兼容旧配置)
 model: "gpt-4o"
+
+# 当前使用的模型名称, 对应 models 下的键; 也可以由 OP 用 /fp aichat model <名称> 切换
+# 名称不存在时回退到 default, 没有 default 则用第一个模型
+active-model: "default"
+
+# 可用模型: 每项可单独指定 model / api / api-key / api-key-env, 未填写的继承上面的默认值
+# 例如接入本地 Ollama:  extra: {model: "qwen2.5", api: "http://127.0.0.1:11434/v1", api-key: "ollama"}
+models:
+  default:
+    model: "gpt-4o"
 
 temperature: 1.0
 top-p: 1.0

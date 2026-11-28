@@ -613,7 +613,8 @@ public class HttpAdminService {
       sendJson(ex, 403, "failure", "AI chat is disabled, enable it in ai-chat.yml");
       return;
     }
-    if (aiChatConfig.resolveApiKey() == null) {
+    var activeModel = aiChatConfig.resolveActiveModel();
+    if (activeModel == null || activeModel.resolveApiKey() == null) {
       sendJson(ex, 403, "failure", "No API key configured in ai-chat.yml");
       return;
     }

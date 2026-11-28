@@ -179,7 +179,11 @@ public class AiChatManager {
   }
 
   private void generate(@NotNull Player fake, @Nullable Player target) {
-    var apiKey = config.resolveApiKey();
+    var model = config.resolveActiveModel();
+    if (model == null) {
+      return;
+    }
+    var apiKey = model.resolveApiKey();
     if (apiKey == null) {
       return;
     }
@@ -208,7 +212,7 @@ public class AiChatManager {
 
     final CompletableFuture<String> pending;
     try {
-      pending = this.client.complete(config, apiKey, messages);
+      pending = this.client.complete(config, model, messages);
     } catch (RuntimeException e) {
       // 同步抛出的异常 (例如构造请求体时出错) 也要归还 inFlight, 否则这个假人再也不会开口
       this.inFlight.remove(id);

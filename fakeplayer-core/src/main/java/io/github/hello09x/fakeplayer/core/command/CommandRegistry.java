@@ -10,6 +10,7 @@ import dev.jorel.commandapi.CommandPermission;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.MultiLiteralArgument;
+import dev.jorel.commandapi.arguments.StringArgument;
 import io.github.endlesspixel.fakeplayer.core.command.impl.SpawnJsonCommand;
 import io.github.hello09x.devtools.core.translation.TranslatorUtils;
 import io.github.hello09x.fakeplayer.api.spi.ActionSetting;
@@ -567,7 +568,12 @@ public class CommandRegistry {
                                     .executes(aiChatCommand::privateContinuous)),
                         command("stop")
                             .withOptionalArguments(fakeplayer("name"))
-                            .executes(aiChatCommand::stop)),
+                            .executes(aiChatCommand::stop),
+                        command("model")
+                            .withShortDescription("fakeplayer.command.aichat.model.description")
+                            .withPermission(CommandPermission.OP)
+                            .withOptionalArguments(new StringArgument("model"))
+                            .executes(aiChatCommand::model)),
                 command("kickall")
                     .withShortDescription("fakeplayer.command.kickall.description")
                     .withPermission(CommandPermission.OP)

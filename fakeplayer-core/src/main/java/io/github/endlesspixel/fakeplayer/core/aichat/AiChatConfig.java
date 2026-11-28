@@ -4,8 +4,17 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.github.hello09x.fakeplayer.core.Main;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.Getter;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,6 +27,9 @@ public class AiChatConfig {
   private static final Logger log = Main.getInstance().getLogger();
 
   private static final String FILE_NAME = "ai-chat.yml";
+  private static final String DEFAULT_MODEL_NAME = "default";
+  private static final Pattern ACTIVE_MODEL_LINE =
+      Pattern.compile("(?m)^active-model:\\s*[^\\r\\n]*$");
 
   private static final String DEFAULT_SYSTEM_PROMPT =
       """
@@ -34,6 +46,10 @@ public class AiChatConfig {
   private String apiKeyEnv;
 
   private String model;
+
+  private String activeModel;
+
+  private final Map<String, AiChatModel> models = new LinkedHashMap<>();
 
   private double temperature;
 
@@ -96,6 +112,7 @@ public class AiChatConfig {
     this.apiKey = yaml.getString("api-key", "");
     this.apiKeyEnv = yaml.getString("api-key-env", "FAKEPLAYER_AI_KEY");
     this.model = yaml.getString("model", "gpt-4o");
+    this.activeModel = yaml.getString("active-model", DEFAULT_MODEL_NAME);
     this.temperature = yaml.getDouble("temperature", 1.0D);
     this.topP = yaml.getDouble("top-p", 1.0D);
     this.presencePenalty = yaml.getDouble("presence-penalty", 0.0D);
@@ -116,41 +133,108 @@ public class AiChatConfig {
     this.turnPrompt = yaml.getString("turn-prompt", "说一句话。");
     this.privateFormat = yaml.getString("private-format", "<gray>[{name} -> 你] {message}</gray>");
 
+    this.loadModels(yaml);
     this.validate();
+  }
+
+  private void loadModels(@NotNull YamlConfiguration yaml) {
+    this.models.clear();
+    var section = yaml.getConfigurationSection("models");
+    if (section != null) {
+      for (var key : section.getKeys(false)) {
+        var entry = section.getConfigurationSection(key);
+        if (entry == null) {
+          continue;
+        }
+        this.models.put(
+            key,
+            new AiChatModel(
+                key,
+                stringValue(entry, "model", this.model),
+                trimTrailingSlash(stringValue(entry, "api", this.api)),
+                stringValue(entry, "api-key-env", this.apiKeyEnv),
+                stringValue(entry, "api-key", this.apiKey)));
+      }
+    }
+    if (this.models.isEmpty()) {
+      // 旧配置没有 models 段, 顶层的 model/api/api-key 仍然就是唯一可用的模型
+      this.models.put(
+          DEFAULT_MODEL_NAME,
+          new AiChatModel(DEFAULT_MODEL_NAME, this.model, this.api, this.apiKeyEnv, this.apiKey));
+    }
+  }
+
+  private static @NotNull String stringValue(
+      @NotNull ConfigurationSection section, @NotNull String path, @Nullable String fallback) {
+    var value = section.getString(path);
+    return value == null ? (fallback == null ? "" : fallback) : value;
   }
 
   private void validate() {
     if (!this.enabled) {
       return;
     }
-    if (this.api == null || this.api.isBlank()) {
+    var active = this.resolveActiveModel();
+    if (active == null) {
+      log.warning("ai-chat.yml 已启用但没有可用模型, AI 聊天将保持关闭");
+      this.enabled = false;
+      return;
+    }
+    if (active.api().isBlank()) {
       log.warning("ai-chat.yml 已启用但 api 为空, AI 聊天将保持关闭");
       this.enabled = false;
       return;
     }
-    if (this.model == null || this.model.isBlank()) {
+    if (active.model().isBlank()) {
       log.warning("ai-chat.yml 已启用但 model 为空, AI 聊天将保持关闭");
       this.enabled = false;
       return;
     }
-    if (this.resolveApiKey() == null) {
-      log.warning("ai-chat.yml 已启用但未配置密钥, 请填写 api-key 或设置 " + this.apiKeyEnv + " 环境变量, 否则请求会失败");
+    if (active.resolveApiKey() == null) {
+      log.warning(
+          "ai-chat.yml 已启用但未配置密钥, 请填写 api-key 或设置 " + active.apiKeyEnv() + " 环境变量, 否则请求会失败");
     }
   }
 
-  /** 实际可用的密钥: 优先环境变量 (配置了 api-key-env 时), 否则读 api-key */
-  public @Nullable String resolveApiKey() {
-    if (this.apiKeyEnv != null && !this.apiKeyEnv.isBlank()) {
-      var fromEnv = System.getenv(this.apiKeyEnv.trim());
-      if (fromEnv != null && !fromEnv.isBlank()) {
-        return fromEnv;
+  public @Nullable AiChatModel resolveActiveModel() {
+    var selected = this.models.get(this.activeModel);
+    if (selected != null) {
+      return selected;
+    }
+    var fallback = this.models.get(DEFAULT_MODEL_NAME);
+    return fallback != null ? fallback : this.models.values().stream().findFirst().orElse(null);
+  }
+
+  public @NotNull List<String> getModelNames() {
+    return List.copyOf(this.models.keySet());
+  }
+
+  /** 由管理员切换当前模型, 结果写回配置文件以免重启后丢失 */
+  public boolean selectModel(@NotNull String name) {
+    if (!this.models.containsKey(name) || !this.persistActiveModel(name)) {
+      return false;
+    }
+    this.activeModel = name;
+    return true;
+  }
+
+  private boolean persistActiveModel(@NotNull String name) {
+    var file = new File(Main.getInstance().getDataFolder(), FILE_NAME);
+    try {
+      var text = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+      var escaped = name.replace("\\", "\\\\").replace("\"", "\\\"");
+      var replacement = Matcher.quoteReplacement("active-model: \"" + escaped + "\"");
+      var updated = ACTIVE_MODEL_LINE.matcher(text).replaceFirst(replacement);
+      if (updated.equals(text)) {
+        log.warning(FILE_NAME + " 缺少 active-model 项, 模型切换只在本次运行有效");
+        return true;
       }
+      Files.writeString(file.toPath(), updated, StandardCharsets.UTF_8);
+      return true;
+    } catch (IOException e) {
+      log.warning("无法把模型选择写入 " + FILE_NAME + ": " + e.getMessage());
+      return false;
     }
-    return this.apiKey == null || this.apiKey.isBlank() ? null : this.apiKey.trim();
-  }
-
-  public @NotNull String getCompletionsUrl() {
-    return this.api + "/chat/completions";
   }
 
   private static @NotNull String trimTrailingSlash(@NotNull String url) {
