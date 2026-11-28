@@ -36,27 +36,19 @@
 - [安全說明](#安全說明)
 - [個人化設定](#個人化設定)
 - [權限分組說明](#權限分組說明)
-  - [權限組 fakeplayer.spawn](#權限組-fakeplayerspawn)
-  - [權限組 fakeplayer.tp](#權限組-fakeplayertp)
-  - [權限組 fakeplayer.action](#權限組-fakeplayeraction)
 - [佔位符變數](#佔位符變數)
 - [自訂本地化翻譯](#自訂本地化翻譯)
 - [登入插件相容與聊天事件](#登入插件相容與聊天事件)
-  - [自動登入（兩套獨立機制）](#自動登入兩套獨立機制)
-  - [聊天事件相容（/fp say）](#聊天事件相容fp-say)
 - [常見問題](#常見問題)
   - [斷開連線：PacketEvents 2.0 failed to inject](#斷開連線packetevents-20-failed-to-inject)
   - [假人不被怪物攻擊](#假人不被怪物攻擊)
   - [假人一段時間後自動掉線](#假人一段時間後自動掉線)
-  - [Velocity 下 MOTD / 線上人數看不到假人](#velocity-下-motd--線上人數看不到假人)
-- [專案建置](#專案建置)
 - [Star 趨勢](#star-趨勢)
 - [貢獻者](#貢獻者)
 
 ## ⚠️ 社群版聲明
 
 - 本倉庫是**獨立的社群維護分支**，不由原作者發布、維護或背書。
-- 所有 Bug 與功能需求**請只提交到本倉庫**，不要提交給上游。
 
 ## 快速上手
 
@@ -82,23 +74,19 @@
 
 ## 下載
 
-發布物為單一 `fakeplayer-fp.buildX.jar`，放入伺服器端 `plugins/` 目錄並重新啟動即可（需先安裝 CommandAPI）。
-
 - **穩定版**：[GitHub Releases](https://github.com/EndlessPixel-Studio/FakePlayer-CE/releases)（推薦）
-- **Hangar**：[hangar.papermc.io/EndlessPixel/FakePlayer-CE](https://hangar.papermc.io/EndlessPixel/FakePlayer-CE)，可在網頁端直接下載與更新
+- **Hangar**：[hangar.papermc.io/EndlessPixel/FakePlayer-CE](https://hangar.papermc.io/EndlessPixel/FakePlayer-CE)
 - **最新建置**：[GitHub Actions](https://github.com/EndlessPixel-Studio/FakePlayer-CE/actions) → 任一次成功的執行 → Artifacts → `fakeplayer-dist`
 
 ## 設定檔說明
 
-首次載入只會生成範本 `config.tmpl.yml`，需手動重新命名為 `config.yml` 後才會生效。此機制便於升級時對照新增設定項，不會覆寫既有設定。範例見 [config.yml](fakeplayer-core/src/main/resources/config.yml)。
+首次載入只會生成範本 `config.tmpl.yml`，需手動重新命名為 `config.yml` 後才會生效。範例見 [config.yml](fakeplayer-core/src/main/resources/config.yml)。
 
-**依權限設定假人上限**：`player-limit` 是預設上限；在 `spawn-limit` 下設定如 `vip: 10`，並給玩家 `fakeplayer.spawn.limit.vip` 權限。命中多個權限時取最大值；OP 不受上限限制，`detect-ip` 仍按全域 `player-limit` 計算。
-
-**可選依賴不打包**：Undertow（HTTP 介面）與 MySQL 驅動不在 jar 內；開啟對應功能後啟動時會自動下載到 `plugins/FakePlayer-CE/libs`。在 JVM 參數加入 `-DLeaf.library-download-repo=https://maven.aliyun.com/repository/public` 可改用鏡像來源（預設 Maven 中央倉庫）；只接受 `http(s)` 位址，下載路徑被限制在 `libs` 目錄內。參見 [Leaf JVM 參數文件](https://www.leafmc.one/zh/docs/config/jvm-flags#-dleaflibrary-download-repo)。
+**依權限設定假人上限**：在 `spawn-limit` 下設定如 `vip: 10`，並給玩家 `fakeplayer.spawn.limit.vip` 權限；命中多個權限時取最大值，OP 不受限。
 
 ## 資料庫
 
-資料預設存在 SQLite（`plugins/FakePlayer-CE/data.db`）。想用 MySQL，先建一個空庫，在 `config.yml` 裡把 `database.type` 改成 `mysql` 並填好 `database.mysql`，然後重新啟動——資料表會自動建立。既有資料之後用 `/fp migrate-db` 遷移（僅 OP；SQLite 檔案不會被刪除）。
+資料預設存在 SQLite（`plugins/FakePlayer-CE/data.db`）。想用 MySQL，先建一個空庫，在 `config.yml` 裡把 `database.type` 改成 `mysql` 並填好 `database.mysql`，然後重新啟動。
 
 ## AI 聊天
 
@@ -106,330 +94,126 @@
 
 | 指令 | 說明 |
 |---|---|
-| `/fp aichat public [once\|continuous\|interval <tick>] [假人]` | 發到公共聊天，`continuous` 持續發言直到 `stop` |
+| `/fp aichat public [once\|continuous\|interval <tick>] [假人]` | 發到公共聊天 |
 | `/fp aichat private <玩家> [once\|continuous\|interval <tick>] [假人]` | 只發給指定玩家 |
 | `/fp aichat stop [假人]` | 停止持續發言 |
-| `/fp aichat model [名稱]` | 查看目前模型與可用模型，或切換到指定模型（僅 OP） |
+| `/fp aichat model [名稱]` | 查看或切換 AI 模型（僅 OP） |
 
-在 `ai-chat.yml` 的 `models:` 下可設定多個模型，每項都能單獨覆蓋 `model`、`api`、`api-key`、`api-key-env`，未填寫的繼承頂層預設值；`active-model` 指定預設模型。OP 可用 `/fp aichat model <名稱>` 在執行時切換，選擇會寫回 `ai-chat.yml`。
-
-背包上下文預設關閉：需同時開啟 `ai-chat.yml` 的 `inventory-context.fakeplayer` / `inventory-context.questioner` 與對應玩家開關（假人看建立者的 `aichat_fake_inventory`，提問者看自己的 `aichat_questioner_inventory`，用 `/fp config set <項> true` 設定）。只有物品種類與數量會進入提示詞。
-
-建議開啟 `auto-reply`：只在玩家說了值得回應的話時才接一句（短訊息、純符號與洗頻會先被過濾），由 `chance` 與 `cooldown-seconds` 控制頻率。`continuous` 為定時發言，預設關閉，需要打開 `allow-continuous`。人設、提示詞、上下文與節奏分別由 `system-prompt` / `turn-prompt` / `max-context` / `recent-chat-lines` / `interval-ticks` 控制。
+可在 `ai-chat.yml` 的 `models:` 下設定多個模型；`auto-reply` 也可在該檔案中開啟。
 
 ## 指令清單
 
-凡是假人名稱參數都可以用 `-a` 一次操作範圍內所有假人（OP/控制台為全服，普通玩家僅限自己召喚的）；`select`、`spawn`/`spawnuuid`、`rename` 除外。
+凡是假人名稱參數都可以用 `-a` 一次操作範圍內所有假人；`select`、`spawn`/`spawnuuid`、`rename` 除外。
 
-| 指令 | 功能說明 | 權限節點 | 備註 |
-|------|---------|---------|------|
-| /fp spawn | 建立假人 | fakeplayer.command.spawn | |
-| /fp spawnjson | 用 JSON 指定進階選項建立假人 | fakeplayer.command.spawn.json | `<json>`；支援 `name`、`uuid`、`world`、`x/y/z`、`yaw/pitch`、`lifespan_seconds`。未知欄位會報錯；暫不支援 NBT |
-| /fp spawnuuid | **已淘汰**，請用 `/fp spawnjson` | fakeplayer.command.spawn.uuid | 參數 `<名稱> <UUID> [世界] [座標]` |
-| /fp kick | 踢出假人（從伺服器移除） | fakeplayer.command.kick | |
-| /fp kickall | 踢出伺服器所有假人 | OP | |
-| /fp kill | 殺死假人（真實死亡，可能掉落物品） | fakeplayer.command.kill | |
-| /fp killall | 殺死伺服器所有假人 | OP | |
-| /fp select | 設定預設操作假人 | fakeplayer.command.select | 建立多個假人後可用 |
-| /fp selection | 檢視目前選中的假人 | fakeplayer.command.selection | |
-| /fp list | 列出所有線上假人 | fakeplayer.command.list | |
-| /fp distance | 檢視與假人間距 | fakeplayer.command.distance | |
-| /fp drop | 假人丟棄手中單個物品 | fakeplayer.command.drop | |
-| /fp dropstack | 假人丟棄手中整組物品 | fakeplayer.command.dropstack | |
-| /fp dropinv | 假人清空全部背包物品 | fakeplayer.command.dropinv | |
-| /fp skin | 複製其他玩家造型 | fakeplayer.command.skin | 裝有 SkinsRestorer 時走其 API；離線名稱 60 秒冷卻 |
-| /fp invsee | 開啟假人背包介面 | fakeplayer.command.invsee | 對假人按右鍵可觸發 |
-| /fp enderchest | 開啟假人終界箱 | fakeplayer.command.enderchest | 別名 `/fp ec`；潛行按右鍵；需同世界 |
-| /fp sleep | 假人進入睡覺狀態 | fakeplayer.command.sleep | |
-| /fp wakeup | 喚醒睡覺中的假人 | fakeplayer.command.wakeup | |
-| /fp autosleep | 夜裡自動上床睡覺 | fakeplayer.command.autosleep | `on` / `off` + 可選 `[假人]`；僅主世界，4 格內要有空床 |
-| /fp status | 檢視假人目前狀態 | fakeplayer.command.status | |
-| /fp respawn | 復活已死亡假人 | fakeplayer.command.respawn | 需 `kick-on-dead: false` |
-| /fp tp | 傳送到假人位置 | fakeplayer.command.tp | |
-| /fp tphere | 將假人傳送至自身位置 | fakeplayer.command.tphere | |
-| /fp tps | 與假人互換位置 | fakeplayer.command.tps | |
-| /fp set | 修改單一假人獨立設定 | fakeplayer.command.set | |
-| /fp setping | 設定假人顯示的延遲 | fakeplayer.command.setping | 0 表示使用真實值 |
-| /fp config | 修改自身建立假人的預設設定 | fakeplayer.command.config | 控制台可用；`[玩家]` 指定他人 |
-| /fp expme | 提取假人經驗值至自身 | fakeplayer.command.expme | |
-| /fp attack | 假人發起攻擊 | fakeplayer.command.attack | |
-| /fp mine | 假人挖掘方塊 | fakeplayer.command.mine | |
-| /fp use | 假人互動 / 放置方塊 / 使用物品 | fakeplayer.command.use | |
-| /fp jump | 假人跳躍 | fakeplayer.command.jump | |
-| /fp stop | 終止假人所有動作 | fakeplayer.command.stop | |
-| /fp turn | 假人原地轉向 | fakeplayer.command.turn | |
-| /fp look | 假人看向指定座標 | fakeplayer.command.look | |
-| /fp move | 假人定向移動 | fakeplayer.command.move | |
-| /fp goto | 讓假人尋路前往指定座標 | fakeplayer.command.goto | 自動尋路；無法抵達則拒絕 |
-| /fp gotostop | 中止正在進行的尋路 | fakeplayer.command.goto | 不影響其它動作 |
-| /fp ride | 假人騎乘實體 | fakeplayer.command.ride | |
-| /fp sneak | 假人進入潛行模式 | fakeplayer.command.sneak | |
-| /fp sprint | 假人疾跑 | fakeplayer.command.sprint | |
-| /fp swap | 切換主手副手物品 | fakeplayer.command.swap | |
-| /fp hold | 切換快捷欄指定格子物品 | fakeplayer.command.hold | |
-| /fp cmd | 讓假人執行控制台指令 | fakeplayer.command.cmd | 高風險 |
-| /fp say | 讓假人發送聊天訊息 | fakeplayer.command.say | 相容格式化插件 |
-| /fp aichat | 讓假人用 AI 產生聊天內容 | fakeplayer.command.aichat | 需設定 `ai-chat.yml` |
-| /fp password | 設定假人登入密碼（存入插件資料庫） | fakeplayer.command.password | 搭配 `auto-login.command` 使用 |
-| /fp changepassword | 修改假人登入密碼（舊密碼可省略） | fakeplayer.command.changepassword | |
-| /fp reload | 重新載入插件設定檔 | OP | |
-| /fp migrate-db | 把 SQLite 的資料遷移到 MySQL | OP | 需要 `database.type: mysql`；重新啟動後執行 |
-| /fp update check | 檢查 GitHub 上是否有新版本 | OP | |
-| /fp update config | 追加範本新增、目前 config.yml 缺少的配置項目（既有數值與註解不變，改寫前先備份為 config.yml.bak） | OP | |
-| /fp version | 顯示插件、伺服端與 Java 版本，以及建置該 jar 的 commit | - | 所有玩家可用 |
-| /fp sysinfo | 匯出 CPU、記憶體、磁碟、TPS 與假人狀態為 JSON | OP | 寫在 `plugins/FakePlayer-CE/sysinfo/`，可直接附到效能問題裡 |
-| /fp lang | 切換你的顯示語言 | - | 所有玩家可用；優先於用戶端語言 |
+| 指令 | 權限節點 |
+|------|---------|
+| /fp spawn | fakeplayer.command.spawn |
+| /fp spawnjson | fakeplayer.command.spawn.json |
+| /fp spawnuuid（已淘汰） | fakeplayer.command.spawn.uuid |
+| /fp kick / kickall | fakeplayer.command.kick / OP |
+| /fp kill / killall | fakeplayer.command.kill / OP |
+| /fp select / selection | fakeplayer.command.select / .selection |
+| /fp list / distance | fakeplayer.command.list / .distance |
+| /fp drop / dropstack / dropinv | fakeplayer.command.drop / .dropstack / .dropinv |
+| /fp skin / invsee / enderchest | fakeplayer.command.skin / .invsee / .enderchest |
+| /fp sleep / wakeup / autosleep | fakeplayer.command.sleep / .wakeup / .autosleep |
+| /fp status / respawn | fakeplayer.command.status / .respawn |
+| /fp tp / tphere / tps | fakeplayer.command.tp / .tphere / .tps |
+| /fp set / setping / config | fakeplayer.command.set / .setping / .config |
+| /fp expme | fakeplayer.command.expme |
+| /fp attack / mine / use / jump | fakeplayer.command.attack / .mine / .use / .jump |
+| /fp stop / turn / look / move | fakeplayer.command.stop / .turn / .look / .move |
+| /fp goto / gotostop / ride | fakeplayer.command.goto / .goto / .ride |
+| /fp sneak / sprint / swap / hold | fakeplayer.command.sneak / .sprint / .swap / .hold |
+| /fp cmd / say / aichat | fakeplayer.command.cmd / .say / .aichat |
+| /fp password / changepassword | fakeplayer.command.password / .changepassword |
+| /fp reload / update / version / lang | OP / OP / - / - |
 
-`/fp spawnjson` 範例（欄位皆可省略，未知欄位會報錯）：
-
-```
+```text
 /fp spawnjson {"name":"Bot_1","world":"world","x":0,"y":64,"z":0,"lifespan_seconds":600}
 ```
 
 ## HTTP 管理介面
 
-選用的輕量 HTTP 介面（預設關閉，無額外依賴），用於 Web 面板與自動化腳本。
+選用的 HTTP 介面（預設關閉），用於 Web 面板與自動化腳本。
 
 ```yaml
 http-admin:
   enabled: true
-  host: 127.0.0.1        # 建議只監聽本機或內網
+  host: 127.0.0.1
   port: 3253
-  token: ""              # 留空則啟動時產生隨機權杖並輸出到控制台
-  allow-get: true        # false 時僅接受 POST
-  allowed-hosts: []      # Host / Origin 白名單，留空不校驗
-  rate-limit:
-    requests-per-minute: 120   # 每個來源 IP 每分鐘上限
-    auth-failures: 10          # 連續驗證失敗鎖定門檻（0 = 不鎖定）
-    lockout-seconds: 60        # 鎖定時長
+  token: ""
+  allow-get: true
   interface:
-    list: true           # 每個介面都有同名開關，關閉後回傳 403
+    list: true
 ```
 
-- 權杖只走 `Authorization: Bearer <token>` 請求標頭，**不支援 `?token=`**。
-- 參數一律走 query，`GET` / `POST` 均可。
+權杖只走 `Authorization: Bearer <token>` 請求標頭；參數走 query，`GET` / `POST` 均可。
 
 | 介面 | 說明 |
 |---|---|
-| `GET /list` | 列出所有線上假人 |
-| `GET /status[?name=<名字>]` | 假人詳細狀態（座標、朝向、血量、飢餓、經驗值、模式、建立者、手持物品、進行中的動作）；省略 `name` 回傳全部 |
-| `GET /info` | 插件與伺服器端資訊（版本、MC 版本、伺服器端、假人數量、線上玩家數、數量上限） |
-| `GET /spawn?name=<名字>` | 在主世界出生點生成假人 |
-| `GET /kick?name=<名字>` | 踢出（移除）假人 |
-| `GET /kill?name=<名字>` | 殺死假人（真實死亡，可能掉落） |
-| `GET /respawn?name=<名字>` | 復活已死亡假人 |
-| `GET /say?name=<名字>&message=<內容>` | 以假人身份發言（內容需 URL 編碼） |
-| `GET /aichat?name=<名字>[&mode=public\|private][&target=<玩家>][&continuous=true][&interval=<tick>]` | 讓假人用 AI 發言，需啟用 `ai-chat.yml`；`continuous=true` 持續到 `/aichat/stop` |
-| `GET /aichat/stop?name=<名字>` | 停止該假人的 AI 持續發言 |
-| `GET /action?name=<名字>&action=<動作>` | 觸發動作，參數見下表 |
-| `GET /stop?name=<名字>` | 停止假人目前所有動作 |
-| `GET /teleport?name=<名字>[&world=&x=&y=&z=&yaw=&pitch=]` | 傳送假人，未給出的參數保持目前值 |
-| `GET /look?name=<名字>&direction=<方向>` | 轉向 `north`/`south`/`east`/`west`/`up`/`down` |
-| `GET /look?name=<名字>&at=<x,y,z>` | 看向指定座標 |
-| `GET /look?name=<名字>&yaw=<角度>&pitch=<角度>` | 直接設定朝向 |
-| `GET /hold?name=<名字>&slot=<1-9>` | 切換主手欄位 |
-| `GET /swap?name=<名字>` | 交換主副手物品 |
-| `GET /goto?name=<名字>&x=&y=&z=[&world=]` | 尋路前往座標（無法抵達則拒絕） |
-| `GET /setping?name=<名字>&ping=<毫秒>` | 設定 Tab 列表顯示的延遲 |
-| `GET /sneak?name=<名字>[&state=true\|false]` | 切換（或設定）潛行 |
-| `GET /sprint?name=<名字>[&state=true\|false]` | 切換（或設定）疾跑 |
-| `GET /reload` | 重新載入 `config.yml` 與語言檔 |
-| `GET /cmd?name=<名字>&command=<指令>` | 以假人身份執行指令 |
-| `GET /kickall` / `/killall` / `/sayall?message=` | 批次移除 / 殺死 / 發言 |
-
-`/action` 參數：
-
-| 參數 | 預設 | 說明 |
-|---|---|---|
-| `action` | 必填 | 動作名，不分大小寫，`-` 與 `_` 等價：`ATTACK` `MINE` `USE` `JUMP` `LOOK_AT_NEAREST_ENTITY` `DROP_ITEM` `DROP_STACK` `DROP_INVENTORY` `SAY` |
-| `count` | `1` | 執行次數，`-1` 表示持續 |
-| `interval` | `0` | 間隔 tick；只給 `interval` 不給 `count` 視為持續 |
-| `wait` | `0` | 首次執行前等待的 tick |
-| `message` | — | 僅 `SAY` 需要 |
-
-成功回傳 `{"status":"success"}`（批次介面附帶 `count`），失敗回傳 `{"status":"failure","msg":"..."}` 說明原因。HTTP 層錯誤：`401` 權杖錯誤、`403` 介面已關閉或 Host 不被允許、`404` 路徑不存在、`405` 方法不對、`414` 請求過長、`429` 限流或鎖定。
-
-```bash
-TOKEN="YOUR_TOKEN"; API="http://localhost:3253"
-
-curl -H "Authorization: Bearer $TOKEN" "$API/list"
-curl -H "Authorization: Bearer $TOKEN" "$API/spawn?name=klmgun"
-curl -H "Authorization: Bearer $TOKEN" "$API/action?name=klmgun&action=attack&interval=10"
-curl -G -H "Authorization: Bearer $TOKEN" "$API/cmd" --data-urlencode "name=klmgun" --data-urlencode "command=say hello"
-curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmgun" --data-urlencode "message=你好 世界"
-```
+| `/list`、`/status`、`/info` | 查詢假人與伺服器狀態 |
+| `/spawn`、`/kick`、`/kill`、`/respawn` | 生命週期 |
+| `/say`、`/aichat`、`/aichat/stop`、`/action`、`/stop` | 聊天與動作 |
+| `/teleport`、`/look`、`/hold`、`/swap`、`/goto`、`/setping`、`/sneak`、`/sprint` | 移動與狀態 |
+| `/reload`、`/cmd`、`/kickall`、`/killall`、`/sayall` | 管理 |
 
 ## 安全說明
 
-內建防護（無需設定）：**驗證先於介面開關**（無法用 `401` / `403` 差異探測已啟用的介面）；日誌脫敏並替換控制字元；按 IP 限流，連續失敗後鎖定；可選 `allowed-hosts` 校驗 Host 與 `Origin`；回應帶 `Cache-Control: no-store`。
+驗證先於介面開關檢查，內建按 IP 限流與選擇性 `allowed-hosts` 校驗。
 
-仍需注意：
-
-- 介面**沒有 TLS**，權杖以明文傳輸——請使用足夠長的隨機權杖，只在可信網路或反向代理之後暴露。
-- `/cmd` 以假人身份執行指令，權限等同該假人，**不要把假人設為 OP**。
+- 介面**沒有 TLS**，只在可信網路或反向代理之後暴露。
+- `/cmd` 以假人身份執行指令，**不要把假人設為 OP**。
 - 建議 `host` 用 `127.0.0.1`，並在防火牆層面限制來源。
 
 ## 個人化設定
 
-每位玩家可儲存專屬建立參數，修改後**下次生成假人時生效**：`/fp config list` 檢視，`/fp config set <項> <值>` 修改。
+每位玩家可儲存專屬預設值，修改後**下次生成假人時生效**：`/fp config list` 檢視，`/fp config set <項> <值>` 修改。
 
 | 設定項 | 說明 |
 |--------|------|
 | `collidable` | 是否開啟碰撞箱 |
 | `invulnerable` | 是否開啟無敵模式 |
-| `wolverine` | 是否開啟自動回血（快速再生） |
-| `look_at_entity` | 自動看向周邊可攻擊實體，搭配攻擊指令可自動刷怪 |
+| `wolverine` | 是否開啟自動回血 |
+| `look_at_entity` | 自動看向周邊可攻擊實體 |
 | `pickup_items` | 是否開啟物品拾取 |
 | `skin` | 是否預設使用建立者造型 |
-| `replenish` | 自動補充消耗或使用完的物品 |
+| `replenish` | 自動補充消耗的物品 |
 | `replace_tools` | GCA 風格的工具替換 |
 | `autofish` | 是否開啟自動釣魚 |
-| `aichat_fake_inventory` | 是否允許 AI 讀取假人背包（還需 `ai-chat.yml` 總開關） |
-| `aichat_questioner_inventory` | 是否允許 AI 讀取提問玩家背包（還需 `ai-chat.yml` 總開關） |
-| `simulation_distance` | 假人的模擬距離（區塊半徑），`-1` 沿用世界設定 |
-
-- **`replace_tools`**：GCA 風格——非經驗修補工具損壞後、經驗修補工具磨損到 `tool-replacement.remaining-durability-threshold`（預設 `10`）以下時，若背包中有同類物品即更換，不看附魔。
-- **`replenish`**：`/fp drop` / `/fp dropstack` 丟空主手後自動補貨，食物與藥水的容器在放得下時歸還。`/fp dropinv` 不會補貨。
-- **`simulation_distance`**：以假人為中心的區塊刻半徑；預設寫在 `default-features`，可用 `/fp config set` 或 `/fp set` 覆寫。
+| `aichat_fake_inventory` | 是否允許 AI 讀取假人背包 |
+| `aichat_questioner_inventory` | 是否允許 AI 讀取提問玩家背包 |
+| `simulation_distance` | 假人的模擬距離，`-1` 沿用世界設定 |
 
 ## 權限分組說明
 
-<details>
-<summary>點擊展開檢視詳情</summary>
-
-每條指令都有獨立權限節點，插件另提供便捷分組：
-
-### 權限組 `fakeplayer.spawn`
-
-基礎管理權限（均為 `fakeplayer.command.*`）：`spawn` `kick` `list` `distance` `select` `selection` `drop` `dropstack` `dropinv` `skin` `invsee` `enderchest` `status` `respawn` `config` `set` `setping`
-
-### 權限組 `fakeplayer.tp`
-
-`fakeplayer.command.tp`、`fakeplayer.command.tphere`、`fakeplayer.command.tps`
-
-### 權限組 `fakeplayer.action`
-
-動作權限：`attack` `mine` `use` `jump` `sneak` `sprint` `look` `turn` `move` `ride` `swap` `sleep` `wakeup` `autosleep` `stop` `hold` `say`（均為 `fakeplayer.command.*`）
-
-特性權限：`fakeplayer.config.replenish`、`fakeplayer.config.replenish.chest`（從附近箱子補貨）、`fakeplayer.config.replace-tools`、`fakeplayer.config.autofish`
-
-> 無需嚴格管控時可直接分配 `fakeplayer.basic`，它包含除 `/fp cmd` 外的全部安全權限。
-
-</details>
+每條指令都有獨立權限節點，便捷分組見 `plugin.yml`。
 
 ## 佔位符變數
 
-| 佔位符 | 作用範圍 | 說明 |
-|---|---|---|
-| `%fakeplayer_total%` | 全域 | 目前伺服器假人總數 |
-| `%fakeplayer_list%` | 全域 | 所有線上假人名稱，分隔符取自 `fakeplayer.placeholder.separator`（預設 `, `） |
-| `%fakeplayer_list_<序號>%` | 全域 | 指定序號（由 0 起算）假人的名稱，超出範圍為空 |
-| `%fakeplayer_list_<序號>_<屬性>%` | 全域 | 指定序號假人的屬性，如 `%fakeplayer_list_0_uuid%` |
-| `%fakeplayer_isfake%` | 任意玩家 | `true` / `false` —— 是否為假人 |
-| `%fakeplayer_name%` | 假人 | 假人名稱 |
-| `%fakeplayer_uuid%` | 假人 | 假人 UUID |
-| `%fakeplayer_creator%` | 假人 | 建立者名稱（`%fakeplayer_spawner%` 為別名） |
-| `%fakeplayer_spawntime%` | 假人 | 生成時間，格式取自 `fakeplayer.placeholder.time-format` |
-| `%fakeplayer_world%` | 假人 | 所在世界名稱 |
-| `%fakeplayer_x%` / `%fakeplayer_y%` / `%fakeplayer_z%` | 假人 | 所在方塊座標 |
-| `%fakeplayer_health%` | 假人 | 目前生命值 |
-| `%fakeplayer_food%` | 假人 | 目前飢餓值 |
-| `%fakeplayer_level%` | 假人 | 目前經驗等級 |
-| `%fakeplayer_gamemode%` | 假人 | 目前遊戲模式 |
-| `%fakeplayer_actions%` | 假人 | 目前活躍動作，如 `USE\|ATTACK` |
-| `%fakeplayer_actions_translated%` | 假人 | 同上，輸出為本地化文字 |
+安裝 PlaceholderAPI 後可使用 `%fakeplayer_total%`、`%fakeplayer_list%`、`%fakeplayer_isfake%`，以及 `%fakeplayer_name%`、`%fakeplayer_world%`、`%fakeplayer_health%` 等假人屬性。
 
 ## 自訂本地化翻譯
 
-內建 `en` / `zh` / `zh_tw` / `zh_hk` / `ja`，改 `config.yml` 的 `i18n.locale` 切換（之後 `/fp reload`）；也可以按玩家覆寫：`/fp lang <代碼>`（如 `/fp lang ja`），`/fp lang reset` 回到用戶端語言。
-
-自訂：在 `plugins/fakeplayer/message/` 放入 `message_<語言>_<地區>.properties`（複製[範本](fakeplayer-core/src/main/resources/message/message.properties)後修改），把 `i18n.locale` 設為對應後綴（如 `zh_cn`），執行 `/fp reload-translation` 生效。檔案必須使用 **UTF-8** 編碼。
+內建 `en` / `zh` / `zh_tw` / `zh_hk` / `ja`。改 `config.yml` 的 `i18n.locale` 後 `/fp reload`；玩家可用 `/fp lang <代碼>` 單獨覆蓋。
 
 ## 登入插件相容與聊天事件
 
-裝有登入插件時，假人會因未登入被踢出或凍結。FakePlayer CE 會在假人加入時直接標記為「已登入」；`/fp say` 也會完整觸發聊天事件，使格式化插件正常運作。
-
-| 登入插件 | 相容方式 | 說明 |
-|---|---|---|
-| AuthMe / AuthMeReloaded | `forceLogin` / `forceRegister` | 經公開 API 標記已登入；未註冊的名稱用隨機短密碼自動註冊 |
-| CatSeedLogin / ReCatSeedLogin | 加入登入名單 | 寫入其 `loginPlayers` 名單，不會被 `auto-kick` 踢出 |
-| LibreLogin（Paper）/ LibreLoginNext（Paper） | API 授權 | 線上期間暫存無密碼帳號，斷線時清理 |
-
-- **自動生效**：無需設定，僅在裝有對應插件時啟用。
-
-### 自動登入（兩套獨立機制）
-
-| 機制 | 設定 | 需要密碼 |
-|---|---|---|
-| **登入插件 API 免登入**（推薦） | 無需設定，裝有上面任一插件即生效 | 否 |
-| **指令模板登入** | `auto-login.command.enabled: true` | 是（`/fp password` 設定或自動產生） |
-
-第一種直接透過插件 API 放行，假人不會進入登入畫面；第二種以假人身份執行指令，適用於沒有 API 相容的插件：
-
-```yaml
-auto-login:
-  command:
-    enabled: true
-    register: "/reg %password% %password%"
-    login: "/login %password%"
-    change-password: "/changepassword %oldpassword% %newpassword% %newpassword%"
-  random-password:
-    charset: "abcdefghijklmnopqrstuvwxyz0123456789"   # 留空表示不自動產生
-    length: 12
-```
-
-兩套機制可同時開啟；已被 API 放行時通常不需要指令模板。
-
-### 聊天事件相容（/fp say）
-
-`/fp say` 完整觸發 `AsyncPlayerChatEvent` 與 `AsyncChatEvent`，EssentialsX Chat、Vane 等格式化插件可修改格式與內容；事件未被取消時按事件結果廣播。所有支援版本（`1.20.1 ~ 26.3`）行為一致。
+裝有 AuthMe / CatSeedLogin / LibreLogin 時，假人會自動標記為已登入，無需設定。`/fp say` 會觸發正常聊天事件，格式化插件可正常運作。
 
 ## 常見問題
 
 ### 斷開連線：PacketEvents 2.0 failed to inject
 
-部分插件會竄改假人的網路連線物件，修改設定即可：
-
-```yaml
-prevent-kicking: ALWAYS
-```
+在 `config.yml` 設定 `prevent-kicking: ALWAYS`。
 
 ### 假人不被怪物攻擊
 
-假人預設開啟無敵模式。執行 `/fp config set invulnerable false` 後才會承受生命值與飢餓值傷害，可搭配生命恢復藥水或烽火台維持生存。
+假人預設無敵。執行 `/fp config set invulnerable false` 後才會受傷。
 
 ### 假人一段時間後自動掉線
 
-通常是登入插件在踢未登入玩家。上面三個插件已內建相容；若所用插件暫無相容，可改用指令模板登入兜底：
-
-```yaml
-auto-login:
-  command:
-    enabled: true
-    register: "/reg %password% %password%"
-    login: "/login %password%"
-```
-
-> 請用足夠強的密碼，避免被 AuthMe 安全策略攔截。
-
-### Velocity 下 MOTD / 線上人數看不到假人
-
-外掛只裝在子服上，而伺服器列表的 MOTD 是代理端自己回應的，假人根本到不了那一層。在 `velocity.toml` 裡打開 ping 透傳：
-
-```toml
-ping-passthrough = "ALL"
-```
-
-幾點說明：
-
-- 填 `DESCRIPTION` 不夠。它只透傳 MOTD，線上人數仍用代理自己的；`ALL` 才是整份透傳後端的回應。
-- 人數取自 `try` 列表裡第一個回應的後端，不是所有後端之和。
-- Tab 列表本來就能看到，不需要設定：假人是走正常玩家列表注入的，所以 tab、`/list`、後端自己的 ping 裡都有。但在代理端建構「全域玩家列表」的外掛（例如裝在 Velocity 上的 TAB v3）看不到它們——那些假人不是真正的代理連線。
-- 跨服時 `follow-quiting` 不用額外設定：外掛會讀 `config/paper-global.yml` 的 `proxies.velocity.enabled`，切服不再被當成下線。
-
-## 專案建置
-
-詳見 [BUILD_zh_TW.md](./docs/BUILD_zh_TW.md)。該文件只適用於本專案的 Gradle 多模組流程，不能用於上游 Maven 架構。
+通常是登入插件在踢未登入玩家。上面三個插件已內建相容；其他插件可用 `auto-login.command` 指令模板兜底。
 
 ## Star 趨勢
 
