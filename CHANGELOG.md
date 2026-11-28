@@ -13,7 +13,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### English
 
-- **Fixed fake players being removed twice on 1.21.x (from NotCbop, `6aaf570`).** On 1.21.11, `Player.kick()`
+- **Fixed fake players being removed twice on 1.21.x (thanks @NotCbop / Cbop, `6aaf570`).** On 1.21.11, `Player.kick()`
   already runs the full disconnect path for the fake connection, so the follow-up `PlayerList.remove` fired a
   second `PlayerQuitEvent`, threw `IllegalStateException: Already retired` and left half-removed ghost bots that
   `/fp kick` could never remove again. Removal now only runs when the player is still online after the kick;
@@ -21,7 +21,7 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 ### 中文
 
-- **修复 1.21.x 上假人被重复移除（移植自 NotCbop 的 `6aaf570`）。** 1.21.11 上 `Player.kick()` 已经替假人连接走完断线流程，
+- **修复 1.21.x 上假人被重复移除（感谢 @NotCbop / Cbop，commit `6aaf570`）。** 1.21.11 上 `Player.kick()` 已经替假人连接走完断线流程，
   紧接着的 `PlayerList.remove` 会二次触发 `PlayerQuitEvent`、抛出 `IllegalStateException: Already retired`，并留下
   `/fp kick` 再也删不掉的半移除幽灵假人。现在只有在 kick 之后玩家仍在线时才做兜底移除；幽灵假人 kick 失败会被兜住，
   创建者记录缺失时派发退出命令也不再抛异常。
