@@ -21,6 +21,38 @@ English | [简体中文](README_zh.md) | [繁體中文](README_zh_TW.md) | [日�
 
 ⭐ If you like FakePlayer CE, please give it a star — it really helps the project grow.
 
+## Table of Contents
+
+- [⚠️ Community Edition Statement](#️-community-edition-statement)
+- [Quick Start](#quick-start)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Download](#download)
+- [Config File](#config-file)
+- [Database](#database)
+- [AI Chat](#ai-chat)
+- [Commands](#commands)
+- [HTTP Admin API](#http-admin-api)
+- [Security](#security)
+- [Personal Configuration](#personal-configuration)
+- [Permissions](#permissions)
+  - [Permission Group fakeplayer.spawn](#permission-group-fakeplayerspawn)
+  - [Permission Group fakeplayer.tp](#permission-group-fakeplayertp)
+  - [Permission Group fakeplayer.action](#permission-group-fakeplayeraction)
+- [Placeholder Variables](#placeholder-variables)
+- [Custom Translation](#custom-translation)
+- [Login plugin compatibility & chat events](#login-plugin-compatibility--chat-events)
+  - [Auto-login (two independent mechanisms)](#auto-login-two-independent-mechanisms)
+  - [Chat event compatibility (/fp say)](#chat-event-compatibility-fp-say)
+- [FAQ](#faq)
+  - [Player disconnected: "PacketEvents 2.0 failed to inject"](#player-disconnected-packetevents-20-failed-to-inject)
+  - [Fake players are not attacked by mobs](#fake-players-are-not-attacked-by-mobs)
+  - [Fake players get kicked after a while](#fake-players-get-kicked-after-a-while)
+  - [Fake players are missing from the MOTD / player count on Velocity](#fake-players-are-missing-from-the-motd--player-count-on-velocity)
+- [Build](#build)
+- [Star History](#star-history)
+- [Contributors](#contributors)
+
 ## ⚠️ Community Edition Statement
 
 - This repository is an **independent community fork** — not released, maintained or endorsed by the original author.
