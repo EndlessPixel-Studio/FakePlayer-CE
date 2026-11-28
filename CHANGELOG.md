@@ -21,16 +21,16 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 - **Fixed `/fp spawn` world names and permission errors (thanks @Boxendo, commit `eb443564`).** World arguments are now resolved by Bukkit world name (dimension keys still work), and missing `spawn.name` / `spawn.location` permissions produce explicit messages instead of a generic argument error.
 - **Optional libraries are no longer bundled.** Undertow and the MySQL driver are downloaded on demand into `plugins/FakePlayer-CE/libs` when HTTP admin or MySQL is enabled, shrinking the jar. Set `-DLeaf.library-download-repo=<url>` to pick a Maven mirror (default: Maven Central); only `http(s)` URLs are accepted and downloads stay inside `libs`.
-- **`-a` now works on every name-based command (#123, #202).** Any command taking a fake-player name accepts `-a` to apply to all fake players you can see (OP/console: everyone; regular players: their own); only `select`, `spawn`/`spawnuuid` and `rename` are excluded. `kick`/`kill` keep their existing multi-target behavior.
+- **`-a` now works on every name-based command ([#123](https://github.com/tanyaofei/minecraft-fakeplayer/issues/123), [#202](https://github.com/tanyaofei/minecraft-fakeplayer/issues/202)).** Any command taking a fake-player name accepts `-a` to apply to all fake players you can see (OP/console: everyone; regular players: their own); only `select`, `spawn`/`spawnuuid` and `rename` are excluded. `kick`/`kill` keep their existing multi-target behavior.
 - **Fixed `/fp selection` permission and world-only spawning (thanks @Boxendo, commit `c436b5cf`).** `/fp selection` required `fakeplayer.command.select` instead of its own node; `/fp spawn <name> <world>` silently ignored the world, and `-` now skips the name argument so players without `spawn.name` can still set a location.
-- **Per-permission fake player limits (#187, thanks @kuxiaole; #64, thanks @Chaostarts).** `player-limit` stays the default; configure `spawn-limit` entries (e.g. `vip: 10`) and grant `fakeplayer.spawn.limit.vip` to raise the cap for specific players. Multiple matching permissions use the highest value; OPs are unaffected and dynamic TPS limits now respect the player's own cap. `config.yml` is now version 42.
+- **Per-permission fake player limits ([#187](https://github.com/tanyaofei/minecraft-fakeplayer/issues/187), thanks @kuxiaole; [#64](https://github.com/tanyaofei/minecraft-fakeplayer/issues/64), thanks @Chaostarts).** `player-limit` stays the default; configure `spawn-limit` entries (e.g. `vip: 10`) and grant `fakeplayer.spawn.limit.vip` to raise the cap for specific players. Multiple matching permissions use the highest value; OPs are unaffected and dynamic TPS limits now respect the player's own cap. `config.yml` is now version 42.
 - **AI chat can optionally use inventory context.** `ai-chat.yml` gains `inventory-context.fakeplayer` / `inventory-context.questioner`; together with the matching per-player switches (`aichat_fake_inventory`, `aichat_questioner_inventory`, via `/fp config set`) the item types and counts in the fake player's or asking player's inventory are added to the prompt. Both switches are off by default; `config.yml` is now version 41.
 - **AI chat now supports multiple models.** `ai-chat.yml` can define named models with their own endpoint and key; `active-model` selects the default and OPs can switch at runtime with `/fp aichat model <name>` (the choice is saved). Existing configs keep working with a single implicit `default` model.
 - **New `/fp spawnjson` for advanced spawning.** `/fp spawn` stays the simple entry point, while `/fp spawnuuid`
   is deprecated in favour of one JSON argument: `name`, `uuid`, `world`, `x/y/z`, `yaw/pitch` and
   `lifespan_seconds` can now be combined freely. Unknown fields are rejected so typos do not silently do
   nothing; specifying a UUID still needs `fakeplayer.command.spawn.uuid`. NBT is deliberately not included yet.
-- **New `name-suffix` option (#144, thanks @fuzhulike).** Custom and generated fake-player names can now carry a
+- **New `name-suffix` option ([#144](https://github.com/tanyaofei/minecraft-fakeplayer/issues/144), thanks @fuzhulike).** Custom and generated fake-player names can now carry a
   suffix as well as a prefix. Generated names put the sequence number before the suffix (`Bot_1_bot`) and keep both
   decorations when the 16-character limit forces the middle part to be shortened. `config.yml` is now version 40.
 - **Fixed fake players being removed twice on 1.21.x (thanks @NotCbop / Cbop and co-author Claude Fable 5, `6aaf570`).** On 1.21.11, `Player.kick()`
@@ -43,15 +43,15 @@ Changelog for FakePlayer CE. Version `fp.buildN` matches the git tag / GitHub Re
 
 - **修复 `/fp spawn` 世界名与权限报错（感谢 @Boxendo，commit `eb443564`）。** 世界参数现在按 Bukkit 世界名解析（同时兼容维度 key）；缺少 `spawn.name` / `spawn.location` 权限时给出明确提示，不再是含糊的参数错误。
 - **可选依赖不再打包进 jar。** 开启 HTTP 接口或 MySQL 时，Undertow 与 MySQL 驱动会按需下载到 `plugins/FakePlayer-CE/libs`，产物体积明显减小。可用 `-DLeaf.library-download-repo=<url>` 指定 Maven 镜像源（默认 Maven 中央仓库）；仅接受 `http(s)` 地址，下载路径被限制在 `libs` 内。
-- **`-a` 支持所有名称类命令（#123、#202）。** 凡是假人名称参数都能用 `-a` 一次操作可见的全部假人（OP/控制台为全服，普通玩家仅限自己召唤的）；仅 `select`、`spawn`/`spawnuuid`、`rename` 除外。`kick`/`kill` 保持原有批量行为。
+- **`-a` 支持所有名称类命令（[#123](https://github.com/tanyaofei/minecraft-fakeplayer/issues/123)、[#202](https://github.com/tanyaofei/minecraft-fakeplayer/issues/202)）。** 凡是假人名称参数都能用 `-a` 一次操作可见的全部假人（OP/控制台为全服，普通玩家仅限自己召唤的）；仅 `select`、`spawn`/`spawnuuid`、`rename` 除外。`kick`/`kill` 保持原有批量行为。
 - **修复 `/fp selection` 权限与只给世界时的召唤（感谢 @Boxendo，commit `c436b5cf`）。** `/fp selection` 原先要求 `fakeplayer.command.select` 而不是自己的权限节点；`/fp spawn <名> <世界>` 会静默忽略世界，现在用 `-` 可跳过名字参数。
-- **按权限设置假人数量上限（#187，感谢 @kuxiaole；#64，感谢 @Chaostarts）。** `player-limit` 仍是默认值；在 `spawn-limit` 中配置如 `vip: 10` 并授予 `fakeplayer.spawn.limit.vip` 即可提高指定玩家上限。命中多个权限时取最大值；OP 不受限制，动态 TPS 上限也会按玩家实际额度扣减。`config.yml` 版本提升至 42。
+- **按权限设置假人数量上限（[#187](https://github.com/tanyaofei/minecraft-fakeplayer/issues/187)，感谢 @kuxiaole；[#64](https://github.com/tanyaofei/minecraft-fakeplayer/issues/64)，感谢 @Chaostarts）。** `player-limit` 仍是默认值；在 `spawn-limit` 中配置如 `vip: 10` 并授予 `fakeplayer.spawn.limit.vip` 即可提高指定玩家上限。命中多个权限时取最大值；OP 不受限制，动态 TPS 上限也会按玩家实际额度扣减。`config.yml` 版本提升至 42。
 - **AI 聊天可选择性读取背包上下文。** `ai-chat.yml` 新增 `inventory-context.fakeplayer` / `inventory-context.questioner`，与玩家开关 `aichat_fake_inventory` / `aichat_questioner_inventory`（`/fp config set`）同时开启时，假人或提问玩家背包里的物品种类与数量会进入提示词。默认全部关闭，`config.yml` 版本提升至 41。
 - **AI 聊天支持多模型。** `ai-chat.yml` 的 `models` 可配置多个具名模型（各自独立接口与密钥），`active-model` 指定默认，OP 可用 `/fp aichat model <名称>` 运行时切换并保存。旧配置仍按单个 `default` 模型工作。
 - **新增 `/fp spawnjson` 处理高级召唤。** `/fp spawn` 保持基础入口，`/fp spawnuuid` 弃用，改由一个 JSON 参数承载
   `name`、`uuid`、`world`、`x/y/z`、`yaw/pitch`、`lifespan_seconds`，可自由组合。未知字段会直接报错，避免拼错后
   静默失效；指定 UUID 仍需要 `fakeplayer.command.spawn.uuid` 权限。NBT 暂不支持。
-- **新增 `name-suffix` 名称后缀配置（#144，感谢 @fuzhulike）。** 自定义与自动生成的假人名都可以同时带前缀和后缀；
+- **新增 `name-suffix` 名称后缀配置（[#144](https://github.com/tanyaofei/minecraft-fakeplayer/issues/144)，感谢 @fuzhulike）。** 自定义与自动生成的假人名都可以同时带前缀和后缀；
   自动生成的名称把序号放在后缀之前（`Bot_1_bot`），超过 16 字符时优先缩短中间部分，前后缀不会丢。
   `config.yml` 版本提升至 40。
 - **修复 1.21.x 上假人被重复移除（感谢 @NotCbop / Cbop，共同作者 Claude Fable 5，commit `6aaf570`）。** 1.21.11 上 `Player.kick()` 已经替假人连接走完断线流程，
