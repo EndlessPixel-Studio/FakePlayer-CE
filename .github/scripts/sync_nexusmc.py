@@ -33,7 +33,7 @@ def clean(s: str, keep_ws: bool = False) -> str:
 
 
 def to_absolute(url: str) -> str:
-    url = url.strip()
+    url = clean(url).strip()
     if not url or url.startswith(SKIP):
         return url
     path, _, frag = url.partition("#")
