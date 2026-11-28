@@ -8,6 +8,7 @@ vitepress_docs/node_modules/
 # vitepress
 vitepress_docs/.vitepress/dist
 vitepress_docs/.vitepress/cache
+vitepress_docs/zh_CN/
 
 ######################
 # Gradle

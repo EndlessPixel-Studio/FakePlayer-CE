@@ -4,67 +4,225 @@ type Labels = {
   home: string
   guide: string
   quickStart: string
+  lastUpdated: string
+  outline: string
+  prev: string
+  next: string
+  toTop: string
+  menu: string
+  theme: string
+  light: string
+  dark: string
+  search: string
+  displayDetails: string
+  reset: string
+  back: string
+  noResults: string
+  select: string
+  navigate: string
+  up: string
+  down: string
+  close: string
+  esc: string
 }
 
-const nav = (base: string, labels: Labels) => [
-  { text: labels.home, link: base || '/' },
-  { text: labels.guide, link: `${base}/guide/` },
-  { text: 'GitHub', link: 'https://github.com/EndlessPixel-Studio/FakePlayer-CE' },
-]
+const zh: Labels = {
+  home: '首页',
+  guide: '指南',
+  quickStart: '快速开始',
+  lastUpdated: '最后更新',
+  outline: '页面导航',
+  prev: '上一页',
+  next: '下一页',
+  toTop: '返回顶部',
+  menu: '菜单',
+  theme: '主题',
+  light: '切换到浅色模式',
+  dark: '切换到深色模式',
+  search: '搜索',
+  displayDetails: '显示详细列表',
+  reset: '重置搜索',
+  back: '关闭搜索',
+  noResults: '没有结果',
+  select: '选择',
+  navigate: '导航',
+  up: '上箭头',
+  down: '下箭头',
+  close: '关闭',
+  esc: 'Esc',
+}
 
-const sidebar = (base: string, labels: Labels) => [
-  {
-    text: labels.guide,
-    items: [{ text: labels.quickStart, link: `${base}/guide/` }],
+const zhTw: Labels = {
+  home: '首頁',
+  guide: '指南',
+  quickStart: '快速開始',
+  lastUpdated: '最後更新',
+  outline: '頁面導覽',
+  prev: '上一頁',
+  next: '下一頁',
+  toTop: '返回頂部',
+  menu: '選單',
+  theme: '主題',
+  light: '切換到淺色模式',
+  dark: '切換到深色模式',
+  search: '搜尋',
+  displayDetails: '顯示詳細列表',
+  reset: '重設搜尋',
+  back: '關閉搜尋',
+  noResults: '沒有結果',
+  select: '選擇',
+  navigate: '導覽',
+  up: '上箭頭',
+  down: '下箭頭',
+  close: '關閉',
+  esc: 'Esc',
+}
+
+const en: Labels = {
+  home: 'Home',
+  guide: 'Guide',
+  quickStart: 'Quick start',
+  lastUpdated: 'Last updated',
+  outline: 'On this page',
+  prev: 'Previous',
+  next: 'Next',
+  toTop: 'Back to top',
+  menu: 'Menu',
+  theme: 'Theme',
+  light: 'Switch to light mode',
+  dark: 'Switch to dark mode',
+  search: 'Search',
+  displayDetails: 'Display detailed results',
+  reset: 'Reset search',
+  back: 'Close search',
+  noResults: 'No results',
+  select: 'Select',
+  navigate: 'Navigate',
+  up: 'Up',
+  down: 'Down',
+  close: 'Close',
+  esc: 'Esc',
+}
+
+const ja: Labels = {
+  home: 'ホーム',
+  guide: 'ガイド',
+  quickStart: 'クイックスタート',
+  lastUpdated: '最終更新',
+  outline: 'このページ',
+  prev: '前へ',
+  next: '次へ',
+  toTop: 'トップへ戻る',
+  menu: 'メニュー',
+  theme: 'テーマ',
+  light: 'ライトモードに切り替える',
+  dark: 'ダークモードに切り替える',
+  search: '検索',
+  displayDetails: '詳細を表示',
+  reset: '検索をリセット',
+  back: '検索を閉じる',
+  noResults: '結果なし',
+  select: '選択',
+  navigate: '移動',
+  up: '上へ',
+  down: '下へ',
+  close: '閉じる',
+  esc: 'Esc',
+}
+
+const themeFor = (base: string, l: Labels, localeKey: string) => ({
+  nav: [
+    { text: l.home, link: base || '/' },
+    { text: l.guide, link: `${base}/guide/` },
+    { text: 'GitHub', link: 'https://github.com/EndlessPixel-Studio/FakePlayer-CE' },
+  ],
+  sidebar: [
+    {
+      text: l.guide,
+      items: [{ text: l.quickStart, link: `${base}/guide/` }],
+    },
+  ],
+  lastUpdatedText: l.lastUpdated,
+  outline: { label: l.outline, level: [2, 3] },
+  docFooter: { prev: l.prev, next: l.next },
+  returnToTopLabel: l.toTop,
+  sidebarMenuLabel: l.menu,
+  darkModeSwitchLabel: l.theme,
+  lightModeSwitchTitle: l.light,
+  darkModeSwitchTitle: l.dark,
+  search: {
+    provider: 'local' as const,
+    options: {
+      locales: {
+        [localeKey]: {
+          translations: {
+            button: { buttonText: l.search, buttonAriaLabel: l.search },
+            modal: {
+              displayDetails: l.displayDetails,
+              resetButtonTitle: l.reset,
+              backButtonTitle: l.back,
+              noResultsText: l.noResults,
+              footer: {
+                selectText: l.select,
+                selectKeyAriaLabel: l.select,
+                navigateText: l.navigate,
+                navigateUpKeyAriaLabel: l.up,
+                navigateDownKeyAriaLabel: l.down,
+                closeText: l.close,
+                closeKeyAriaLabel: l.esc,
+              },
+            },
+          },
+        },
+      },
+    },
   },
-]
+})
 
 export default defineConfig({
   title: 'FakePlayer-CE',
   description: 'Minecraft fake player plugin documentation',
   lastUpdated: true,
   cleanUrls: true,
+  sitemap: { hostname: 'https://endlesspixel-studio.github.io' },
   locales: {
     root: {
       lang: 'zh-CN',
       title: 'FakePlayer-CE 文档',
       description: 'FakePlayer-CE 使用文档',
-      themeConfig: {
-        nav: nav('', { home: '首页', guide: '指南', quickStart: '快速开始' }),
-        sidebar: sidebar('', { home: '首页', guide: '指南', quickStart: '快速开始' }),
-      },
+      themeConfig: themeFor('', zh, 'root'),
     },
     en: {
       lang: 'en',
       title: 'FakePlayer-CE Docs',
       description: 'FakePlayer-CE documentation',
-      themeConfig: {
-        nav: nav('/en', { home: 'Home', guide: 'Guide', quickStart: 'Quick start' }),
-        sidebar: sidebar('/en', { home: 'Home', guide: 'Guide', quickStart: 'Quick start' }),
-      },
+      themeConfig: themeFor('/en', en, 'en'),
     },
     zh_TW: {
       lang: 'zh-Hant',
       title: 'FakePlayer-CE 文件',
       description: 'FakePlayer-CE 使用文件',
-      themeConfig: {
-        nav: nav('/zh_TW', { home: '首頁', guide: '指南', quickStart: '快速開始' }),
-        sidebar: sidebar('/zh_TW', { home: '首頁', guide: '指南', quickStart: '快速開始' }),
-      },
+      themeConfig: themeFor('/zh_TW', zhTw, 'zh_TW'),
     },
     ja: {
       lang: 'ja',
       title: 'FakePlayer-CE ドキュメント',
       description: 'FakePlayer-CE 使用ドキュメント',
-      themeConfig: {
-        nav: nav('/ja', { home: 'ホーム', guide: 'ガイド', quickStart: 'クイックスタート' }),
-        sidebar: sidebar('/ja', { home: 'ホーム', guide: 'ガイド', quickStart: 'クイックスタート' }),
-      },
+      themeConfig: themeFor('/ja', ja, 'ja'),
     },
   },
   themeConfig: {
     socialLinks: [
       { icon: 'github', link: 'https://github.com/EndlessPixel-Studio/FakePlayer-CE' },
     ],
+    footer: {
+      message: '"Minecraft" 和 "我的世界" 是 Mojang AB 的注册商标。本站与 Mojang 或 Microsoft 无任何关联。',
+      copyright: `Copyright © 2024-${new Date().getFullYear()} EndlessPixel Studio`,
+    },
+    editLink: {
+      pattern:
+        'https://github.com/EndlessPixel-Studio/FakePlayer-CE/edit/master/vitepress_docs/:path',
+      text: '在 GitHub 上编辑此页',
+    },
   },
 })

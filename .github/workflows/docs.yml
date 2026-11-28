@@ -5,6 +5,8 @@ on:
     branches: [master]
     paths:
       - 'vitepress_docs/**'
+      - 'vitepress_docs/package.json'
+      - 'vitepress_docs/package-lock.json'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
@@ -21,12 +23,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
+      - uses: actions/checkout@v7
+      - uses: actions/configure-pages@v6
         with:
           enablement: true
           static_site_generator: vitepress
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -37,7 +39,7 @@ jobs:
       - name: Build site
         working-directory: vitepress_docs
         run: npm run build
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: vitepress_docs/.vitepress/dist
 
@@ -49,4 +51,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

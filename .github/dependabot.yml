@@ -25,3 +25,14 @@ updates:
     commit-message:
       prefix: "ci"
       include: "scope"
+  - package-ecosystem: "npm"
+    directory: "/vitepress_docs"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    target-branch: "master"
+    labels:
+      - "dependency"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
