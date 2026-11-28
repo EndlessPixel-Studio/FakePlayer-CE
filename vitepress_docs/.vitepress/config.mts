@@ -31,7 +31,7 @@ const zh: Labels = {
   guide: '指南',
   quickStart: '快速开始',
   lastUpdated: '最后更新',
-  outline: '页面导航',
+  outline: '本页内容',
   prev: '上一页',
   next: '下一页',
   toTop: '返回顶部',
