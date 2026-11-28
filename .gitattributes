@@ -3,3 +3,6 @@
 *.py linguist-language=Python linguist-detectable=true
 *.md linguist-language=Markdown linguist-detectable=true
 docs/** linguist-documentation=true
+*.mts linguist-language=TypeScript linguist-detectable=true
+*.ts linguist-language=TypeScript linguist-detectable=true
+*.vue linguist-language=Vue linguist-detectable=true
