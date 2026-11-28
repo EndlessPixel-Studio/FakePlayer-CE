@@ -77,6 +77,8 @@
 
 在 `ai-chat.yml` 的 `models:` 下可配置多个模型，每项都能单独覆盖 `model`、`api`、`api-key`、`api-key-env`，未填写的继承顶层默认值；`active-model` 指定默认模型。OP 可用 `/fp aichat model <名称>` 在运行时切换，选择会写回 `ai-chat.yml`。
 
+背包上下文默认关闭：需同时打开 `ai-chat.yml` 的 `inventory-context.fakeplayer` / `inventory-context.questioner` 与对应玩家开关（假人看创建者的 `aichat_fake_inventory`，提问者看自己的 `aichat_questioner_inventory`，用 `/fp config set <项> true` 设置）。只有物品种类与数量会进入提示词。
+
 推荐开启 `auto-reply`：只在玩家说了值得回应的话时才接一句（短消息、纯符号与刷屏会先被过滤），由 `chance` 与 `cooldown-seconds` 控制频率。`continuous` 为定时发言，默认关闭，需要打开 `allow-continuous`。人设、提示词、上下文与节奏分别由 `system-prompt` / `turn-prompt` / `max-context` / `recent-chat-lines` / `interval-ticks` 控制。
 
 ## 指令列表
@@ -244,6 +246,8 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 | `replenish` | 自动补充消耗或使用完的物品 |
 | `replace_tools` | GCA 风格的工具替换 |
 | `autofish` | 是否开启自动钓鱼 |
+| `aichat_fake_inventory` | 是否允许 AI 读取假人背包（还需 `ai-chat.yml` 总开关） |
+| `aichat_questioner_inventory` | 是否允许 AI 读取提问玩家背包（还需 `ai-chat.yml` 总开关） |
 | `simulation_distance` | 假人的模拟距离（区块半径），`-1` 沿用世界设置 |
 
 - **`replace_tools`**：GCA 风格——非经验修补工具损坏后、经验修补工具磨损到 `tool-replacement.remaining-durability-threshold`（默认 `10`）以下时，若背包中有同类物品即更换，不看附魔。

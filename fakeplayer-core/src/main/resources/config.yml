@@ -12,7 +12,7 @@
 
 # DO NOT EDIT
 # 不要修改
-version: 40
+version: 41
 
 
 # ============================================================
@@ -286,6 +286,9 @@ default-features:
   replace_tools: false
   autofish: false
   wolverine: false
+  # AI 聊天是否可以把背包物品当作上下文 (还需要 ai-chat.yml 的 inventory-context 总开关开启)
+  aichat_fake_inventory: false
+  aichat_questioner_inventory: false
   # 假人的模拟距离 (以假人为中心的区块半径), -1 表示沿用世界设置
   # Simulation distance around the fake player in chunks; -1 keeps the world setting
   simulation_distance: -1

@@ -8,11 +8,14 @@ import io.github.hello09x.fakeplayer.api.spi.NMSBridge;
 import io.github.hello09x.fakeplayer.core.Main;
 import io.github.hello09x.fakeplayer.core.entity.Fakeplayer;
 import io.github.hello09x.fakeplayer.core.manager.FakeplayerList;
+import io.github.hello09x.fakeplayer.core.manager.feature.FakeplayerFeatureManager;
+import io.github.hello09x.fakeplayer.core.repository.model.Feature;
 import io.github.hello09x.fakeplayer.core.util.Schedulers;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.entity.Player;
@@ -38,6 +42,7 @@ public class AiChatManager {
   private final AiChatClient client;
   private final NMSBridge bridge;
   private final FakeplayerList fakeplayerList;
+  private final FakeplayerFeatureManager featureManager;
 
   private final AtomicLong lastAutoReplyAt = new AtomicLong(0);
 
@@ -53,16 +58,21 @@ public class AiChatManager {
 
   @Inject
   public AiChatManager(
-      AiChatConfig config, AiChatClient client, NMSBridge bridge, FakeplayerList fakeplayerList) {
+      AiChatConfig config,
+      AiChatClient client,
+      NMSBridge bridge,
+      FakeplayerList fakeplayerList,
+      FakeplayerFeatureManager featureManager) {
     this.config = config;
     this.client = client;
     this.bridge = bridge;
     this.fakeplayerList = fakeplayerList;
+    this.featureManager = featureManager;
   }
 
   /** 让假人说一句 (target 为空时发到公共聊天) */
   public void say(@NotNull Player fake, @Nullable Player target) {
-    this.generate(fake, target);
+    this.generate(fake, target, target);
   }
 
   /** 记录一条公共聊天, 供后续生成时参考 */
@@ -95,7 +105,7 @@ public class AiChatManager {
 
     var fake = this.pickFakeplayer();
     if (fake != null) {
-      this.generate(fake, null);
+      this.generate(fake, null, speaker);
     }
   }
 
@@ -153,12 +163,12 @@ public class AiChatManager {
     var ticks = intervalTicks == null ? config.getIntervalTicks() : Math.max(1, intervalTicks);
     var task =
         Schedulers.entityTimer(
-            Main.getInstance(), fake, ticks, ticks, () -> this.generate(fake, target));
+            Main.getInstance(), fake, ticks, ticks, () -> this.generate(fake, target, target));
     if (task != null) {
       this.tasks.put(fake.getUniqueId(), task);
     }
 
-    this.generate(fake, target);
+    this.generate(fake, target, target);
   }
 
   /**
@@ -178,7 +188,8 @@ public class AiChatManager {
     this.histories.remove(fake.getUniqueId());
   }
 
-  private void generate(@NotNull Player fake, @Nullable Player target) {
+  private void generate(
+      @NotNull Player fake, @Nullable Player target, @Nullable Player questioner) {
     var model = config.resolveActiveModel();
     if (model == null) {
       return;
@@ -208,11 +219,17 @@ public class AiChatManager {
     synchronized (history) {
       messages.addAll(history);
     }
-    messages.add(ChatMessage.user(turn));
 
     final CompletableFuture<String> pending;
     try {
-      pending = this.client.complete(config, model, messages);
+      pending =
+          this.appendInventoryContext(messages, fake, questioner)
+              .thenApply(
+                  ignored -> {
+                    messages.add(ChatMessage.user(turn));
+                    return messages;
+                  })
+              .thenCompose(all -> this.client.complete(config, model, all));
     } catch (RuntimeException e) {
       // 同步抛出的异常 (例如构造请求体时出错) 也要归还 inFlight, 否则这个假人再也不会开口
       this.inFlight.remove(id);
@@ -239,6 +256,61 @@ public class AiChatManager {
 
           Schedulers.runFor(Main.getInstance(), fake, () -> this.deliver(fake, target, reply));
         });
+  }
+
+  private @NotNull CompletableFuture<Void> appendInventoryContext(
+      @NotNull List<ChatMessage> messages, @NotNull Player fake, @Nullable Player questioner) {
+    CompletableFuture<String> fakeSummary = CompletableFuture.completedFuture(null);
+    if (config.isInventoryContextFakeplayer() && this.allowsFakeInventory(fake)) {
+      fakeSummary = Schedulers.callEntity(Main.getInstance(), fake, () -> inventorySummary(fake));
+    }
+
+    CompletableFuture<String> questionerSummary = CompletableFuture.completedFuture(null);
+    if (config.isInventoryContextQuestioner()
+        && questioner != null
+        && questioner.isOnline()
+        && featureManager.getFeature(questioner, Feature.aichat_questioner_inventory).asBoolean()) {
+      questionerSummary =
+          Schedulers.callEntity(Main.getInstance(), questioner, () -> inventorySummary(questioner));
+    }
+
+    return fakeSummary
+        .exceptionally(error -> null)
+        .thenAcceptBoth(
+            questionerSummary.exceptionally(error -> null),
+            (fakeText, questionerText) -> {
+              if (fakeText != null) {
+                messages.add(ChatMessage.system("假人的背包物品: " + fakeText));
+              }
+              if (questionerText != null) {
+                messages.add(ChatMessage.system("提问玩家的背包物品: " + questionerText));
+              }
+            });
+  }
+
+  private boolean allowsFakeInventory(@NotNull Player fake) {
+    var owner = fakeplayerList.getByUUID(fake.getUniqueId());
+    if (owner == null || !(owner.getCreator() instanceof Player creator)) {
+      // 控制台创建的假人没有个人配置, 只由全局开关决定
+      return true;
+    }
+    return featureManager.getFeature(creator, Feature.aichat_fake_inventory).asBoolean();
+  }
+
+  private static @NotNull String inventorySummary(@NotNull Player player) {
+    var counts = new LinkedHashMap<String, Integer>();
+    for (var item : player.getInventory().getContents()) {
+      if (item == null || item.getType().isAir()) {
+        continue;
+      }
+      counts.merge(item.getType().getKey().getKey(), item.getAmount(), Integer::sum);
+    }
+    if (counts.isEmpty()) {
+      return "空";
+    }
+    return counts.entrySet().stream()
+        .map(entry -> entry.getKey() + " x" + entry.getValue())
+        .collect(Collectors.joining(", "));
   }
 
   private @NotNull List<String> recentChatSnapshot() {

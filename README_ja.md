@@ -77,6 +77,8 @@
 
 `ai-chat.yml` の `models:` に複数のモデルを定義できます。各項目は `model` / `api` / `api-key` / `api-key-env` を個別に上書きでき、未設定の項目はトップレベルの値を継承します。`active-model` が既定モデルで、OP は `/fp aichat model <名前>` で実行時に切り替えられます（選択は `ai-chat.yml` に保存されます）。
 
+インベントリの共有は既定でオフです。`ai-chat.yml` の `inventory-context.fakeplayer` / `inventory-context.questioner` と、対応する個人設定（偽プレイヤーは作成者の `aichat_fake_inventory`、質問者は自分の `aichat_questioner_inventory` を `/fp config set <項目> true` で有効化）の両方をオンにする必要があります。プロンプトにはアイテムの種類と個数のみが渡されます。
+
 推奨は `auto-reply` です。プレイヤーが反応に値する発言をしたときだけ返答し、短すぎる発言・記号だけの発言・連投は事前に除外されます。頻度は `chance` と `cooldown-seconds` で調整します。`continuous` はタイマー発言で、既定では無効、`allow-continuous: true` が必要です。人設・プロンプト・保持する文脈・発言間隔は `system-prompt` / `turn-prompt` / `max-context` / `recent-chat-lines` / `interval-ticks` で設定します。
 
 ## コマンド一覧
@@ -241,6 +243,8 @@ curl -G -H "Authorization: Bearer $TOKEN" "$API/say" --data-urlencode "name=klmg
 | `replenish` | 消費・使用したアイテムを自動補充 |
 | `replace_tools` | GCA 風のツール交換 |
 | `autofish` | 自動釣りを有効化 |
+| `aichat_fake_inventory` | AI が偽プレイヤーのインベントリを読むことを許可（`ai-chat.yml` の切り替えも必要） |
+| `aichat_questioner_inventory` | AI が質問者のインベントリを読むことを許可（`ai-chat.yml` の切り替えも必要） |
 | `simulation_distance` | 偽プレイヤーのシミュレーション距離（チャンク半径）。`-1` でワールド設定を使用 |
 
 - **`replace_tools`**：GCA 風。修繕なしのツールは破損後に、修繕付きのツールは `tool-replacement.remaining-durability-threshold`（既定 `10`）を下回ったときに、インベントリ内の同種アイテムと交換します。エンチャントは考慮しません。
