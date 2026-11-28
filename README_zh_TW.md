@@ -62,7 +62,7 @@
 
 **依權限設定假人上限**：`player-limit` 是預設上限；在 `spawn-limit` 下設定如 `vip: 10`，並給玩家 `fakeplayer.spawn.limit.vip` 權限。命中多個權限時取最大值；OP 不受上限限制，`detect-ip` 仍按全域 `player-limit` 計算。
 
-**可選依賴不打包**：Undertow（HTTP 介面）與 MySQL 驅動不在 jar 內；開啟對應功能後啟動時會自動下載到 `plugins/FakePlayer-CE/libs`。在 JVM 參數加入 `-DLeaf.library-download-repo=https://maven.aliyun.com/repository/public` 可改用鏡像來源（預設 Maven 中央倉庫）；只接受 `http(s)` 位址，下載路徑被限制在 `libs` 目錄內。
+**可選依賴不打包**：Undertow（HTTP 介面）與 MySQL 驅動不在 jar 內；開啟對應功能後啟動時會自動下載到 `plugins/FakePlayer-CE/libs`。在 JVM 參數加入 `-DLeaf.library-download-repo=https://maven.aliyun.com/repository/public` 可改用鏡像來源（預設 Maven 中央倉庫）；只接受 `http(s)` 位址，下載路徑被限制在 `libs` 目錄內。參見 [Leaf JVM 參數文件](https://www.leafmc.one/zh/docs/config/jvm-flags#-dleaflibrary-download-repo)。
 
 ## 資料庫
 

@@ -62,7 +62,7 @@
 
 **権限別の生成上限**：`player-limit` は全員の既定値です。`spawn-limit` にたとえば `vip: 10` を追加し、`fakeplayer.spawn.limit.vip` 権限を付与してください。複数一致した場合は最大値を採用します。OP は上限の対象外で、`detect-ip` は引き続き全体の `player-limit` を使います。
 
-**任意依存は同梱しません**：Undertow（HTTP 管理 API）と MySQL ドライバーは jar に含まれず、機能を有効にすると起動時に `plugins/FakePlayer-CE/libs` へ自動ダウンロードされます。JVM オプションに `-DLeaf.library-download-repo=https://maven.aliyun.com/repository/public` を指定するとミラーを使用できます（既定は Maven Central）。`http(s)` のみ許可し、保存先は `libs` 内に限定されます。
+**任意依存は同梱しません**：Undertow（HTTP 管理 API）と MySQL ドライバーは jar に含まれず、機能を有効にすると起動時に `plugins/FakePlayer-CE/libs` へ自動ダウンロードされます。JVM オプションに `-DLeaf.library-download-repo=https://maven.aliyun.com/repository/public` を指定するとミラーを使用できます（既定は Maven Central）。`http(s)` のみ許可し、保存先は `libs` 内に限定されます。詳細は [Leaf の JVM フラグ文档](https://www.leafmc.one/zh/docs/config/jvm-flags#-dleaflibrary-download-repo) を参照してください。
 
 ## データベース
 
