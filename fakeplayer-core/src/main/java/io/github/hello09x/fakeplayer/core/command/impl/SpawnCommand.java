@@ -10,6 +10,7 @@ import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.hello09x.devtools.command.exception.CommandException;
 import io.github.hello09x.devtools.command.exception.HandleCommandException;
 import io.github.hello09x.fakeplayer.core.Main;
+import io.github.hello09x.fakeplayer.core.command.Permission;
 import io.github.hello09x.fakeplayer.core.entity.FakeplayerTicker;
 import io.github.hello09x.fakeplayer.core.i18n.LangUtils;
 import io.github.hello09x.fakeplayer.core.util.Mth;
@@ -51,8 +52,12 @@ public class SpawnCommand extends AbstractCommand {
   @HandleCommandException
   public void spawn(@NotNull CommandSender sender, @NotNull CommandArguments args) {
     var name = (String) args.get("name");
-    if (name != null && name.isEmpty()) {
+    if (name != null && (name.isEmpty() || name.equals("-"))) {
+      // "-" 让只有 spawn.location 权限的玩家也能跳过名称参数去指定坐标
       name = null;
+    }
+    if (name != null && !sender.hasPermission(Permission.spawnName)) {
+      throw new CommandException(translatable("fakeplayer.command.spawn.error.no-permission-name"));
     }
     this.spawn(sender, name, this.resolveSpawnpoint(sender, args), null);
   }
@@ -80,12 +85,20 @@ public class SpawnCommand extends AbstractCommand {
       @NotNull CommandSender sender, @NotNull CommandArguments args) {
     var world = (World) args.get("world");
     var location = (Location) args.get("location");
-    if (world == null || location == null) {
-      return sender instanceof Player p
-          ? p.getLocation().clone()
-          : Bukkit.getWorlds().get(0).getSpawnLocation().clone();
+    if ((world != null || location != null) && !sender.hasPermission(Permission.spawnLocation)) {
+      throw new CommandException(
+          translatable("fakeplayer.command.spawn.error.no-permission-location"));
     }
-    return new Location(world, location.getX(), location.getY(), location.getZ());
+    if (world != null && location != null) {
+      return new Location(world, location.getX(), location.getY(), location.getZ());
+    }
+    if (world != null) {
+      // 只给了世界时用该世界的出生点, 不能静默忽略世界
+      return world.getSpawnLocation().clone();
+    }
+    return sender instanceof Player p
+        ? p.getLocation().clone()
+        : Bukkit.getWorlds().get(0).getSpawnLocation().clone();
   }
 
   /** 普通 /fp spawn 使用配置里的寿命; /fp spawnjson 走 spawnWithOptions */
