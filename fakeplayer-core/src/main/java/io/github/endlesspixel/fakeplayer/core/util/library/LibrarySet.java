@@ -19,7 +19,11 @@ public enum LibrarySet {
           "io.smallrye.common:smallrye-common-annotation:2.14.0",
           "io.smallrye.common:smallrye-common-constraint:2.14.0",
           "io.smallrye.common:smallrye-common-cpu:2.14.0",
+          "io.smallrye.common:smallrye-common-expression:2.14.0",
           "io.smallrye.common:smallrye-common-function:2.14.0",
+          "io.smallrye.common:smallrye-common-net:2.14.0",
+          "io.smallrye.common:smallrye-common-os:2.14.0",
+          "io.smallrye.common:smallrye-common-ref:2.14.0",
           "io.undertow:undertow-core:2.4.4.Final")),
 
   MYSQL(
