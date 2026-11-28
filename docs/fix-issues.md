@@ -35,7 +35,7 @@
 - [tanyaofei/minecraft-fakeplayer Issue #200](https://github.com/tanyaofei/minecraft-fakeplayer/issues/200)
 - [tanyaofei/minecraft-fakeplayer Issue #201](https://github.com/tanyaofei/minecraft-fakeplayer/issues/201)
 - [tanyaofei/minecraft-fakeplayer Issue #203](https://github.com/tanyaofei/minecraft-fakeplayer/issues/203)
-- [tanyaofei/minecraft-fakeplayer Issue #144](https://github.com/tanyaofei/minecraft-fakeplayer/issues/144) (新增 `name-suffix` 名称后缀配置)
+- [tanyaofei/minecraft-fakeplayer Issue #144](https://github.com/tanyaofei/minecraft-fakeplayer/issues/144)
 
 ## xiplugin/FakePlayer
 - [xiplugin/FakePlayer commit 9d21b2c](https://github.com/xiplugin/FakePlayer/commit/9d21b2c8f410729c5d2e30ff71d3bf972c34dcbe)
