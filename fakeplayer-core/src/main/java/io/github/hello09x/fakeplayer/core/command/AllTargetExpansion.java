@@ -3,6 +3,7 @@ package io.github.hello09x.fakeplayer.core.command;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.commandsenders.AbstractCommandSender;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.CommandArguments;
 import dev.jorel.commandapi.executors.ExecutionInfo;
@@ -50,19 +51,19 @@ public class AllTargetExpansion {
     if (executor == null) {
       return;
     }
-    var normal = executor.getNormalExecutors();
-    if (!normal.isEmpty()) {
-      executor.setNormalExecutors(
-          normal.stream()
-              .map(delegate -> (NormalExecutor) new NormalWrapper(delegate, this))
-              .toList());
+    var normal = new ArrayList<NormalExecutor>();
+    for (var delegate : executor.getNormalExecutors()) {
+      normal.add(new NormalWrapper(delegate, this));
     }
-    var resulting = executor.getResultingExecutors();
+    if (!normal.isEmpty()) {
+      executor.setNormalExecutors((List) normal);
+    }
+    var resulting = new ArrayList<ResultingExecutor>();
+    for (var delegate : executor.getResultingExecutors()) {
+      resulting.add(new ResultingWrapper(delegate, this));
+    }
     if (!resulting.isEmpty()) {
-      executor.setResultingExecutors(
-          resulting.stream()
-              .map(delegate -> (ResultingExecutor) new ResultingWrapper(delegate, this))
-              .toList());
+      executor.setResultingExecutors((List) resulting);
     }
   }
 
@@ -83,7 +84,7 @@ public class AllTargetExpansion {
       expanded.add(
           new SimpleExecutionInfo(
               info.sender(),
-              info.senderWrapper(),
+              (AbstractCommandSender<?>) info.senderWrapper(),
               new CommandArguments(args.args(), values, args.rawArgs(), raw, args.fullInput())));
     }
     return expanded;
@@ -139,7 +140,7 @@ public class AllTargetExpansion {
     }
   }
 
-  @SuppressWarnings("rawtypes")
-  private record SimpleExecutionInfo(Object sender, Object senderWrapper, CommandArguments args)
-      implements ExecutionInfo {}
+  private record SimpleExecutionInfo(
+      Object sender, AbstractCommandSender<?> senderWrapper, CommandArguments args)
+      implements ExecutionInfo<Object, AbstractCommandSender<?>> {}
 }
